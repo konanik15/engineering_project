@@ -1,7 +1,9 @@
 Praca Inżynierska
 
-Baza wiedzy, część dokumentacji, taki dropbox for stuff
+Dokuemnty-Wytyczne - Baza wiedzy, część dokumentacji, taki dropbox for stuff
 
+coop-app-ui - frontend appki
+    Aby uruchomić wejść do folderu coop-app-ui i wpisać: ng serve --open
 
 
 
