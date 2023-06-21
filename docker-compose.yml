@@ -31,25 +31,40 @@ services:
     depends_on:
       - postgres
 
-  angular-service:
-    container_name: angular-service-container
+  frontend-service:
+    container_name: frontend-core
     build: ./coop-app-ui
     volumes:
       - './coop-app-ui:/usr/src/app'
     ports:
       - "4200:4200"
 
-#  mongodb:
-#    container_name: mongodb
-#    image: mongo:5.0
-#      # ports:
-#    # - "${MONGO_PORT}:27017"
+  #  mongodb:
+  #    container_name: mongodb
+  #    image: mongo:5.0
+  #      # ports:
+  #    # - "${MONGO_PORT}:27017"
+  #    environment:
+  #      - MONGO_INITDB_DATABASE=${MONGO_DB}
+  #      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+  #      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+  #    volumes:
+  #      - ./services/mongodb/data:/data/db:rw
+  #    command:
+  #      - '--logpath'
+  #      - '/dev/null'
+
+  backend-service:
+    container_name: backend-core
+    build: ./coop-app-backend
+    ports:
+      - "${BACKEND_PORT}:4201"
 #    environment:
-#      - MONGO_INITDB_DATABASE=${MONGO_DB}
-#      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-#      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-#    volumes:
-#      - ./services/mongodb/data:/data/db:rw
-#    command:
-#      - '--logpath'
-#      - '/dev/null'
+#      - MONGO_HOSTNAME=mongodb
+#      - MONGO_PORT=27017
+#      - MONGO_DB=${MONGO_DB}
+#      - MONGO_USERNAME=${MONGO_USERNAME}
+#      - MONGO_PASSWORD=${MONGO_PASSWORD}
+#      - DEBUG_LOG=false
+#    depends_on:
+#      - mongodb

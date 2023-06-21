@@ -1,13 +1,22 @@
 FROM node:latest as build
 
-RUN mkdir /usr/src/app
-WORKDIR /usr/local/app
 
-RUN npm install -g @angular/cli
+WORKDIR /docker_app
 
-COPY ./ /usr/local/app/
+COPY ./package*.json ./
 
-CMD ng serve --host 0.0.0.0 --port 4200
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "start"]
 
 
-
+##stage 1
+#FROM node:latest as node
+#WORKDIR /app
+#COPY . .
+#RUN npm install
+#RUN npm run build --prod#stage 2
+#FROM nginx:alpine
+#COPY --from=node /app/dist/demo-app /usr/share/nginx/html
