@@ -39,3 +39,17 @@ services:
     ports:
       - "4200:4200"
 
+#  mongodb:
+#    container_name: mongodb
+#    image: mongo:5.0
+#      # ports:
+#    # - "${MONGO_PORT}:27017"
+#    environment:
+#      - MONGO_INITDB_DATABASE=${MONGO_DB}
+#      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+#      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+#    volumes:
+#      - ./services/mongodb/data:/data/db:rw
+#    command:
+#      - '--logpath'
+#      - '/dev/null'

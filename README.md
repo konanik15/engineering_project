@@ -1,11 +1,27 @@
-Praca Inżynierska
+# Engineering project
 
-Dokuemnty-Wytyczne - Baza wiedzy, część dokumentacji, taki dropbox for stuff
+This repo is dedicated to realization of engineering thesis. Main theme of thesis is "Web app platform for multiplayer games".
+It's focused on card games. One of the main point of this app is to implement modular games to simplify futher addition of other games. 
+By implementing main interface "Game Core" and avoid duplication of code for common functionalities like finishing game, entering game etc.
 
-coop-app-ui - frontend appki
-    Aby uruchomić wejść do folderu coop-app-ui i wpisać: ng serve --open
+## How to run
+
+* You need docker installed on your machine
+* Clone git repo and write `docker-compose up`
 
 
+## Architecture and description
+
+For app will be devided into 3 services
+
+* coop-app-ui - frontend
+* keycloak - authorization mode
+* some node js -backend
+
+## Docker config info
+
+* Keycloak is listening on 8080.
+* Frontend app is listening on 4200.
 
 
 
