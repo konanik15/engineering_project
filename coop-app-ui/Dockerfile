@@ -1,22 +1,15 @@
-FROM node:latest as build
+# base image
+FROM node:12.2.0
 
-
-WORKDIR /docker_app
-
-COPY ./package*.json ./
-
+# set working directory
+WORKDIR /app
+# install and cache app dependencies
+COPY package.json /app/package.json
 RUN npm install
+RUN npm install -g @angular/cli@7.3.10
 
-COPY . .
+# add app
+COPY . /app
 
-CMD ["npm", "start"]
-
-
-##stage 1
-#FROM node:latest as node
-#WORKDIR /app
-#COPY . .
-#RUN npm install
-#RUN npm run build --prod#stage 2
-#FROM nginx:alpine
-#COPY --from=node /app/dist/demo-app /usr/share/nginx/html
+# start app
+CMD ng serve --host 0.0.0.0
