@@ -1,3 +1,5 @@
+##TODO FIX DOCERIZING ANGULR APP
+
 # base image
 FROM node:12.2.0
 

@@ -5,10 +5,19 @@ volumes:
     driver: local
 
 services:
+  echo:
+    build: ./echo
+    ports:
+      - "10100:8080"
+    depends_on:
+      - keycloak
+
   postgres:
     image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "10101:5432"
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -27,17 +36,18 @@ services:
       # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
       #JDBC_PARAMS: "ssl=true"
     ports:
-      - "8080:8080"
+      - "10102:8080"
+      - "10103:8787"
     depends_on:
       - postgres
-
-  frontend-service:
-    container_name: frontend-core
-    build:
-      context: ./coop-app-ui
-      dockerfile: Dockerfile
-    ports:
-      - "4201:4201"
-    volumes:
-      - ./app:/usr/src/app/app-ui
-      - /usr/src/app/app/node_modules
+# TODO FIX DOCKERIZED ANGULAR APP
+#  frontend-service:
+#    container_name: frontend-core
+#    build:
+#      context: ./coop-app-ui
+#      dockerfile: Dockerfile
+#    ports:
+#      - "4201:4201"
+#    volumes:
+#      - ./app:/usr/src/app/app-ui
+#      - /usr/src/app/app/node_modules
