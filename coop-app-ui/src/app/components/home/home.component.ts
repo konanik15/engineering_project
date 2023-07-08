@@ -1,4 +1,5 @@
 import {Component} from '@angular/core';
+import {HomeService} from "./home-service";
 
 @Component({
   selector: 'app-home',
@@ -6,5 +7,11 @@ import {Component} from '@angular/core';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
+  constructor(public homeService: HomeService) {
+  }
 
+
+  sendMessage() {
+    this.homeService.sendMessage()
+  }
 }

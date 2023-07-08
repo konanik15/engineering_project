@@ -6,24 +6,32 @@ import {AppComponent} from './app.component';
 import {NavbarComponent} from './components/navbar/navbar.component';
 import {HomeComponent} from './components/home/home.component';
 import {WelcomeComponent} from './components/welcome/welcome.component';
-import {HttpClientModule} from "@angular/common/http";
+import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {OAuthModule} from "angular-oauth2-oidc";
+import {AuthInterceptor} from "./AuthInterceptor";
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        NavbarComponent,
-        HomeComponent,
-        WelcomeComponent
-    ],
-    imports: [
-        BrowserModule,
-        HttpClientModule,
-        OAuthModule.forRoot(),
-        AppRoutingModule,
+  declarations: [
+    AppComponent,
+    NavbarComponent,
+    HomeComponent,
+    WelcomeComponent
+  ],
+  imports: [
+    BrowserModule,
+    HttpClientModule,
+    OAuthModule.forRoot(),
+    AppRoutingModule,
 
-    ],
-    bootstrap: [AppComponent]
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
+  bootstrap: [AppComponent]
 })
 export class AppModule {
 }
