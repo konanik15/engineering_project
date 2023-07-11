@@ -2,10 +2,17 @@ const axios = require("axios");
 const jwt = require('jsonwebtoken');
 let publicKey;
 
+const kcRealm = process.env.KEYCLOAK_REALM;
+const kcHost = process.env.KEYCLOAK_HOST;
+const kcPort = process.env.KEYCLOAK_PORT || "8080";
+
 async function init() {
+    if (!kcRealm || !kcHost)
+        throw new Error("Keycloak environment variables are missing. KEYCLOAK_REALM and KEYCLOAK_HOST are required.");
+
     console.log("Obtaining public key from keycloak...");
     while (!publicKey) {
-        await axios.get("http://keycloak:8080/auth/realms/Cardz") //pass domain and realm id as envs not to hardcode the url
+        await axios.get(`http://${kcHost}:${kcPort}/auth/realms/${kcRealm}`)
         .then((response) => {
             if (response.status !== 200 || !response.data || !response.data.public_key)
                 throw new Error("Invalid kc response", { cause: response });
