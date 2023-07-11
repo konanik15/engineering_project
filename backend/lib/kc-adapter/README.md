@@ -2,6 +2,11 @@
 This is a poor man's keycloak adapter with very rudimental functionality. It is meant to be used on backend to verify jwt tokens provided by keycloak and protect backend endpoints. It provides straightforward middleware for express and express-ws.
 
 # Usage
+Provide the following environment variables to your app:
+- KEYCLOAK_HOST - address to the kc instance
+- KEYCLOAK_PORT - port of the kc API
+- KEYCLOAK_REALM - name of the realm in your kc instance where users are created
+
 Import it to your app:
 ```js
 const keycloak = require("kc-adapter");

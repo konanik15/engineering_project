@@ -1,6 +1,6 @@
 {
   "name": "kc-adapter",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A poor man's test keycloak adapter package. Don't use it. Seriously.",
   "main": "kc-adapter.js",
   "keywords": [],
