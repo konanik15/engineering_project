@@ -23,6 +23,11 @@ For app will be devided into 3 services
 * Keycloak is listening on 8080.
 * Frontend app is listening on 4200.
 
+## TODO
+### Keycloak
+- configure sensible session and token expiration times for production later on, now they are practically endless for dev/debug purposes
+- figure out how to set client secret so it's not hardcoded in the realm json file
+- figure out how to set up a docker healthcheck
 
 
 
