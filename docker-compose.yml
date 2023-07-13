@@ -32,6 +32,14 @@ services:
         - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
         - ./backend/services/mongo/data:/data/db:rw
 
+  redis:
+    image: redis:6
+    command: /bin/sh -c "redis-server --requirepass $$PASSWORD"
+    environment:
+      PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - ${REDIS_MAPPED_PORT}:6379
+
   keycloak:
     build: ./backend/services/keycloak #using custom kc build in order to install curl into container
     command: ["start-dev", "--import-realm"] #sort out how to setup kc configuration for production later
