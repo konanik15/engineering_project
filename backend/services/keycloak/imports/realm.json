@@ -1,6 +1,6 @@
 {
   "id": "1966cf0d-a998-4e18-8a98-dbd0e9ddbc62",
-  "realm": "Cardz",
+  "realm": "cardz",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -494,13 +494,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/Cardz/account/",
+      "baseUrl": "/realms/cardz/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/Cardz/account/*"
+        "/realms/cardz/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -538,13 +538,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/Cardz/account/",
+      "baseUrl": "/realms/cardz/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/Cardz/account/*"
+        "/realms/cardz/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -812,13 +812,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/Cardz/console/",
+      "baseUrl": "/admin/cardz/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/Cardz/console/*"
+        "/admin/cardz/console/*"
       ],
       "webOrigins": [
         "+"
