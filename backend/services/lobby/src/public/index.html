@@ -5,7 +5,6 @@
 </head>
 <body>
   <h1>Game Lobby</h1>
-  <div id="messages"></div>
   <div id="player-list"></div>
   <input type="text" id="name" placeholder="Enter your name">
   <button onclick="joinLobby()">Join</button>
@@ -13,14 +12,30 @@
     <input type="text" id="chat-message" placeholder="Enter your message">
     <button onclick="sendChatMessage()">Send</button>
   </div>
-  <div id="chat-messages"></div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="join-leave-messages" id="join-leave-messages"></div>
 
+  <style>
+    .chat-messages {
+      float: left;
+    }
+    .join-leave-messages {
+      float: right;
+    }
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
   <script>
     const socket = io();
 
-    socket.on('message', (message) => {
-      const messages = document.getElementById('messages');
+    socket.on('chatMessage', (message) => {
+      const messages = document.getElementById('chat-messages');
+      const p = document.createElement('p');
+      p.textContent = message;
+      messages.appendChild(p);
+    });
+
+    socket.on('joinMessage', (message) => {
+      const messages = document.getElementById('join-leave-messages');
       const p = document.createElement('p');
       p.textContent = message;
       messages.appendChild(p);
@@ -28,7 +43,7 @@
 
     socket.on('playerList', (players) => {
       const playerList = document.getElementById('player-list');
-      playerList.innerHTML = '';
+      playerList.innerHTML = '<h2>Player list:</h2>';
 
       players.forEach((player) => {
         const p = document.createElement('p');
@@ -39,7 +54,7 @@
 
     socket.on('chatHistory', (chatHistory) => {
       const chatMessages = document.getElementById('chat-messages');
-      chatMessages.innerHTML = '';
+      chatMessages.innerHTML = '<h2>Chat: </h2>';
 
       chatHistory.forEach((message) => {
         const p = document.createElement('p');

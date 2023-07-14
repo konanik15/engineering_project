@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
   socket.on('join', (name) => {
     const player = Array.from(players.values()).find((p) => p.id === socket.id);
     if (player) {
-      io.emit('message', `${player.name} joined the lobby`);
+      io.emit('joinMessage', `${player.name} joined the lobby`);
       socket.broadcast.emit('playerList', Array.from(players.values())); 
 
       socket.emit('chatHistory', chatHistory);
@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
     if (player) {
       const chatMessage = `${player.name}: ${message}`;
       chatHistory.push(chatMessage);
-      io.emit('message', chatMessage);
+      io.emit('chatMessage', chatMessage);
     }
   });
 
@@ -61,7 +61,7 @@ io.on('connection', (socket) => {
     const player = Array.from(players.values()).find((p) => p.id === socket.id);
     if (player) {
       players.delete(socket.id);
-      io.emit('message', `${player.name} left the lobby`);
+      io.emit('joinMessage', `${player.name} left the lobby`);
       io.emit('playerList', Array.from(players.values())); 
     }
   });
