@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game Lobby</title>
+</head>
+<body>
+  <h1>Game Lobby</h1>
+  <div id="messages"></div>
+  <div id="player-list"></div>
+  <input type="text" id="name" placeholder="Enter your name">
+  <button onclick="joinLobby()">Join</button>
+  <div>
+    <input type="text" id="chat-message" placeholder="Enter your message">
+    <button onclick="sendChatMessage()">Send</button>
+  </div>
+  <div id="chat-messages"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.on('message', (message) => {
+      const messages = document.getElementById('messages');
+      const p = document.createElement('p');
+      p.textContent = message;
+      messages.appendChild(p);
+    });
+
+    socket.on('playerList', (players) => {
+      const playerList = document.getElementById('player-list');
+      playerList.innerHTML = '';
+
+      players.forEach((player) => {
+        const p = document.createElement('p');
+        p.textContent = player.name;
+        playerList.appendChild(p);
+      });
+    });
+
+    socket.on('chatHistory', (chatHistory) => {
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML = '';
+
+      chatHistory.forEach((message) => {
+        const p = document.createElement('p');
+        p.textContent = message;
+        chatMessages.appendChild(p);
+      });
+    });
+
+    function joinLobby() {
+      const nameInput = document.getElementById('name');
+      const name = nameInput.value.trim();
+      if (name) {
+        fetch('/api/players', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Socket-ID': socket.id
+          },
+          body: JSON.stringify({ name })
+        })
+          .then((response) => {
+            if (response.status === 409) {
+              throw new Error('Player with the same name already exists');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data.message);
+            socket.emit('join', name);
+            nameInput.value = '';
+          })
+          .catch((error) => {
+            console.error('Error:', error.message);
+          });
+      }
+    }
+
+    function sendChatMessage() {
+      const messageInput = document.getElementById('chat-message');
+      const message = messageInput.value.trim();
+      if (message) {
+        socket.emit('chatMessage', message);
+        messageInput.value = '';
+      }
+    }
+  </script>
+</body>
+</html>
