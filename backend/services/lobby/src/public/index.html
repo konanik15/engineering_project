@@ -1,105 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Game Lobby</title>
+  <title>Main Menu</title>
+  <style>
+    /* Add your custom CSS styles here */
+  </style>
 </head>
 <body>
-  <h1>Game Lobby</h1>
-  <div id="player-list"></div>
-  <input type="text" id="name" placeholder="Enter your name">
-  <button onclick="joinLobby()">Join</button>
-  <div>
-    <input type="text" id="chat-message" placeholder="Enter your message">
-    <button onclick="sendChatMessage()">Send</button>
+  <h1>Main Menu</h1>
+  <div id="lobbyList">
+    <h2>Lobbies:</h2>
+    <ul id="lobbies"></ul>
   </div>
-  <div class="chat-messages" id="chat-messages"></div>
-  <div class="join-leave-messages" id="join-leave-messages"></div>
+  <div id="createLobby">
+    <h2>Create Lobby:</h2>
+    <form id="createLobbyForm">
+      <input type="text" id="lobbyNameInput" placeholder="Lobby Name" required />
+      <button type="submit">Create</button>
+    </form>
+  </div>
 
-  <style>
-    .chat-messages {
-      float: left;
-    }
-    .join-leave-messages {
-      float: right;
-    }
-  </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
-    socket.on('chatMessage', (message) => {
-      const messages = document.getElementById('chat-messages');
-      const p = document.createElement('p');
-      p.textContent = message;
-      messages.appendChild(p);
-    });
-
-    socket.on('joinMessage', (message) => {
-      const messages = document.getElementById('join-leave-messages');
-      const p = document.createElement('p');
-      p.textContent = message;
-      messages.appendChild(p);
-    });
-
-    socket.on('playerList', (players) => {
-      const playerList = document.getElementById('player-list');
-      playerList.innerHTML = '<h2>Player list:</h2>';
-
-      players.forEach((player) => {
-        const p = document.createElement('p');
-        p.textContent = player.name;
-        playerList.appendChild(p);
+    // Function to update the lobby list
+    function updateLobbyList(lobbies) {
+      const lobbyList = document.getElementById('lobbies');
+      lobbyList.innerHTML = '';
+      lobbies.forEach((lobby) => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `/lobbies/${lobby.id}`;
+        link.textContent = lobby.name;
+        li.appendChild(link);
+        lobbyList.appendChild(li);
       });
-    });
+    }
 
-    socket.on('chatHistory', (chatHistory) => {
-      const chatMessages = document.getElementById('chat-messages');
-      chatMessages.innerHTML = '<h2>Chat: </h2>';
-
-      chatHistory.forEach((message) => {
-        const p = document.createElement('p');
-        p.textContent = message;
-        chatMessages.appendChild(p);
-      });
-    });
-
-    function joinLobby() {
-      const nameInput = document.getElementById('name');
-      const name = nameInput.value.trim();
-      if (name) {
-        fetch('/api/players', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Socket-ID': socket.id
-          },
-          body: JSON.stringify({ name })
+    // Function to fetch the lobby list from the server
+    function fetchLobbyList() {
+      fetch('/api/lobbies')
+        .then((response) => response.json())
+        .then((lobbies) => {
+          updateLobbyList(lobbies);
         })
-          .then((response) => {
-            if (response.status === 409) {
-              throw new Error('Player with the same name already exists');
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log(data.message);
-            socket.emit('join', name);
-            nameInput.value = '';
-          })
-          .catch((error) => {
-            console.error('Error:', error.message);
-          });
-      }
+        .catch((error) => {
+          console.error('Failed to fetch lobby list:', error);
+        });
     }
 
-    function sendChatMessage() {
-      const messageInput = document.getElementById('chat-message');
-      const message = messageInput.value.trim();
-      if (message) {
-        socket.emit('chatMessage', message);
-        messageInput.value = '';
-      }
+    // Function to handle the create lobby form submission
+    function handleCreateLobbyFormSubmit(event) {
+      event.preventDefault();
+      const lobbyNameInput = document.getElementById('lobbyNameInput');
+      const name = lobbyNameInput.value;
+      lobbyNameInput.value = '';
+      fetch('/api/lobbies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name })
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          const { message, lobbyId } = data;
+          if (message === 'Lobby created successfully') {
+            window.location.href = `/lobbies/${lobbyId}`;
+          } else {
+            console.error('Failed to create lobby:', message);
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to create lobby:', error);
+        });
     }
+
+    // Event listener for the create lobby form submission
+    document.getElementById('createLobbyForm').addEventListener('submit', handleCreateLobbyFormSubmit);
+
+    // Listen for lobby updates
+    socket.on('lobbyUpdated', (lobby) => {
+      fetchLobbyList();
+    });
+
+    // Request the lobby list from the server upon page load
+    fetchLobbyList();
+
+    // Connect to the websocket server
+    socket.on('connect', () => {
+      console.log('Connected to websocket server');
+
+      // Join the main menu lobby
+      socket.emit('join', { lobbyId: 'mainMenu' });
+    });
+
+    // Disconnect from the websocket server
+    socket.on('disconnect', () => {
+      console.log('Disconnected from websocket server');
+    });
   </script>
 </body>
 </html>
