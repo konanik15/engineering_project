@@ -1,94 +1,104 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Lobby</title>
-  <style>
-  </style>
-</head>
-<body>
-  <h1>Lobby</h1>
-  <div id="players">
-    <h2>Players:</h2>
-    <ul id="playerList"></ul>
-  </div>
-  <div id="chat">
-    <h2>Chat:</h2>
-    <ul id="chatMessages"></ul>
-    <form id="chatForm">
-      <input type="text" id="messageInput" placeholder="Enter a message" required />
-      <button type="submit">Send</button>
-    </form>
-  </div>
-  <div id="lobbyId" style="display: none;"></div>
+  <head>
+    <title>Lobby</title>
+    <style></style>
+  </head>
+  <body>
+    <h1>Lobby</h1>
+    <div id="players">
+      <h2>Players:</h2>
+      <ul id="playerList"></ul>
+    </div>
+    <div id="chat">
+      <h2>Chat:</h2>
+      <ul id="chatMessages"></ul>
+      <form id="chatForm">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Enter a message"
+          required
+        />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+    <div id="lobbyId" style="display: none"></div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
 
-    function updatePlayerList(players) {
-      const playerList = document.getElementById('playerList');
-      playerList.innerHTML = '';
-      players.forEach((player) => {
-        const li = document.createElement('li');
-        li.textContent = player.socketId;
-        playerList.appendChild(li);
-      });
-    }
-
-    function updateChatMessages(messages) {
-      const chatMessages = document.getElementById('chatMessages');
-      chatMessages.innerHTML = '';
-      messages.forEach((message) => {
-        const li = document.createElement('li');
-        li.textContent = `${message.sender}: ${message.message}`;
-        chatMessages.appendChild(li);
-      });
-    }
-
-    function handleChatFormSubmit(event) {
-      event.preventDefault();
-      const messageInput = document.getElementById('messageInput');
-      const message = messageInput.value;
-      messageInput.value = '';
-
-      const lobbyId = document.getElementById('lobbyId').textContent;
-
-      socket.emit('chatMessage', { message, lobbyId });
-    }
-
-    document.getElementById('chatForm').addEventListener('submit', handleChatFormSubmit);
-
-    socket.on('lobbyJoined', (lobby) => {
-      console.log('player joined');
-      const lobbyIdElement = document.getElementById('lobbyId');
-      lobbyIdElement.textContent = lobby.id;
-      updatePlayerList(lobby.players);
-      updateChatMessages(lobby.chatHistory);
-    });
-
-    socket.on('lobbyUpdated', (lobbyList) => {
-      console.log('player left');
-      const lobbyId = document.getElementById('lobbyId').textContent;
-      const joinedLobby = lobbyList.find((lobby) => lobby.id === lobbyId);
-      if (joinedLobby) {
-        updatePlayerList(joinedLobby.players);
+      function updatePlayerList(players) {
+        const playerList = document.getElementById("playerList");
+        playerList.innerHTML = "";
+        players.forEach((player) => {
+          const li = document.createElement("li");
+          li.textContent = player.socketId;
+          playerList.appendChild(li);
+        });
       }
-    });
 
-    socket.on('message', (data) => {
-      updateChatMessages(data.messages);
-    });
+      function updateChatMessages(messages) {
+        const chatMessages = document.getElementById("chatMessages");
+        chatMessages.innerHTML = "";
+        messages.forEach((message) => {
+          const li = document.createElement("li");
+          li.textContent = `${message.sender}: ${message.message}`;
+          chatMessages.appendChild(li);
+        });
+      }
 
-    socket.on('connect', () => {
-      console.log('Connected to websocket server');
+      function handleChatFormSubmit(event) {
+        event.preventDefault();
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value;
+        messageInput.value = "";
 
-      const lobbyId = window.location.pathname.split('/').pop();
-      socket.emit('join', { lobbyId });
-    });
+        const lobbyId = document.getElementById("lobbyId").textContent;
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected from websocket server');
-    });
-  </script>
-</body>
+        socket.emit("chatMessage", { message, lobbyId });
+      }
+
+      function updatePlayerList(players) {
+        const playerList = document.getElementById("playerList");
+        playerList.innerHTML = "";
+        players.forEach((player) => {
+          const li = document.createElement("li");
+          li.textContent = player.socketId; 
+          playerList.appendChild(li);
+        });
+      }
+      document
+        .getElementById("chatForm")
+        .addEventListener("submit", handleChatFormSubmit);
+
+      socket.on("lobbyJoined", (lobby) => {
+        console.log("player joined");
+        const lobbyIdElement = document.getElementById("lobbyId");
+        lobbyIdElement.textContent = lobby.id;
+        updatePlayerList(lobby.players);
+        updateChatMessages(lobby.chatHistory);
+      });
+
+      socket.on("lobbyUpdated", (lobby) => {
+        updatePlayerList(lobby.players);
+      });
+
+      socket.on("message", (data) => {
+        updateChatMessages(data.messages);
+      });
+
+      socket.on("connect", () => {
+        console.log("Connected to websocket server");
+
+        const lobbyId = window.location.pathname.split("/").pop();
+        socket.emit("join", { lobbyId });
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from websocket server");
+      });
+    </script>
+  </body>
 </html>

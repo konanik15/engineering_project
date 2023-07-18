@@ -1,5 +1,5 @@
 // TODO: 
-// 1. user can create a lobby and it will automatically assign it to him
+// 1. user can create a lobby and it will automatically assign it to him (leader)
 // 2. there is a list of lobbies on the main page
 //     2.1 the listed lobbies show if the game is in progress, the number of people in the lobby/maximum amount, the game that the lobby wants to play
 // 3. in the lobby the users can ready themselves, if all players aren't ready the host can't start the game

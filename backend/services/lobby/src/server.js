@@ -105,6 +105,12 @@ app.post('/api/lobbies', (req, res) => {
 });
 
 app.get('/lobbies/:lobbyId', (req, res) => {
+  const lobbyId = req.params.lobbyId;
+
+  if (!lobbies.has(lobbyId)) {
+    return res.status(404).send('Lobby not found');
+  }
+
   res.sendFile(__dirname + '/public/lobby.html');
 });
 
