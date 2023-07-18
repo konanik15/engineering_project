@@ -3,7 +3,6 @@
 <head>
   <title>Lobby</title>
   <style>
-    /* Add your custom CSS styles here */
   </style>
 </head>
 <body>
@@ -20,30 +19,22 @@
       <button type="submit">Send</button>
     </form>
   </div>
-  <div id="nicknameForm">
-    <h2>Enter your nickname:</h2>
-    <form id="nicknameInputForm">
-      <input type="text" id="nicknameInput" placeholder="Nickname" required />
-      <button type="submit">Join</button>
-    </form>
-  </div>
+  <div id="lobbyId" style="display: none;"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
-    // Function to update the player list
     function updatePlayerList(players) {
       const playerList = document.getElementById('playerList');
       playerList.innerHTML = '';
       players.forEach((player) => {
         const li = document.createElement('li');
-        li.textContent = player.name;
+        li.textContent = player.socketId;
         playerList.appendChild(li);
       });
     }
 
-    // Function to update the chat messages
     function updateChatMessages(messages) {
       const chatMessages = document.getElementById('chatMessages');
       chatMessages.innerHTML = '';
@@ -54,63 +45,47 @@
       });
     }
 
-    // Function to handle the nickname form submission
-    function handleNicknameFormSubmit(event) {
-      event.preventDefault();
-      const nicknameInput = document.getElementById('nicknameInput');
-      const nickname = nicknameInput.value;
-      nicknameInput.value = '';
-
-      // Emit the 'join' event with the nickname
-      socket.emit('join', { nickname });
-      
-      // Hide the nickname form after joining
-      const nicknameForm = document.getElementById('nicknameForm');
-      nicknameForm.style.display = 'none';
-    }
-
-    // Function to handle the chat form submission
     function handleChatFormSubmit(event) {
       event.preventDefault();
       const messageInput = document.getElementById('messageInput');
       const message = messageInput.value;
       messageInput.value = '';
+
       const lobbyId = document.getElementById('lobbyId').textContent;
 
       socket.emit('chatMessage', { message, lobbyId });
     }
 
-    // Event listener for the nickname form submission
-    document.getElementById('nicknameInputForm').addEventListener('submit', handleNicknameFormSubmit);
-
-    // Event listener for the chat form submission
     document.getElementById('chatForm').addEventListener('submit', handleChatFormSubmit);
 
-    // Event listener for the 'lobbyJoined' event
     socket.on('lobbyJoined', (lobby) => {
+      console.log('player joined');
+      const lobbyIdElement = document.getElementById('lobbyId');
+      lobbyIdElement.textContent = lobby.id;
       updatePlayerList(lobby.players);
+      updateChatMessages(lobby.chatHistory);
     });
 
-    // Event listener for the 'lobbyUpdated' event
-    socket.on('lobbyUpdated', (lobby) => {
-      updatePlayerList(lobby.players);
+    socket.on('lobbyUpdated', (lobbyList) => {
+      console.log('player left');
+      const lobbyId = document.getElementById('lobbyId').textContent;
+      const joinedLobby = lobbyList.find((lobby) => lobby.id === lobbyId);
+      if (joinedLobby) {
+        updatePlayerList(joinedLobby.players);
+      }
     });
 
-    // Event listener for the 'message' event
     socket.on('message', (data) => {
       updateChatMessages(data.messages);
     });
 
-    // Connect to the websocket server
     socket.on('connect', () => {
       console.log('Connected to websocket server');
 
-      // Join the lobby based on the URL path
       const lobbyId = window.location.pathname.split('/').pop();
       socket.emit('join', { lobbyId });
     });
 
-    // Disconnect from the websocket server
     socket.on('disconnect', () => {
       console.log('Disconnected from websocket server');
     });

@@ -3,7 +3,6 @@
 <head>
   <title>Main Menu</title>
   <style>
-    /* Add your custom CSS styles here */
   </style>
 </head>
 <body>
@@ -24,7 +23,6 @@
   <script>
     const socket = io();
 
-    // Function to update the lobby list
     function updateLobbyList(lobbies) {
       const lobbyList = document.getElementById('lobbies');
       lobbyList.innerHTML = '';
@@ -38,8 +36,8 @@
       });
     }
 
-    // Function to fetch the lobby list from the server
     function fetchLobbyList() {
+      console.log('test123');
       fetch('/api/lobbies')
         .then((response) => response.json())
         .then((lobbies) => {
@@ -50,7 +48,6 @@
         });
     }
 
-    // Function to handle the create lobby form submission
     function handleCreateLobbyFormSubmit(event) {
       event.preventDefault();
       const lobbyNameInput = document.getElementById('lobbyNameInput');
@@ -78,26 +75,18 @@
         });
     }
 
-    // Event listener for the create lobby form submission
     document.getElementById('createLobbyForm').addEventListener('submit', handleCreateLobbyFormSubmit);
 
-    // Listen for lobby updates
-    socket.on('lobbyUpdated', (lobby) => {
-      fetchLobbyList();
+    socket.on('lobbyUpdated', (lobbyList) => {
+      updateLobbyList(lobbyList);
     });
 
-    // Request the lobby list from the server upon page load
     fetchLobbyList();
 
-    // Connect to the websocket server
     socket.on('connect', () => {
       console.log('Connected to websocket server');
-
-      // Join the main menu lobby
-      socket.emit('join', { lobbyId: 'mainMenu' });
     });
 
-    // Disconnect from the websocket server
     socket.on('disconnect', () => {
       console.log('Disconnected from websocket server');
     });
