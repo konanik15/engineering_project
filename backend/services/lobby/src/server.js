@@ -11,11 +11,34 @@ app.use(express.static('public'));
 let players = new Map();
 let lobbies = new Map();
 
+
 function generateRandomLobbyId() {
   const min = 10000;
   const max = 999999;
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function maxPlayersForGame(game){
+  let maxPlayers = 0;
+  switch (game) {
+    case "wojna":
+    maxPlayers = 4;
+    break;
+    case "duren":
+    maxPlayers = 5;
+    break;
+    case "makao":
+    maxPlayers = 6;
+    break;
+    case "poker":
+    maxPlayers = 7;
+    break;
+    default:
+      console.log("wrong game");
+  }
+  return maxPlayers;
+}
+
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
@@ -31,6 +54,7 @@ io.on('connection', (socket) => {
       lobby.players.push(player);
       lobbies.set(lobbyId, lobby);
       io.to(lobbyId).emit('lobbyJoined', lobby);
+      io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
     }
   });
 
@@ -79,6 +103,7 @@ io.on('connection', (socket) => {
       const index = lobby.players.findIndex((p) => p.socketId === socket.id);
       if (index !== -1) {
         const leftPlayer = lobby.players.splice(index, 1)[0];
+        io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
         io.to(lobby.id).emit('lobbyUpdated', lobby);
         io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });
       }
@@ -94,22 +119,23 @@ app.get('/api/lobbies', (req, res) => {
 });
 
 app.post('/api/lobbies', (req, res) => {
-  const { name } = req.body;
+  const { name, game } = req.body;
 
   const lobbyExists = Array.from(lobbies.values()).some((lobby) => lobby.name === name);
   if (lobbyExists) {
     return res.status(409).json({ message: 'Lobby with the same name already exists' });
   }
 
+  let maxPlayers = maxPlayersForGame(game);
   const lobbyId = generateRandomLobbyId().toString();
 
-  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false };
+  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, maxPlayers: maxPlayers };
 
   lobbies.set(lobbyId, lobby);
 
   res.status(201).json({ message: 'Lobby created successfully', lobbyId });
 
-  io.emit('lobbyUpdated', Array.from(lobbies.values()));
+  io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
 });
 
 app.get('/lobbies/:lobbyId', (req, res) => {

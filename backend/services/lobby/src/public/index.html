@@ -16,6 +16,14 @@
     <form id="createLobbyForm">
       <input type="text" id="lobbyNameInput" placeholder="Lobby Name" required />
       <button type="submit">Create</button>
+      <br>
+      <label for="cars">Choose the game:</label>
+      <select name="games" id="games">
+        <option value="wojna">Wojna</option>
+        <option value="makao">Makao</option>
+        <option value="duren">Duren</option>
+        <option value="poker">Poker</option>
+      </select>
     </form>
   </div>
 
@@ -30,7 +38,8 @@
         const li = document.createElement('li');
         const link = document.createElement('a');
         link.href = `/lobbies/${lobby.id}`;
-        link.textContent = lobby.name;
+        const inProgress = lobby.inProgress === true ? "in progress" : "waiting";
+        link.textContent = "[" + inProgress + "] " + lobby.name + "; game: " + lobby.game + " [" + lobby.players.length + " / " + lobby.maxPlayers + "]";
         li.appendChild(link);
         lobbyList.appendChild(li);
       });
@@ -51,14 +60,16 @@
     function handleCreateLobbyFormSubmit(event) {
       event.preventDefault();
       const lobbyNameInput = document.getElementById('lobbyNameInput');
+      const lobbyGameInput = document.getElementById('games');
       const name = lobbyNameInput.value;
+      const game = lobbyGameInput.value;
       lobbyNameInput.value = '';
       fetch('/api/lobbies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ name, game })
       })
         .then((response) => response.json())
         .then((data) => {
@@ -77,7 +88,7 @@
 
     document.getElementById('createLobbyForm').addEventListener('submit', handleCreateLobbyFormSubmit);
 
-    socket.on('lobbyUpdated', (lobbyList) => {
+    socket.on('mainMenuLobbiesUpdated', (lobbyList) => {
       updateLobbyList(lobbyList);
     });
 
