@@ -47,19 +47,27 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('ready', (lobbyId) => {
+  socket.on('ready', (data) => {
+    const { lobbyId } = data;
     const player = players.get(socket.id);
     if (player) {
       player.ready = true;
-      io.to(lobbyId).emit('playerReady', { socketId: socket.id, ready: true });
+      const lobby = lobbies.get(lobbyId);
+      if (lobby) {
+        io.to(lobbyId).emit('playerReady', lobby);
+      } 
     }
   });
 
-  socket.on('markNotReady', (lobbyId) => {
+  socket.on('unready', (data) => {
+    const { lobbyId } = data;
     const player = players.get(socket.id);
     if (player) {
       player.ready = false;
-      io.to(lobbyId).emit('playerReady', { socketId: socket.id, ready: false });
+      const lobby = lobbies.get(lobbyId);
+      if (lobby) {
+        io.to(lobbyId).emit('playerUnready', lobby);
+      } 
     }
   });
 
@@ -95,7 +103,7 @@ app.post('/api/lobbies', (req, res) => {
 
   const lobbyId = generateRandomLobbyId().toString();
 
-  const lobby = { id: lobbyId, name, players: [], chatHistory: [] };
+  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false };
 
   lobbies.set(lobbyId, lobby);
 

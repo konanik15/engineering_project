@@ -6,6 +6,9 @@
   </head>
   <body>
     <h1>Lobby</h1>
+    <button id="ready">Ready</button>
+    <button id="unready">Unready</button>
+    
     <div id="players">
       <h2>Players:</h2>
       <ul id="playerList"></ul>
@@ -34,7 +37,8 @@
         playerList.innerHTML = "";
         players.forEach((player) => {
           const li = document.createElement("li");
-          li.textContent = player.socketId;
+          isReadyText = player.ready === true ? "ready" : "not ready";
+          li.textContent = player.socketId + ": " + isReadyText;
           playerList.appendChild(li);
         });
       }
@@ -60,15 +64,24 @@
         socket.emit("chatMessage", { message, lobbyId });
       }
 
-      function updatePlayerList(players) {
-        const playerList = document.getElementById("playerList");
-        playerList.innerHTML = "";
-        players.forEach((player) => {
-          const li = document.createElement("li");
-          li.textContent = player.socketId; 
-          playerList.appendChild(li);
-        });
+      function handleReadyButton(event) {
+        event.preventDefault();
+        const lobbyId = document.getElementById("lobbyId").textContent;
+        socket.emit("ready", { lobbyId });
       }
+      
+      function handleUnreadyButton(event) {
+        event.preventDefault();
+        const lobbyId = document.getElementById("lobbyId").textContent;
+        socket.emit("unready", { lobbyId });
+      }
+
+      document
+        .getElementById("ready")
+        .addEventListener("click", handleReadyButton);
+      document
+        .getElementById("unready")
+        .addEventListener("click", handleUnreadyButton);
       document
         .getElementById("chatForm")
         .addEventListener("submit", handleChatFormSubmit);
@@ -88,6 +101,14 @@
       socket.on("message", (data) => {
         updateChatMessages(data.messages);
       });
+
+      socket.on("playerReady", (lobby) => {
+        updatePlayerList(lobby.players);
+      })
+      
+      socket.on("playerUnready", (lobby) => {
+        updatePlayerList(lobby.players);
+      })
 
       socket.on("connect", () => {
         console.log("Connected to websocket server");
