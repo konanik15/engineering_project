@@ -77,6 +77,7 @@
           const { message, lobbyId } = data;
           if (message === 'Lobby created successfully') {
             window.location.href = `/lobbies/${lobbyId}`;
+            
           } else {
             console.error('Failed to create lobby:', message);
           }

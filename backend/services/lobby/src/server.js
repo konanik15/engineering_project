@@ -18,6 +18,20 @@ function generateRandomLobbyId() {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function pickNewLeader(lobby){
+  let oldestPlayer = null;
+  let oldestJoinTime = Infinity;
+
+  for (const player of lobby.players) {
+    if (player.joinTime < oldestJoinTime) {
+      oldestPlayer = player;
+      oldestJoinTime = player.joinTime;
+    }
+  }
+
+  return oldestPlayer;
+}
+
 function maxPlayersForGame(game){
   let maxPlayers = 0;
   switch (game) {
@@ -45,12 +59,16 @@ io.on('connection', (socket) => {
 
   socket.on('join', (data) => {
     const { lobbyId } = data;
-    const player = { socketId: socket.id, ready: false };
+    const player = { socketId: socket.id, ready: false, leader: false, joinTime: Date.now() };
     players.set(socket.id, player);
     socket.join(lobbyId);
 
     const lobby = lobbies.get(lobbyId);
     if (lobby) {
+      if (!lobby.leaderAvailable){
+        player.leader = true;
+        lobby.leaderAvailable = true;
+      }
       lobby.players.push(player);
       lobbies.set(lobbyId, lobby);
       io.to(lobbyId).emit('lobbyJoined', lobby);
@@ -97,15 +115,28 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-
+    
     players.delete(socket.id);
-    lobbies.forEach((lobby) => {
+    lobbies.forEach((lobby, lobbyId) => {
       const index = lobby.players.findIndex((p) => p.socketId === socket.id);
       if (index !== -1) {
         const leftPlayer = lobby.players.splice(index, 1)[0];
+        if (lobby.players.length === 0) {
+          lobbies.delete(lobbyId);
+        } else {
+          if(leftPlayer.leader){
+            lobby.leaderAvailable = false;
+            const newLeader = pickNewLeader(lobby);
+            if(newLeader !== null){
+              newLeader.leader = true;
+              lobby.leaderAvailable = true;
+            }
+          }
+
+          io.to(lobby.id).emit('lobbyUpdated', lobby);
+          io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });
+        }
         io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
-        io.to(lobby.id).emit('lobbyUpdated', lobby);
-        io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });
       }
       
       socket.leave(lobby.id);
@@ -129,7 +160,7 @@ app.post('/api/lobbies', (req, res) => {
   let maxPlayers = maxPlayersForGame(game);
   const lobbyId = generateRandomLobbyId().toString();
 
-  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, maxPlayers: maxPlayers };
+  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, maxPlayers: maxPlayers, leaderAvailable: false };
 
   lobbies.set(lobbyId, lobby);
 

@@ -38,7 +38,8 @@
         players.forEach((player) => {
           const li = document.createElement("li");
           isReadyText = player.ready === true ? "ready" : "not ready";
-          li.textContent = player.socketId + ": " + isReadyText;
+          isLeader = player.leader === true ? "[leader]" : "";
+          li.textContent = isLeader + " " + player.socketId + ": " + isReadyText;
           playerList.appendChild(li);
         });
       }
