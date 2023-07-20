@@ -3,6 +3,11 @@
 <head>
   <title>Main Menu</title>
   <style>
+    .disabled-link {
+      pointer-events: none; /* Disable mouse events on the link */
+      color: gray; /* Optionally, change the color of the link to indicate it's disabled */
+      text-decoration: none; /* Optionally, remove underline from the link */
+  }
   </style>
 </head>
 <body>
@@ -40,6 +45,9 @@
         link.href = `/lobbies/${lobby.id}`;
         const inProgress = lobby.inProgress === true ? "in progress" : "waiting";
         link.textContent = "[" + inProgress + "] " + lobby.name + "; game: " + lobby.game + " [" + lobby.players.length + " / " + lobby.maxPlayers + "]";
+        if(lobby.players.length === lobby.maxPlayers || lobby.inProgress){
+          link.classList.add('disabled-link');
+        }
         li.appendChild(link);
         lobbyList.appendChild(li);
       });

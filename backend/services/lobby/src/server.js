@@ -28,8 +28,16 @@ function pickNewLeader(lobby){
       oldestJoinTime = player.joinTime;
     }
   }
-
   return oldestPlayer;
+}
+
+function areAllPlayersReady(lobbyId) {
+  const lobby = lobbies.get(lobbyId);
+  if (!lobby) {
+    return false; 
+  }
+
+  return lobby.players.every((player) => player.ready);
 }
 
 function maxPlayersForGame(game){
@@ -96,6 +104,10 @@ io.on('connection', (socket) => {
       player.ready = true;
       const lobby = lobbies.get(lobbyId);
       if (lobby) {
+        const leaderPlayer = lobby.players.find((player) => player.leader === true);
+        if(areAllPlayersReady(lobbyId)){
+          io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: true });
+        }
         io.to(lobbyId).emit('playerReady', lobby);
       } 
     }
@@ -108,10 +120,17 @@ io.on('connection', (socket) => {
       player.ready = false;
       const lobby = lobbies.get(lobbyId);
       if (lobby) {
-        io.to(lobbyId).emit('playerUnready', lobby);
+        io.to(lobbyId).emit('playerUnready', { lobby, enabled: false });
       } 
     }
   });
+
+  socket.on('inProgress', (data) => {
+    const { lobbyId } = data;
+    const lobby = lobbies.get(lobbyId);
+    lobby.inProgress = true;
+    io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+  })
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -132,7 +151,10 @@ io.on('connection', (socket) => {
               lobby.leaderAvailable = true;
             }
           }
-
+          const leaderPlayer = lobby.players.find((player) => player.leader === true);
+          if(areAllPlayersReady(lobbyId)){
+            io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: true });
+          }
           io.to(lobby.id).emit('lobbyUpdated', lobby);
           io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });
         }
@@ -175,7 +197,10 @@ app.get('/lobbies/:lobbyId', (req, res) => {
   if (!lobbies.has(lobbyId)) {
     return res.status(404).send('Lobby not found');
   }
-
+  const lobby = lobbies.get(lobbyId);
+  if(lobby.players.length === lobby.maxPlayers || lobby.inProgress){
+    return res.status(404).send('You cant join this lobby');
+  }
   res.sendFile(__dirname + '/public/lobby.html');
 });
 

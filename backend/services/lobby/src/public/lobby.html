@@ -2,13 +2,25 @@
 <html>
   <head>
     <title>Lobby</title>
-    <style></style>
+    <style>
+      #main {
+        width: 200px;
+      }
+      h1 {
+        margin: 0;
+        display: inline-block;
+      }
+     
+    </style>
   </head>
   <body>
-    <h1>Lobby</h1>
+    <div id="main">
+      <h1>Lobby</h1>
+      <button id="start" disabled="true">Start</button>
+    </div>
     <button id="ready">Ready</button>
     <button id="unready">Unready</button>
-    
+
     <div id="players">
       <h2>Players:</h2>
       <ul id="playerList"></ul>
@@ -35,11 +47,13 @@
       function updatePlayerList(players) {
         const playerList = document.getElementById("playerList");
         playerList.innerHTML = "";
+
         players.forEach((player) => {
           const li = document.createElement("li");
-          isReadyText = player.ready === true ? "ready" : "not ready";
-          isLeader = player.leader === true ? "[leader]" : "";
-          li.textContent = isLeader + " " + player.socketId + ": " + isReadyText;
+          isReadyText = player.ready ? "ready" : "not ready";
+          isLeader = player.leader ? "[leader]" : "";
+          li.textContent =
+            isLeader + " " + player.socketId + ": " + isReadyText;
           playerList.appendChild(li);
         });
       }
@@ -70,11 +84,18 @@
         const lobbyId = document.getElementById("lobbyId").textContent;
         socket.emit("ready", { lobbyId });
       }
-      
+
       function handleUnreadyButton(event) {
         event.preventDefault();
         const lobbyId = document.getElementById("lobbyId").textContent;
         socket.emit("unready", { lobbyId });
+      }
+
+      function handleStartButton(event) {
+        event.preventDefault();
+        const lobbyId = document.getElementById("lobbyId").textContent;
+        console.log('kek');
+        socket.emit("inProgress", { lobbyId });
       }
 
       document
@@ -86,6 +107,9 @@
       document
         .getElementById("chatForm")
         .addEventListener("submit", handleChatFormSubmit);
+      document
+        .getElementById("start")
+        .addEventListener("click", handleStartButton);
 
       socket.on("lobbyJoined", (lobby) => {
         console.log("player joined");
@@ -105,11 +129,18 @@
 
       socket.on("playerReady", (lobby) => {
         updatePlayerList(lobby.players);
-      })
-      
-      socket.on("playerUnready", (lobby) => {
-        updatePlayerList(lobby.players);
-      })
+      });
+
+      socket.on("playerUnready", (data) => {
+        updatePlayerList(data.lobby.players);
+        let startButton = document.getElementById('start');
+        startButton.disabled = !data.enabled;
+      });
+
+      socket.on('enableStartButton', (data) => {
+        let startButton = document.getElementById('start');
+        startButton.disabled = !data.enabled;
+      });
 
       socket.on("connect", () => {
         console.log("Connected to websocket server");
