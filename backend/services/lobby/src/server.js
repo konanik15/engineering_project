@@ -77,10 +77,16 @@ io.on('connection', (socket) => {
       if (!lobby.leaderAvailable){
         player.leader = true;
         lobby.leaderAvailable = true;
+        io.to(player.socketId).emit('enableGameComboBox', { enabled: true });
+        io.to(player.socketId).emit('enableStartButton', { enabled: false });
       } else {
         if (lobby.passwordProtected) {
           io.to(socket.id).emit('passwordNeeded', { lobby });
         }
+        io.to(lobbyId).emit('enableGameComboBox', { enabled: false });
+        const leaderPlayer = lobby.players.find((player) => player.leader === true);
+        io.to(leaderPlayer.socketId).emit('enableGameComboBox', { enabled: true });
+        io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: false });
       }
       lobby.players.push(player);
       lobbies.set(lobbyId, lobby);
@@ -125,7 +131,9 @@ io.on('connection', (socket) => {
       player.ready = false;
       const lobby = lobbies.get(lobbyId);
       if (lobby) {
-        io.to(lobbyId).emit('playerUnready', { lobby, enabled: false });
+        const leaderPlayer = lobby.players.find((player) => player.leader === true);
+        io.to(lobbyId).emit('playerUnready', { lobby });
+        io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: false });
       } 
     }
   });
@@ -137,6 +145,18 @@ io.on('connection', (socket) => {
       lobby.inProgress = true;
       io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
       io.to(lobbyId).emit('gameStarted', { lobbyId });
+    }
+  })
+
+  socket.on('gameChanged', (data) => {
+    const { game, lobbyId } = data;
+    const lobby = lobbies.get(lobbyId);
+    if (lobby) {
+      let maxPlayers = maxPlayersForGame(game);
+      lobby.game = game;
+      lobby.maxPlayers = maxPlayers;
+      io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+      io.to(lobbyId).emit('gameUpdated', { game });
     }
   })
 

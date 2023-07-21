@@ -76,6 +76,8 @@
       const game = lobbyGameInput.value;
       const password = lobbyPasswordInput.value;
       lobbyNameInput.value = '';
+      lobbyPasswordInput.value = '';
+      lobbyGameInput.value = 'wojna';
       fetch('/api/lobbies', {
         method: 'POST',
         headers: {
