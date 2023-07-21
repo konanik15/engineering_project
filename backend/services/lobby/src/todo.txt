@@ -11,14 +11,14 @@
 
 TODO:
 3. start game function, related to 2, works I guess
-    3.1. needs to redirect somewhere
-    3.2. after coming back to lobby it can't be in progress anymore
+    3.2. after coming back to lobby it can't be in progress anymore (this will be done after I connect db to lobby, so I can store everything in the db and after game ends players 
+    can be redirected to the lobby with all it's history(only chat, who is leader and the players I guess))
 5. to do
 6. to do
 7. change game in the lobby
 
 FIXME:
-1. while refreshing on full lobby you get 404 lobby is full
+1. while refreshing on full lobby you get 404 lobby is full // not happening on firefox xd, chrome is trash
 
 
 

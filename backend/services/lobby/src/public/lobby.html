@@ -94,7 +94,6 @@
       function handleStartButton(event) {
         event.preventDefault();
         const lobbyId = document.getElementById("lobbyId").textContent;
-        console.log('kek');
         socket.emit("inProgress", { lobbyId });
       }
 
@@ -141,6 +140,11 @@
         let startButton = document.getElementById('start');
         startButton.disabled = !data.enabled;
       });
+
+      socket.on('gameStarted', (data) => {
+        const lobbyId = data.lobbyId;
+        window.location.href = `/lobbies/${lobbyId}/game`;
+      })
 
       socket.on("connect", () => {
         console.log("Connected to websocket server");

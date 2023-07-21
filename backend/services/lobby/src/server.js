@@ -128,8 +128,11 @@ io.on('connection', (socket) => {
   socket.on('inProgress', (data) => {
     const { lobbyId } = data;
     const lobby = lobbies.get(lobbyId);
-    lobby.inProgress = true;
-    io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+    if(lobby) {
+      lobby.inProgress = true;
+      io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+      io.to(lobbyId).emit('gameStarted', { lobbyId });
+    }
   })
 
   socket.on('disconnect', () => {
@@ -202,6 +205,11 @@ app.get('/lobbies/:lobbyId', (req, res) => {
     return res.status(404).send('You cant join this lobby');
   }
   res.sendFile(__dirname + '/public/lobby.html');
+});
+
+//temp endpoint
+app.get('/lobbies/:lobbyId/game', (req, res) => {
+  res.sendFile(__dirname + '/public/game.html');
 });
 
 const PORT = 3000;
