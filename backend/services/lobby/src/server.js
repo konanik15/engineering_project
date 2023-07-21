@@ -154,6 +154,7 @@ io.on('connection', (socket) => {
     if (lobby) {
       let maxPlayers = maxPlayersForGame(game);
       lobby.game = game;
+      
       lobby.maxPlayers = maxPlayers;
       io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
       io.to(lobbyId).emit('gameUpdated', { game });

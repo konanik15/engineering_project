@@ -187,7 +187,6 @@
       });
 
       socket.on("gameUpdated", (data) => {
-        console.log('test');
         let lobbyGameValue = document.getElementById('games');
         lobbyGameValue.value = data.game;
       })
