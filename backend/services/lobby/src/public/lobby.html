@@ -10,7 +10,6 @@
         margin: 0;
         display: inline-block;
       }
-     
     </style>
   </head>
   <body>
@@ -97,6 +96,15 @@
         socket.emit("inProgress", { lobbyId });
       }
 
+      function promptLobbyPassword(lobby) {
+        const password = prompt(
+          "This lobby is password-protected. Please enter the password:"
+        );
+        if (password !== lobby.password) { 
+          promptLobbyPassword(lobby);
+        } 
+      }
+
       document
         .getElementById("ready")
         .addEventListener("click", handleReadyButton);
@@ -111,7 +119,6 @@
         .addEventListener("click", handleStartButton);
 
       socket.on("lobbyJoined", (lobby) => {
-        console.log("player joined");
         const lobbyIdElement = document.getElementById("lobbyId");
         lobbyIdElement.textContent = lobby.id;
         updatePlayerList(lobby.players);
@@ -132,19 +139,26 @@
 
       socket.on("playerUnready", (data) => {
         updatePlayerList(data.lobby.players);
-        let startButton = document.getElementById('start');
+        let startButton = document.getElementById("start");
         startButton.disabled = !data.enabled;
       });
 
-      socket.on('enableStartButton', (data) => {
-        let startButton = document.getElementById('start');
+      socket.on("enableStartButton", (data) => {
+        let startButton = document.getElementById("start");
         startButton.disabled = !data.enabled;
       });
 
-      socket.on('gameStarted', (data) => {
+      socket.on("gameStarted", (data) => {
         const lobbyId = data.lobbyId;
         window.location.href = `/lobbies/${lobbyId}/game`;
-      })
+      });
+
+      socket.on("passwordNeeded", (data) => {
+        const lobby = data.lobby;
+        if (lobby.passwordProtected) {
+          promptLobbyPassword(lobby);
+        }
+      });
 
       socket.on("connect", () => {
         console.log("Connected to websocket server");

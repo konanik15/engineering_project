@@ -14,7 +14,6 @@ TODO:
     3.2. after coming back to lobby it can't be in progress anymore (this will be done after I connect db to lobby, so I can store everything in the db and after game ends players 
     can be redirected to the lobby with all it's history(only chat, who is leader and the players I guess))
 5. to do
-6. to do
 7. change game in the lobby
 
 FIXME:

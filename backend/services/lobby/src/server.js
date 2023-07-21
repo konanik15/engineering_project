@@ -67,6 +67,7 @@ io.on('connection', (socket) => {
 
   socket.on('join', (data) => {
     const { lobbyId } = data;
+    
     const player = { socketId: socket.id, ready: false, leader: false, joinTime: Date.now() };
     players.set(socket.id, player);
     socket.join(lobbyId);
@@ -76,6 +77,10 @@ io.on('connection', (socket) => {
       if (!lobby.leaderAvailable){
         player.leader = true;
         lobby.leaderAvailable = true;
+      } else {
+        if (lobby.passwordProtected) {
+          io.to(socket.id).emit('passwordNeeded', { lobby });
+        }
       }
       lobby.players.push(player);
       lobbies.set(lobbyId, lobby);
@@ -175,17 +180,19 @@ app.get('/api/lobbies', (req, res) => {
 });
 
 app.post('/api/lobbies', (req, res) => {
-  const { name, game } = req.body;
+  const { name, game, password } = req.body;
 
   const lobbyExists = Array.from(lobbies.values()).some((lobby) => lobby.name === name);
   if (lobbyExists) {
     return res.status(409).json({ message: 'Lobby with the same name already exists' });
   }
+  const hasPassword = password.length !== 0 ? true : false;
 
   let maxPlayers = maxPlayersForGame(game);
   const lobbyId = generateRandomLobbyId().toString();
 
-  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, maxPlayers: maxPlayers, leaderAvailable: false };
+  const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, 
+    maxPlayers: maxPlayers, leaderAvailable: false, passwordProtected: hasPassword, password: password };
 
   lobbies.set(lobbyId, lobby);
 
