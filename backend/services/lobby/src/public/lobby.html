@@ -118,15 +118,6 @@
         socket.emit("inProgress", { lobbyId });
       }
 
-      // function promptLobbyPassword(lobby) {
-      //   const password = prompt(
-      //     "This lobby is password-protected. Please enter the password:"
-      //   );
-      //   if (password !== lobby.password) { 
-      //     promptLobbyPassword(lobby);
-      //   } 
-      // }
-
       document
         .getElementById("ready")
         .addEventListener("click", handleReadyButton);
@@ -190,13 +181,6 @@
       //   lobbyGameValue.value = data.game;
       // })
 
-      socket.on("passwordNeeded", (data) => {
-        const lobby = data.lobby;
-        if (lobby.passwordProtected) {
-          promptLobbyPassword(lobby);
-        }
-      });
-      
       socket.on("connect", () => {
         console.log("Connected to websocket server");
 
