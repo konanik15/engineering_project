@@ -236,7 +236,7 @@ app.post('/api/lobbies', (req, res) => {
 
 app.get('/lobbies/:lobbyId', (req, res) => {
   const lobbyId = req.params.lobbyId;
-
+  const { error } = req.query;
   if (!lobbies.has(lobbyId)) {
     return res.status(404).send('Lobby not found');
   }
@@ -247,26 +247,47 @@ app.get('/lobbies/:lobbyId', (req, res) => {
 
   const storedPassword = getStoredPassword(req.cookies, lobbyId);
   if (lobby.passwordProtected && storedPassword !== lobby.password) {
-    res.render('password_prompt', { lobbyId });
+    res.redirect(`/password_prompt?lobbyId=${lobbyId}`);
   } else {
     res.sendFile(__dirname + '/public/lobby.html');
   }
 });
 
 
-app.post('/lobbies/:lobbyId', (req, res) => {
-  const lobbyId = req.params.lobbyId;
-  const enteredPassword = req.body.password; 
+// app.post('/lobbies/:lobbyId', (req, res) => {
+//   const lobbyId = req.params.lobbyId;
+//   const enteredPassword = req.body.password; 
 
-  const lobby = lobbies.get(lobbyId);
-  if(lobby && lobby.password === enteredPassword){
-    res.cookie(`lobbyPassword_${lobbyId}`, enteredPassword, { maxAge: 3600000 });
-    res.redirect(`/lobbies/${lobbyId}`);
-  } else {
-    // Password is incorrect, redirect the user back to the password prompt with an error message
-    res.redirect(`/password_prompt?error=invalid`);
-  }
-});
+//   const lobby = lobbies.get(lobbyId);
+//   if(lobby && lobby.password === enteredPassword){
+//     res.cookie(`lobbyPassword_${lobbyId}`, enteredPassword, { maxAge: 3600000 });
+//     res.redirect(`/lobbies/${lobbyId}`);
+//   } else {
+//     // Password is incorrect, redirect the user back to the password prompt with an error message
+//     res.redirect(`/password_prompt?error=invalid`);
+//   }
+// });
+
+
+app.route('/password_prompt')
+  .get((req, res) => {
+    const { error, lobbyId } = req.query;
+    console.log(lobbyId);
+    res.render('password_prompt', { error, lobbyId });
+  })
+  .post((req, res) => {
+    const { lobbyId } = req.body;
+    const { password } = req.body;
+    const lobby = lobbies.get(lobbyId);
+    console.log(lobbyId);
+    console.log(password);
+    if(lobby && lobby.password === password){
+      res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
+      res.redirect(`/lobbies/${lobbyId}`);
+    } else {
+      res.redirect(`/password_prompt?lobbyId=${lobbyId}&error=invalid`);
+    }
+  });
 //temp endpoint
 app.get('/lobbies/:lobbyId/game', (req, res) => {
   res.sendFile(__dirname + '/public/game.html');
