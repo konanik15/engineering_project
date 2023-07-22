@@ -96,11 +96,13 @@ io.on('connection', (socket) => {
         lobby.leaderAvailable = true;
         //io.to(player.socketId).emit('enableGameComboBox', { enabled: true });
         io.to(player.socketId).emit('enableStartButton', { enabled: false });
+        io.to(player.socketId).emit('unhideStartButton');
       } else {
         //io.to(lobbyId).emit('enableGameComboBox', { enabled: false });
         const leaderPlayer = lobby.players.find((player) => player.leader === true);
         //io.to(leaderPlayer.socketId).emit('enableGameComboBox', { enabled: true });
         io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: false });
+        io.to(leaderPlayer.socketId).emit('unhideStartButton');
       }
       socket.join(lobbyId);
       lobby.players.push(player);
@@ -198,6 +200,7 @@ io.on('connection', (socket) => {
           const leaderPlayer = lobby.players.find((player) => player.leader === true);
           if(areAllPlayersReady(lobbyId)){
             io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: true });
+            io.to(leaderPlayer.socketId).emit('unhideStartButton');
           }
           io.to(lobby.id).emit('lobbyUpdated', lobby);
           io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });

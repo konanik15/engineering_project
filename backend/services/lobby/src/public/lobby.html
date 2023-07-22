@@ -16,7 +16,7 @@
   <body>
     <div id="main">
       <h1>Lobby</h1>
-      <button id="start" disabled="true">Start</button>
+      <button id="start" disabled="true" hidden="hidden">Start</button>
     </div>
     <button id="ready">Ready</button>
     <button id="unready">Unready</button>
@@ -165,6 +165,12 @@
         let startButton = document.getElementById("start");
         startButton.disabled = !data.enabled;
       });
+
+      socket.on("unhideStartButton", () => {
+        let startButton = document.getElementById("start");
+        startButton.removeAttribute("hidden");
+      });
+      
 
       // socket.on("enableGameComboBox", (data) => {
       //   let gameComboBox = document.getElementById("games");
