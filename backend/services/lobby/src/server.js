@@ -200,8 +200,8 @@ io.on('connection', (socket) => {
           const leaderPlayer = lobby.players.find((player) => player.leader === true);
           if(areAllPlayersReady(lobbyId)){
             io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: true });
-            io.to(leaderPlayer.socketId).emit('unhideStartButton');
           }
+          io.to(leaderPlayer.socketId).emit('unhideStartButton');
           io.to(lobby.id).emit('lobbyUpdated', lobby);
           io.to(lobby.id).emit('joinMessage', { message: `${leftPlayer.socketId} left the lobby`, type: 'leave' });
         }
@@ -239,7 +239,6 @@ app.post('/api/lobbies', (req, res) => {
 
 app.get('/lobbies/:lobbyId', (req, res) => {
   const lobbyId = req.params.lobbyId;
-  const { error } = req.query;
   if (!lobbies.has(lobbyId)) {
     return res.status(404).send('Lobby not found');
   }
@@ -256,34 +255,15 @@ app.get('/lobbies/:lobbyId', (req, res) => {
   }
 });
 
-
-// app.post('/lobbies/:lobbyId', (req, res) => {
-//   const lobbyId = req.params.lobbyId;
-//   const enteredPassword = req.body.password; 
-
-//   const lobby = lobbies.get(lobbyId);
-//   if(lobby && lobby.password === enteredPassword){
-//     res.cookie(`lobbyPassword_${lobbyId}`, enteredPassword, { maxAge: 3600000 });
-//     res.redirect(`/lobbies/${lobbyId}`);
-//   } else {
-//     // Password is incorrect, redirect the user back to the password prompt with an error message
-//     res.redirect(`/password_prompt?error=invalid`);
-//   }
-// });
-
-
 app.route('/password_prompt')
   .get((req, res) => {
     const { error, lobbyId } = req.query;
-    console.log(lobbyId);
     res.render('password_prompt', { error, lobbyId });
   })
   .post((req, res) => {
     const { lobbyId } = req.body;
     const { password } = req.body;
     const lobby = lobbies.get(lobbyId);
-    console.log(lobbyId);
-    console.log(password);
     if(lobby && lobby.password === password){
       res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
       res.redirect(`/lobbies/${lobbyId}`);
