@@ -177,10 +177,9 @@ io.on('connection', (socket) => {
   //     io.to(lobbyId).emit('gameUpdated', { game });
   //   }
   // })
-  
+
   socket.on("leaveLobby", () => {
     const socketId = socket.id; 
-  
     const player = players.get(socketId); 
   
     if (player) {
