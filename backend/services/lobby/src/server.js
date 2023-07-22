@@ -3,7 +3,11 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
+app.set('view engine', 'ejs');
+
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -11,6 +15,11 @@ app.use(express.static('public'));
 let players = new Map();
 let lobbies = new Map();
 
+function getStoredPassword(cookies, lobbyId) {
+  const cookieName = `lobbyPassword_${lobbyId}`;
+  const storedPassword = cookies[cookieName];
+  return storedPassword || null;
+}
 
 function generateRandomLobbyId() {
   const min = 10000;
@@ -36,7 +45,6 @@ function areAllPlayersReady(lobbyId) {
   if (!lobby) {
     return false; 
   }
-
   return lobby.players.every((player) => player.ready);
 }
 
@@ -65,29 +73,36 @@ function maxPlayersForGame(game){
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
+  socket.on('validatePassword', (data) => {
+    const { lobbyId, password } = data;
+    const lobby = lobbies.get(lobbyId);
+    if (lobby && lobby.password === password) {
+      socket.emit('passwordValidationResult', { isValid: true });
+    } else {
+      socket.emit('passwordValidationResult', { isValid: false });
+    }
+  });
+
   socket.on('join', (data) => {
     const { lobbyId } = data;
     
     const player = { socketId: socket.id, ready: false, leader: false, joinTime: Date.now() };
     players.set(socket.id, player);
-    socket.join(lobbyId);
 
     const lobby = lobbies.get(lobbyId);
     if (lobby) {
       if (!lobby.leaderAvailable){
         player.leader = true;
         lobby.leaderAvailable = true;
-        io.to(player.socketId).emit('enableGameComboBox', { enabled: true });
+        //io.to(player.socketId).emit('enableGameComboBox', { enabled: true });
         io.to(player.socketId).emit('enableStartButton', { enabled: false });
       } else {
-        if (lobby.passwordProtected) {
-          io.to(socket.id).emit('passwordNeeded', { lobby });
-        }
-        io.to(lobbyId).emit('enableGameComboBox', { enabled: false });
+        //io.to(lobbyId).emit('enableGameComboBox', { enabled: false });
         const leaderPlayer = lobby.players.find((player) => player.leader === true);
-        io.to(leaderPlayer.socketId).emit('enableGameComboBox', { enabled: true });
+        //io.to(leaderPlayer.socketId).emit('enableGameComboBox', { enabled: true });
         io.to(leaderPlayer.socketId).emit('enableStartButton', { enabled: false });
       }
+      socket.join(lobbyId);
       lobby.players.push(player);
       lobbies.set(lobbyId, lobby);
       io.to(lobbyId).emit('lobbyJoined', lobby);
@@ -148,18 +163,18 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('gameChanged', (data) => {
-    const { game, lobbyId } = data;
-    const lobby = lobbies.get(lobbyId);
-    if (lobby) {
-      let maxPlayers = maxPlayersForGame(game);
-      lobby.game = game;
+  // socket.on('gameChanged', (data) => {
+  //   const { game, lobbyId } = data;
+  //   const lobby = lobbies.get(lobbyId);
+  //   if (lobby) {
+  //     let maxPlayers = maxPlayersForGame(game);
+  //     lobby.game = game;
       
-      lobby.maxPlayers = maxPlayers;
-      io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
-      io.to(lobbyId).emit('gameUpdated', { game });
-    }
-  })
+  //     lobby.maxPlayers = maxPlayers;
+  //     io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+  //     io.to(lobbyId).emit('gameUpdated', { game });
+  //   }
+  // })
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -208,17 +223,14 @@ app.post('/api/lobbies', (req, res) => {
     return res.status(409).json({ message: 'Lobby with the same name already exists' });
   }
   const hasPassword = password.length !== 0 ? true : false;
-
   let maxPlayers = maxPlayersForGame(game);
   const lobbyId = generateRandomLobbyId().toString();
-
   const lobby = { id: lobbyId, name, players: [], chatHistory: [], inProgress: false, isFull: false, game: game, 
     maxPlayers: maxPlayers, leaderAvailable: false, passwordProtected: hasPassword, password: password };
 
   lobbies.set(lobbyId, lobby);
 
   res.status(201).json({ message: 'Lobby created successfully', lobbyId });
-
   io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
 });
 
@@ -232,9 +244,29 @@ app.get('/lobbies/:lobbyId', (req, res) => {
   if(lobby.players.length === lobby.maxPlayers || lobby.inProgress){
     return res.status(404).send('You cant join this lobby');
   }
-  res.sendFile(__dirname + '/public/lobby.html');
+
+  const storedPassword = getStoredPassword(req.cookies, lobbyId);
+  if (lobby.passwordProtected && storedPassword !== lobby.password) {
+    res.render('password_prompt', { lobbyId });
+  } else {
+    res.sendFile(__dirname + '/public/lobby.html');
+  }
 });
 
+
+app.post('/lobbies/:lobbyId', (req, res) => {
+  const lobbyId = req.params.lobbyId;
+  const enteredPassword = req.body.password; 
+
+  const lobby = lobbies.get(lobbyId);
+  if(lobby && lobby.password === enteredPassword){
+    res.cookie(`lobbyPassword_${lobbyId}`, enteredPassword, { maxAge: 3600000 });
+    res.redirect(`/lobbies/${lobbyId}`);
+  } else {
+    // Password is incorrect, redirect the user back to the password prompt with an error message
+    res.redirect(`/password_prompt?error=invalid`);
+  }
+});
 //temp endpoint
 app.get('/lobbies/:lobbyId/game', (req, res) => {
   res.sendFile(__dirname + '/public/game.html');

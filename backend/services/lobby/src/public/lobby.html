@@ -25,13 +25,13 @@
       <h2>Players:</h2>
       <ul id="playerList"></ul>
     </div>
-    <label for="games">Choose the game:</label>
+    <!-- <label for="games">Choose the game:</label>
       <select name="games" id="games">
         <option value="wojna">Wojna</option>
         <option value="makao">Makao</option>
         <option value="duren">Duren</option>
         <option value="poker">Poker</option>
-      </select>
+      </select> -->
     <div id="chat">
       <h2>Chat:</h2>
       <ul id="chatMessages"></ul>
@@ -71,13 +71,13 @@
         });
       }
 
-      function handleGameChange(event) {
-        event.preventDefault();
-        const lobbyGameValue = document.getElementById('games');
-        const game = lobbyGameValue.value;
-        const lobbyId = document.getElementById("lobbyId").textContent;
-        socket.emit('gameChanged', { game, lobbyId });
-      }
+      // function handleGameChange(event) {
+      //   event.preventDefault();
+      //   const lobbyGameValue = document.getElementById('games');
+      //   const game = lobbyGameValue.value;
+      //   const lobbyId = document.getElementById("lobbyId").textContent;
+      //   socket.emit('gameChanged', { game, lobbyId });
+      // }
 
       function updateChatMessages(messages) {
         const chatMessages = document.getElementById("chatMessages");
@@ -118,21 +118,21 @@
         socket.emit("inProgress", { lobbyId });
       }
 
-      function promptLobbyPassword(lobby) {
-        const password = prompt(
-          "This lobby is password-protected. Please enter the password:"
-        );
-        if (password !== lobby.password) { 
-          promptLobbyPassword(lobby);
-        } 
-      }
+      // function promptLobbyPassword(lobby) {
+      //   const password = prompt(
+      //     "This lobby is password-protected. Please enter the password:"
+      //   );
+      //   if (password !== lobby.password) { 
+      //     promptLobbyPassword(lobby);
+      //   } 
+      // }
 
       document
         .getElementById("ready")
         .addEventListener("click", handleReadyButton);
-        document
-        .getElementById("games")
-        .addEventListener("change", handleGameChange);
+        // document
+        // .getElementById("games")
+        // .addEventListener("change", handleGameChange);
       document
         .getElementById("unready")
         .addEventListener("click", handleUnreadyButton);
@@ -148,8 +148,8 @@
         lobbyIdElement.textContent = lobby.id;
         updatePlayerList(lobby.players);
         updateChatMessages(lobby.chatHistory);
-        let lobbyGameValue = document.getElementById('games');
-        lobbyGameValue.value = lobby.game;
+        //let lobbyGameValue = document.getElementById('games');
+        //lobbyGameValue.value = lobby.game;
       });
 
       socket.on("lobbyUpdated", (lobby) => {
@@ -175,21 +175,20 @@
         startButton.disabled = !data.enabled;
       });
 
-      socket.on("enableGameComboBox", (data) => {
-        console.log('kek');
-        let gameComboBox = document.getElementById("games");
-        gameComboBox.disabled = !data.enabled;
-      });
+      // socket.on("enableGameComboBox", (data) => {
+      //   let gameComboBox = document.getElementById("games");
+      //   gameComboBox.disabled = !data.enabled;
+      // });
 
       socket.on("gameStarted", (data) => {
         const lobbyId = data.lobbyId;
         window.location.href = `/lobbies/${lobbyId}/game`;
       });
 
-      socket.on("gameUpdated", (data) => {
-        let lobbyGameValue = document.getElementById('games');
-        lobbyGameValue.value = data.game;
-      })
+      // socket.on("gameUpdated", (data) => {
+      //   let lobbyGameValue = document.getElementById('games');
+      //   lobbyGameValue.value = data.game;
+      // })
 
       socket.on("passwordNeeded", (data) => {
         const lobby = data.lobby;
@@ -197,7 +196,7 @@
           promptLobbyPassword(lobby);
         }
       });
-
+      
       socket.on("connect", () => {
         console.log("Connected to websocket server");
 
