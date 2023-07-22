@@ -177,7 +177,33 @@ io.on('connection', (socket) => {
   //     io.to(lobbyId).emit('gameUpdated', { game });
   //   }
   // })
-
+  
+  socket.on("leaveLobby", () => {
+    const socketId = socket.id; 
+  
+    const player = players.get(socketId); 
+  
+    if (player) {
+      const lobbyId = player.lobbyId; 
+      const lobby = lobbies.get(lobbyId); 
+  
+      if (lobby) {
+        lobby.players = lobby.players.filter((p) => p.socketId !== socketId);
+        players.delete(socketId); 
+  
+        if (player.leader) {
+          const newLeader = chooseNewLeader(lobby.players); 
+          if (newLeader) {
+            newLeader.leader = true; 
+            io.to(lobbyId).emit("updateLobby", lobby);
+          }
+        }
+        io.to(lobbyId).emit("updateLobby", lobby);
+        io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
+      }
+    }
+  });
+  
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
     

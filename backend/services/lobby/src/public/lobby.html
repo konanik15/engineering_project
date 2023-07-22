@@ -10,6 +10,11 @@
         margin: 0;
         display: inline-block;
       }
+      #leaveLobbyBtn {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+      }
       
     </style>
   </head>
@@ -46,7 +51,7 @@
       </form>
     </div>
     <div id="lobbyId" style="display: none"></div>
-
+    <button id="leaveLobbyBtn">Leave Lobby</button>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       const socket = io();
@@ -106,6 +111,12 @@
         socket.emit("ready", { lobbyId });
       }
 
+      function handleReadyButton(event) {
+        event.preventDefault();
+        const lobbyId = document.getElementById("lobbyId").textContent;
+        socket.emit("ready", { lobbyId });
+      }
+
       function handleUnreadyButton(event) {
         event.preventDefault();
         const lobbyId = document.getElementById("lobbyId").textContent;
@@ -118,6 +129,9 @@
         socket.emit("inProgress", { lobbyId });
       }
 
+      document.getElementById("leaveLobbyBtn").addEventListener("click", () => {
+        socket.emit("leaveLobby"); // Emit the "leaveLobby" event to the server
+        window.location.href = "/";});
       document
         .getElementById("ready")
         .addEventListener("click", handleReadyButton);
