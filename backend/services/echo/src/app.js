@@ -1,7 +1,7 @@
 const express = require('express');
 require('express-ws')(express);
 const router = express.Router();
-const keycloak = require("./keycloak");
+const keycloak = require("kc-adapter");
 
 router.ws("/ws/echo", keycloak.protectWS(), (connection, req) => {
     connection.on("message", async message => {
