@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const app = express();
 require('express-ws')(app);
 
-const keycloak = require("./keycloak");
+const keycloak = require("kc-adapter");
 
 async function setup() {
     await keycloak.init();

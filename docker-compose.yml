@@ -18,6 +18,20 @@ services:
       timeout: 5s
       retries: 5
 
+  mongodb:
+    image: mongo:6
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN_USER}
+        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ADMIN_PASSWORD}
+        DB_NAME: ${MONGO_DB}
+        DB_USER: ${MONGO_DB_USER}
+        DB_PASSWORD: ${MONGO_DB_PASSWORD}
+    ports:
+        - ${MONGO_MAPPED_PORT}:27017
+    volumes:
+        - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+        - ./backend/services/mongo/data:/data/db:rw
+
   keycloak:
     image: quay.io/keycloak/keycloak:21.1
     command: ["start-dev", "--import-realm"] #sort out how to setup kc configuration for production later
@@ -47,6 +61,10 @@ services:
 
   echo:
     build: ./backend/services/echo
+    environment:
+      KEYCLOAK_REALM: Cardz
+      KEYCLOAK_HOST: keycloak
+      KEYCLOAK_PORT: 8080
     ports:
       - "10102:8080"
     depends_on:

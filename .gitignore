@@ -13,6 +13,7 @@ node_modules
 /dataSources.local.xml
 .DS_STORE
 backend/services/postgres/data
+backend/services/mongo/data
 
 /dist/
 /bazel-out
