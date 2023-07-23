@@ -111,5 +111,3 @@ services:
 
   game-durak:
     build: ./backend/services/games/durak
-    ports:
-      - "10110:80"
