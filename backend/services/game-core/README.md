@@ -243,7 +243,7 @@ Messages from the server:
 {
     "event": "gameStarted",
     "data": {
-        "game": { ... } //see example of a game <a href="#combining-it-all-together">here</a>
+        "game": { ... }
     }
 }
 ```
@@ -251,7 +251,7 @@ Messages from the server:
 {
     "event": "gameUpdated",
     "data": {
-        "game": { ... }, //see example of a game <a href="#combining-it-all-together">here</a>
+        "game": { ... },
         "reason": {
             "type": "userActions",
             "initiator": {
@@ -275,6 +275,8 @@ Messages from the server:
     }
 }
 ```
+<i>see example of a 'game' field is <a href="#combining-it-all-together">here</a></i>
+
 ```json
 {
     "event": "gameEnded",
@@ -305,16 +307,19 @@ What <i>foo</i> sees:
             }, {
                 "suit": "diamonds",
                 "rank": "6"
-            }, ...]
+            }, {
+                "suit": "hearts",
+                "rank": "king"
+            }]
         }, {
             "owner": "bar",
             "open": false,
-            "cards": [ {}, {}, ...]
+            "cards": [ {}, {} ]
         }],
         "stacks": [{
             "name": "draw",
             "facing": "down",
-            "cards": [ {}, {}, ...]
+            "cards": [ {}, {}, {}, {}, {}]
         }],
         "piles": [{
             "name": "main",
@@ -325,7 +330,7 @@ What <i>foo</i> sees:
             }, {
                 "suit": "clubs",
                 "rank": "king"
-            }, ...]
+            }]
         }]
     },
     "meta": {}
@@ -346,7 +351,7 @@ What <i>bar</i> sees:
         "hands": [{
             "owner": "foo",
             "open": false,
-            "cards": [ {}, {}, ...]
+            "cards": [ {}, {}, {} ]
         }, {
             "owner": "bar",
             "open": false,
@@ -356,12 +361,12 @@ What <i>bar</i> sees:
             }, {
                 "suit": "clubs",
                 "rank": "7"
-            }, ...]
+            }]
         }],
         "stacks": [{
             "name": "draw",
             "facing": "down",
-            "cards": [ {}, {}, ...]
+            "cards": [ {}, {}, {}, {}, {} ]
         }],
         "piles": [{
             "name": "main",
@@ -372,7 +377,7 @@ What <i>bar</i> sees:
             }, {
                 "suit": "clubs",
                 "rank": "king"
-            }, ...]
+            }]
         }]
     },
     "meta": {}
