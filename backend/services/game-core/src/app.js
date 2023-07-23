@@ -13,7 +13,8 @@ import {
     GameNotAParticipantError,
     ActionInvalidError,
     ActionIllegalError,
-    GameNotInProgressError
+    GameNotInProgressError,
+    GameDataInvalidError
 } from "./common/errors.js";
 
 import _ from "lodash";

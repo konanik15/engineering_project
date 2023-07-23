@@ -118,8 +118,8 @@ async function performActions(gameId, actions, user) {
             data: { 
                 game: conceal(game, item.username),
                 reason: {
-                    type: "userMove",
-                    user,
+                    type: "userActions",
+                    initiator: user,
                     actions
                 }
             }
