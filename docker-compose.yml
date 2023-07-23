@@ -31,8 +31,18 @@ services:
     volumes:
         - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
         - ./backend/services/mongo/data:/data/db:rw
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/${DB_NAME} --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: 
+      - '--logpath'
+      - '/dev/null'
 
   redis:
+    profiles:
+      - donotstart
     image: redis:6
     command: /bin/sh -c "redis-server --requirepass $$PASSWORD"
     environment:
@@ -69,6 +79,8 @@ services:
       retries: 5
 
   echo:
+    profiles:
+      - donotstart
     build: ./backend/services/echo
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
@@ -79,3 +91,25 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+
+  game-core:
+    build: ./backend/services/game-core
+    environment:
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_HOST: keycloak
+      MONGO_HOST: mongodb
+      MONGO_DB: ${MONGO_DB}
+      MONGO_USERNAME: ${MONGO_DB_USER}
+      MONGO_PASSWORD: ${MONGO_DB_PASSWORD}
+    ports:
+      - "${GAME_CORE_MAPPED_PORT}:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  game-durak:
+    build: ./backend/services/games/durak
+    ports:
+      - "10110:80"
