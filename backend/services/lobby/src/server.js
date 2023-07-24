@@ -266,12 +266,12 @@ async function setup() {
     });
   });
 
-  app.get("/api/lobbies", keycloak.protectHTTP(), (req, res) => {
+  app.get("/api/lobbies", (req, res) => {
     const lobbyList = Array.from(lobbies.values());
     res.json(lobbyList);
   });
 
-  app.post("/api/lobbies", keycloak.protectHTTP(), (req, res) => {
+  app.post("/api/lobbies", (req, res) => {
     const { name, game, password } = req.body;
 
     const lobbyExists = Array.from(lobbies.values()).some(
@@ -305,7 +305,7 @@ async function setup() {
     io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
   });
 
-  app.get("/lobbies/:lobbyId", keycloak.protectHTTP(), (req, res) => {
+  app.get("/lobbies/:lobbyId", (req, res) => {
     const lobbyId = req.params.lobbyId;
     if (!lobbies.has(lobbyId)) {
       return res.status(404).send("Lobby not found");
@@ -325,11 +325,11 @@ async function setup() {
 
   app
     .route("/password_prompt")
-    .get(keycloak.protectHTTP(), (req, res) => {
+    .get((req, res) => {
       const { error, lobbyId } = req.query;
       res.render("password_prompt", { error, lobbyId });
     })
-    .post(keycloak.protectHTTP(), (req, res) => {
+    .post((req, res) => {
       const { lobbyId } = req.body;
       const { password } = req.body;
       const lobby = lobbies.get(lobbyId);
@@ -341,7 +341,7 @@ async function setup() {
       }
     });
   //temp endpoint
-  app.get("/lobbies/:lobbyId/game", keycloak.protectHTTP(), (req, res) => {
+  app.get("/lobbies/:lobbyId/game", (req, res) => {
     res.sendFile(__dirname + "/public/game.html");
   });
 
