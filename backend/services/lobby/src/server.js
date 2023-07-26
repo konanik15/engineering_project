@@ -4,11 +4,15 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const keycloak = require("kc-adapter"); 
+//const keycloak = require("kc-adapter"); 
 const mongo = require("./common/mongo.js");
+const Lobby = require("./models/Lobby");
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require("bcrypt");
 
 async function setup() {
-  await Promise.all([keycloak.init(), mongo.connect()]);
+  //await Promise.all([keycloak.init(), mongo.connect()]);
+  await Promise.all([mongo.connect()]);
 
   app.set("view engine", "ejs");
 
@@ -18,7 +22,6 @@ async function setup() {
   app.use(express.static("public"));
 
   let players = new Map();
-  let lobbies = new Map();
 
   function getStoredPassword(cookies, lobbyId) {
     const cookieName = `lobbyPassword_${lobbyId}`;
@@ -27,9 +30,7 @@ async function setup() {
   }
 
   function generateRandomLobbyId() {
-    const min = 10000;
-    const max = 999999;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return uuidv4();
   }
 
   function pickNewLeader(lobby) {
@@ -45,8 +46,14 @@ async function setup() {
     return oldestPlayer;
   }
 
-  function areAllPlayersReady(lobbyId) {
-    const lobby = lobbies.get(lobbyId);
+  async function areAllPlayersReady (lobbyId) {
+    let lobby = null;
+      try {
+        lobby = await Lobby.findOne({ id: lobbyId });
+      } catch (err) {
+        console.error(err);
+        return false;
+      }
     if (!lobby) {
       return false;
     }
@@ -74,21 +81,36 @@ async function setup() {
     return maxPlayers;
   }
 
+  
   io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 
-    socket.on("validatePassword", (data) => {
+    socket.on("validatePassword", async (data) => {
       const { lobbyId, password } = data;
-      const lobby = lobbies.get(lobbyId);
-      if (lobby && lobby.password === password) {
+      let lobby = null;
+      try {
+        lobby = await Lobby.findOne({ id: lobbyId });
+      } catch (err) {
+        console.error(err);
+        socket.emit("passwordValidationResult", { isValid: false });
+      }
+      if (lobby && await bcrypt.compare(password, lobby.password)) {
         socket.emit("passwordValidationResult", { isValid: true });
       } else {
         socket.emit("passwordValidationResult", { isValid: false });
       }
     });
 
-    socket.on("join", (data) => {
+    socket.on("join", async (data) => {
       const { lobbyId } = data;
+      
+      let lobby = null;
+      try {
+        lobby = await Lobby.findOne({ id: lobbyId });
+      } catch (err) {
+        console.error(err);
+        socket.emit("joinResult", { success: false });
+      }
 
       const player = {
         socketId: socket.id,
@@ -98,8 +120,11 @@ async function setup() {
       };
       players.set(socket.id, player);
 
-      const lobby = lobbies.get(lobbyId);
-      if (lobby) {
+      if (!lobby) {
+        socket.emit("joinResult", { success: false });
+      }
+
+      if (!lobby.isFull) {
         if (!lobby.leaderAvailable) {
           player.leader = true;
           lobby.leaderAvailable = true;
@@ -119,31 +144,51 @@ async function setup() {
         }
         socket.join(lobbyId);
         lobby.players.push(player);
-        lobbies.set(lobbyId, lobby);
+        await lobby.save();
         io.to(lobbyId).emit("lobbyJoined", lobby);
-        io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
+        const lobbyList = await Lobby.find({});
+        io.emit("mainMenuLobbiesUpdated", lobbyList);
+        socket.emit("joinResult", { success: true });
+      } else {
+        socket.emit("joinResult", { success: false });
       }
     });
 
-    socket.on("chatMessage", (data) => {
+    socket.on("chatMessage", async (data) => {
       const { message, lobbyId } = data;
       const player = players.get(socket.id);
       if (player) {
-        const chatMessage = { sender: socket.id, message };
-        const lobby = lobbies.get(lobbyId);
+        const chatMessage = { sender: socket.id, message, timestamp: Date.now() };
+        let lobby = null;
+        try {
+          lobby = await Lobby.findOne({ id: lobbyId });
+        } catch (err) {
+          console.error(err);
+          socket.emit("messageResult", { success: false });
+        }
         if (lobby) {
           lobby.chatHistory.push(chatMessage);
+          await lobby.save();
           io.to(lobbyId).emit("message", { messages: lobby.chatHistory });
+          socket.emit("messageResult", { success: true });
+        } else {
+          socket.emit("messageResult", { success: false });
         }
       }
     });
 
-    socket.on("ready", (data) => {
+    socket.on("ready", async (data) => {
       const { lobbyId } = data;
       const player = players.get(socket.id);
       if (player) {
         player.ready = true;
-        const lobby = lobbies.get(lobbyId);
+        let lobby = null;
+        try {
+          lobby = await Lobby.findOne({ id: lobbyId });
+        } catch (err) {
+          console.error(err);
+          socket.emit("readyResult", { success: false });
+        }
         if (lobby) {
           const leaderPlayer = lobby.players.find(
             (player) => player.leader === true
@@ -153,18 +198,31 @@ async function setup() {
               enabled: true,
             });
           }
+          await lobby.save();
           io.to(lobbyId).emit("playerReady", lobby);
+          socket.emit("readyResult", { success: true });
+        } else {
+          socket.emit("readyResult", { success: false });
         }
+      } else {
+        socket.emit("readyResult", { success: false });
       }
     });
 
-    socket.on("unready", (data) => {
+    socket.on("unready", async (data) => {
       const { lobbyId } = data;
       const player = players.get(socket.id);
       if (player) {
         player.ready = false;
-        const lobby = lobbies.get(lobbyId);
+        let lobby = null;
+        try {
+          lobby = await Lobby.findOne({ id: lobbyId });
+        } catch (err) {
+          console.error(err);
+          socket.emit("readyResult", { success: false });
+        }
         if (lobby) {
+          await lobby.save();
           const leaderPlayer = lobby.players.find(
             (player) => player.leader === true
           );
@@ -172,17 +230,33 @@ async function setup() {
           io.to(leaderPlayer.socketId).emit("enableStartButton", {
             enabled: false,
           });
+          socket.emit("readyResult", { success: true });
+        } else {
+          socket.emit("readyResult", { success: false });
         }
+      } else {
+        socket.emit("readyResult", { success: false });
       }
     });
 
-    socket.on("inProgress", (data) => {
+    socket.on("inProgress", async (data) => {
       const { lobbyId } = data;
-      const lobby = lobbies.get(lobbyId);
+      let lobby = null;
+      try {
+        lobby = await Lobby.findOne({ id: lobbyId });
+      } catch (err) {
+        console.error(err);
+        socket.emit("inProgressResult", { success: false });
+      }
       if (lobby) {
         lobby.inProgress = true;
-        io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
+        await lobby.save();
+        const lobbyList = await Lobby.find({});
+        io.emit("mainMenuLobbiesUpdated", lobbyList);
         io.to(lobbyId).emit("gameStarted", { lobbyId });
+        socket.emit("inProgressResult", { success: true });
+      } else {
+        socket.emit("inProgressResult", { success: false });
       }
     });
 
@@ -199,13 +273,19 @@ async function setup() {
     //   }
     // })
 
-    socket.on("leaveLobby", () => {
+    socket.on("leaveLobby", async () => {
       const socketId = socket.id;
       const player = players.get(socketId);
 
       if (player) {
         const lobbyId = player.lobbyId;
-        const lobby = lobbies.get(lobbyId);
+        let lobby = null;
+        try {
+          lobby = await Lobby.findOne({ id: lobbyId });
+        } catch (err) {
+          console.error(err);
+          socket.emit("leaveLobbyResult", { success: false });
+        } 
 
         if (lobby) {
           lobby.players = lobby.players.filter((p) => p.socketId !== socketId);
@@ -219,21 +299,27 @@ async function setup() {
             }
           }
           io.to(lobbyId).emit("updateLobby", lobby);
-          io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
+          await lobby.save();
+          const lobbyList = await Lobby.find({});
+          io.emit("mainMenuLobbiesUpdated", lobbyList);
+          socket.emit("leaveLobbyResult", { success: true });
+        } else {
+          socket.emit("leaveLobbyResult", { success: false });
         }
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("Client disconnected:", socket.id);
 
       players.delete(socket.id);
-      lobbies.forEach((lobby, lobbyId) => {
+      const lobbyList = await Lobby.find({});
+      lobbyList.forEach(async (lobby, lobbyId) => {
         const index = lobby.players.findIndex((p) => p.socketId === socket.id);
         if (index !== -1) {
           const leftPlayer = lobby.players.splice(index, 1)[0];
           if (lobby.players.length === 0) {
-            lobbies.delete(lobbyId);
+            await Lobby.deleteOne( {id: lobbyId});
           } else {
             if (leftPlayer.leader) {
               lobby.leaderAvailable = false;
@@ -251,6 +337,7 @@ async function setup() {
                 enabled: true,
               });
             }
+            await lobby.save();
             io.to(leaderPlayer.socketId).emit("unhideStartButton");
             io.to(lobby.id).emit("lobbyUpdated", lobby);
             io.to(lobby.id).emit("joinMessage", {
@@ -258,7 +345,8 @@ async function setup() {
               type: "leave",
             });
           }
-          io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
+          const lobbyList = await Lobby.find({});
+          io.emit("mainMenuLobbiesUpdated", lobbyList);
         }
 
         socket.leave(lobby.id);
@@ -266,57 +354,70 @@ async function setup() {
     });
   });
 
-  app.get("/api/lobbies", (req, res) => {
-    const lobbyList = Array.from(lobbies.values());
+  app.get("/api/lobbies", async (req, res) => {
+    const lobbyList = await Lobby.find({});
     res.json(lobbyList);
   });
 
-  app.post("/api/lobbies", (req, res) => {
+  app.post("/api/lobbies", async (req, res) => {
     const { name, game, password } = req.body;
 
-    const lobbyExists = Array.from(lobbies.values()).some(
-      (lobby) => lobby.name === name
-    );
+    const lobbyExists = await Lobby.exists({ name });
     if (lobbyExists) {
       return res
         .status(409)
         .json({ message: "Lobby with the same name already exists" });
     }
-    const hasPassword = password.length !== 0 ? true : false;
-    let maxPlayers = maxPlayersForGame(game);
+    const maxPlayers = maxPlayersForGame(game);
+
+    let hashedPassword = null;
+    if (password.length !== 0) {
+      const saltRounds = 10;
+      hashedPassword = await bcrypt.hash(password, saltRounds);
+    }
     const lobbyId = generateRandomLobbyId().toString();
-    const lobby = {
+    const lobby = new Lobby({
       id: lobbyId,
       name,
       players: [],
       chatHistory: [],
       inProgress: false,
       isFull: false,
-      game: game,
-      maxPlayers: maxPlayers,
+      game,
+      maxPlayers,
       leaderAvailable: false,
-      passwordProtected: hasPassword,
-      password: password,
-    };
-
-    lobbies.set(lobbyId, lobby);
+      passwordProtected: password.length !== 0,
+      password: hashedPassword,
+    });
+    await lobby.save();
 
     res.status(201).json({ message: "Lobby created successfully", lobbyId });
-    io.emit("mainMenuLobbiesUpdated", Array.from(lobbies.values()));
+
+    const lobbyList = await Lobby.find({});
+    io.emit("mainMenuLobbiesUpdated", lobbyList);
   });
 
-  app.get("/lobbies/:lobbyId", (req, res) => {
-    const lobbyId = req.params.lobbyId;
-    if (!lobbies.has(lobbyId)) {
+  app.get("/lobbies/:id", async (req, res) => {
+    const lobbyId = req.params.id;
+    let lobby = null;
+    try {
+      lobby = await Lobby.findOne({ id: lobbyId });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+    if (!lobby) {
       return res.status(404).send("Lobby not found");
     }
-    const lobby = lobbies.get(lobbyId);
     if (lobby.players.length === lobby.maxPlayers || lobby.inProgress) {
       return res.status(404).send("You cant join this lobby");
     }
-
     const storedPassword = getStoredPassword(req.cookies, lobbyId);
-    if (lobby.passwordProtected && storedPassword !== lobby.password) {
+    let storedPasswordMatches = false;
+    if(storedPassword !== null){
+      storedPasswordMatches = await bcrypt.compare(storedPassword, lobby.password);
+    }
+    if (lobby.passwordProtected && !storedPasswordMatches) {
       res.redirect(`/password_prompt?lobbyId=${lobbyId}`);
     } else {
       res.sendFile(__dirname + "/public/lobby.html");
@@ -329,11 +430,16 @@ async function setup() {
       const { error, lobbyId } = req.query;
       res.render("password_prompt", { error, lobbyId });
     })
-    .post((req, res) => {
-      const { lobbyId } = req.body;
-      const { password } = req.body;
-      const lobby = lobbies.get(lobbyId);
-      if (lobby && lobby.password === password) {
+    .post(async (req, res) => {
+      const { lobbyId, password } = req.body;
+      let lobby = null;
+      try {
+        lobby = await Lobby.findOne({ id: lobbyId });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).send("Internal server error");
+      }
+      if (lobby && await bcrypt.compare(password, lobby.password)) {
         res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
         res.redirect(`/lobbies/${lobbyId}`);
       } else {
