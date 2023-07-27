@@ -4,23 +4,28 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-//const keycloak = require("kc-adapter"); 
+const keycloak = require("kc-adapter"); 
 const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require("bcrypt");
 
 async function setup() {
-  //await Promise.all([keycloak.init(), mongo.connect()]);
-  await Promise.all([mongo.connect()]);
+  await Promise.all([keycloak.init(), mongo.connect()]);
 
   app.set("view engine", "ejs");
-
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    next();
+  });
   app.use(cookieParser());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static("public"));
-
+  
+  
   let players = new Map();
 
   function getStoredPassword(cookies, lobbyId) {
@@ -81,9 +86,16 @@ async function setup() {
     return maxPlayers;
   }
 
-  
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket, req) => {
     console.log("New client connected:", socket.id);
+
+    const player = {
+      socketId: socket.id,
+      ready: false,
+      leader: false,
+      joinTime: Date.now(),
+    };
+    players.set(socket.id, player);
 
     socket.on("validatePassword", async (data) => {
       const { lobbyId, password } = data;
@@ -96,7 +108,9 @@ async function setup() {
       }
       if (lobby && await bcrypt.compare(password, lobby.password)) {
         socket.emit("passwordValidationResult", { isValid: true });
+        console.log("correct password");
       } else {
+        console.log("wrong password");
         socket.emit("passwordValidationResult", { isValid: false });
       }
     });
@@ -111,14 +125,6 @@ async function setup() {
         console.error(err);
         socket.emit("joinResult", { success: false });
       }
-
-      const player = {
-        socketId: socket.id,
-        ready: false,
-        leader: false,
-        joinTime: Date.now(),
-      };
-      players.set(socket.id, player);
 
       if (!lobby) {
         socket.emit("joinResult", { success: false });
@@ -354,12 +360,12 @@ async function setup() {
     });
   });
 
-  app.get("/api/lobbies", async (req, res) => {
+  app.get("/api/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const lobbyList = await Lobby.find({});
     res.json(lobbyList);
   });
 
-  app.post("/api/lobbies", async (req, res) => {
+  app.post("/api/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const { name, game, password } = req.body;
 
     const lobbyExists = await Lobby.exists({ name });
@@ -391,13 +397,15 @@ async function setup() {
     });
     await lobby.save();
 
-    res.status(201).json({ message: "Lobby created successfully", lobbyId });
-
     const lobbyList = await Lobby.find({});
     io.emit("mainMenuLobbiesUpdated", lobbyList);
+
+    const token = req.headers.authorization ? req.headers.authorization.replace(/^Bearer\s+/, "") : null;
+    res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
+    res.redirect(`/lobbies/${lobbyId}`, 301, { headers: { Authorization: `Bearer ${token}` } });
   });
 
-  app.get("/lobbies/:id", async (req, res) => {
+  app.get("/lobbies/:id", keycloak.protectHTTP(), async (req, res) => {
     const lobbyId = req.params.id;
     let lobby = null;
     try {

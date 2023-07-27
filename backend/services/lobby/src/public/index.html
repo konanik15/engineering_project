@@ -37,7 +37,30 @@
         </select>
       </form>
     </div>
+    <script src="http://localhost:10100/auth/js/keycloak.js"></script>
+    <script>
+      if (localStorage.getItem("token") === null) {
+        const keycloak = new Keycloak({
+          url: "http://localhost:10100/auth",
+          realm: "cardz",
+          clientId: "account-console",
+        });
 
+        keycloak
+          .init({
+            onLoad: "login-required",
+            pkceMethod: "S256",
+          })
+          .then((authenticated) => {
+            const token = keycloak.token;
+            localStorage.setItem("token", token);
+            console.log("Token saved to localStorage:", token);
+          })
+          .catch((error) => {
+            console.error("Failed to initialize Keycloak:", error);
+          });
+      }
+    </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       const socket = io();
@@ -85,15 +108,30 @@
       function askForPassword(lobby) {
         const storedPassword = getCookie(`lobbyPassword_${lobby.id}`);
 
-        if (storedPassword === lobby.password) {
-          window.location.href = `/lobbies/${lobby.id}`;
-          return;
+        if (storedPassword) {
+          console.log("Stored password found:", storedPassword);
+          let password = storedPassword;
+          socket.emit("validatePassword", {
+            lobbyId: lobby.id,
+            password,
+          });
+          socket.once("passwordValidationResult", (data) => {
+            if (data.isValid) {
+              console.log("Password is valid");
+              window.location.href = `/lobbies/${lobby.id}`;
+            }
+          });
         } else {
-          const password = prompt(
+          console.log("kurwaaaaa");
+          const passwordPrompt = prompt(
             `Enter the password for lobby "${lobby.name}"`
           );
-          if (password) {
-            socket.emit("validatePassword", { lobbyId: lobby.id, password });
+          if (passwordPrompt) {
+            password = passwordPrompt;
+            socket.emit("validatePassword", {
+              lobbyId: lobby.id,
+              password,
+            });
 
             socket.once("passwordValidationResult", (data) => {
               if (data.isValid) {
@@ -129,7 +167,11 @@
         }
       }
       function fetchLobbyList() {
-        fetch("/api/lobbies")
+        fetch("/api/lobbies", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
           .then((response) => response.json())
           .then((lobbies) => {
             updateLobbyList(lobbies);
@@ -155,19 +197,12 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({ name, game, password }),
         })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            const { message, lobbyId } = data;
-            if (message === "Lobby created successfully") {
-              storePassword(lobbyId, password);
-              window.location.href = `/lobbies/${lobbyId}`;
-            } else {
-              console.error("Failed to create lobby:", message);
-            }
+          .then(() => {
+            console.log("Lobby created");
           })
           .catch((error) => {
             console.error("Failed to create lobby:", error);
