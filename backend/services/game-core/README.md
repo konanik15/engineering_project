@@ -142,6 +142,197 @@ An example of what actions might look like:
 TODO: implement and describe other actions
 
 # Endpoints
+## Get available games
+GET /
+
+Returns an array of available implemented games
+
+### Examples
+#### Request
+GET http://example:80/<br>
+
+#### Response
+Body: 
+```json
+[{
+    "type": "durak",
+    "description": "A classic card game of Russian origins that is popular in many post-Soviet states."
+}, {
+    "type": "uno",
+    "description": "A fun game that is sadly not implemented yet"
+}]
+```
+
+## Get game info
+GET /{gameType}
+
+Returns detailed information about a specific game
+
+### Examples
+#### Request
+GET http://example:80/durak<br>
+
+#### Response
+Body: 
+```json
+{
+    "description": "A classic card game of Russian origins that is popular in many post-Soviet states.",
+    "pack": {
+        "type": "standard36",
+        "name": "Standard 36-card deck",
+        "cards": [
+            {
+                "suit": "clubs",
+                "rank": "ace"
+            },
+            {
+                "suit": "clubs",
+                "rank": "6"
+            },
+            {
+                "suit": "clubs",
+                "rank": "7"
+            },
+            {
+                "suit": "clubs",
+                "rank": "8"
+            },
+            {
+                "suit": "clubs",
+                "rank": "9"
+            },
+            {
+                "suit": "clubs",
+                "rank": "10"
+            },
+            {
+                "suit": "clubs",
+                "rank": "jack"
+            },
+            {
+                "suit": "clubs",
+                "rank": "queen"
+            },
+            {
+                "suit": "clubs",
+                "rank": "king"
+            },
+            {
+                "suit": "hearts",
+                "rank": "ace"
+            },
+            {
+                "suit": "hearts",
+                "rank": "6"
+            },
+            {
+                "suit": "hearts",
+                "rank": "7"
+            },
+            {
+                "suit": "hearts",
+                "rank": "8"
+            },
+            {
+                "suit": "hearts",
+                "rank": "9"
+            },
+            {
+                "suit": "hearts",
+                "rank": "10"
+            },
+            {
+                "suit": "hearts",
+                "rank": "jack"
+            },
+            {
+                "suit": "hearts",
+                "rank": "queen"
+            },
+            {
+                "suit": "hearts",
+                "rank": "king"
+            },
+            {
+                "suit": "spades",
+                "rank": "ace"
+            },
+            {
+                "suit": "spades",
+                "rank": "6"
+            },
+            {
+                "suit": "spades",
+                "rank": "7"
+            },
+            {
+                "suit": "spades",
+                "rank": "8"
+            },
+            {
+                "suit": "spades",
+                "rank": "9"
+            },
+            {
+                "suit": "spades",
+                "rank": "10"
+            },
+            {
+                "suit": "spades",
+                "rank": "jack"
+            },
+            {
+                "suit": "spades",
+                "rank": "queen"
+            },
+            {
+                "suit": "spades",
+                "rank": "king"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "ace"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "6"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "7"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "8"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "9"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "10"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "jack"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "queen"
+            },
+            {
+                "suit": "diamonds",
+                "rank": "king"
+            }
+        ]
+    },
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "type": "durak"
+}
+```
+
 ## Create new game
 POST /{gameType}
 

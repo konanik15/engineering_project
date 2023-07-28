@@ -16,6 +16,17 @@ const gamesConfig = JSON.parse(fs.readFileSync("./config/games.json"));
 
 let connections = {};
 
+async function getGamesInfo() {
+    return await Promise.all(gamesConfig.map(async game => {
+        let response = await axios.get(`http://${game.host}/info`);
+        let gameInfo = response.data;
+        //todo: validate response, handle possible errors etc.
+
+        gameInfo.type = game.type;
+        return gameInfo;
+    }));
+}
+
 async function connect(gameId, user, connection) {
     let game = await service.findById(gameId);
     if (!game)
@@ -162,4 +173,4 @@ function conceal(game, username) {
     return concealed;
 }
 
-export default { connect, disconnect, performActions };
+export default { connect, disconnect, performActions, getGamesInfo };

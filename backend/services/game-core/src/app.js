@@ -19,9 +19,15 @@ import {
 
 import _ from "lodash";
 
+let gamesInfo;
+
+async function init() {
+    gamesInfo = await handler.getGamesInfo();
+}
+
 //error handling really sucks in express-ws, you don't have the tools to make a proper
 //error-handling middleware for ws routes that would receive a connection as an input parameter.
-//therefore apparently you have to close the manually
+//therefore apparently you have to do it "manually" if you want to close it
 const closeOnError = (connection) => { connection.close(1011, "Oops, something went wrong"); };
 
 router.post("/:gameType", bodyParser.json(), async (req, res, next) => {
@@ -78,4 +84,15 @@ router.patch("/:gameId", keycloak.protectHTTP(), bodyParser.json(), async (req, 
     }
 });
 
-export default router;
+router.get("/", bodyParser.json(), async (req, res, next) => {
+    return res.status(200).send(gamesInfo.map(g => _.pick(g, ["type", "description"])));
+});
+
+router.get("/:gameType", bodyParser.json(), async (req, res, next) => {
+    let game = _.find(gamesInfo, { type: req.params.gameType });
+    if (!game)
+        return res.status(404).send(`No game found with type ${gameType}`);
+    return res.status(200).send(game);
+});
+
+export default { init, router };
