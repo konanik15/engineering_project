@@ -99,6 +99,11 @@
               event.preventDefault();
               askForPassword(lobby);
             });
+          } else {
+            link.addEventListener("click", () => {
+              event.preventDefault();
+              joinLobby(lobby.id);
+            });
           }
           li.appendChild(link);
           lobbyList.appendChild(li);
@@ -118,11 +123,11 @@
           socket.once("passwordValidationResult", (data) => {
             if (data.isValid) {
               console.log("Password is valid");
-              window.location.href = `/lobbies/${lobby.id}`;
+              redirectToLobby(lobby.id);
+              //joinLobby(lobby.id);
             }
           });
         } else {
-          console.log("kurwaaaaa");
           const passwordPrompt = prompt(
             `Enter the password for lobby "${lobby.name}"`
           );
@@ -136,7 +141,8 @@
             socket.once("passwordValidationResult", (data) => {
               if (data.isValid) {
                 storePassword(lobby.id, password);
-                window.location.href = `/lobbies/${lobby.id}`;
+                redirectToLobby(lobby.id);
+                //joinLobby(lobby.id);
               } else {
                 alert("Invalid password. Please try again.");
               }
@@ -181,6 +187,35 @@
           });
       }
 
+      function redirectToLobby(lobbyId) {
+        const token = localStorage.getItem("token");
+        const queryParams = new URLSearchParams({
+          lobbyId: lobbyId,
+        });
+        window.location.href = `/lobby.html?${queryParams.toString()}`;
+      }
+
+
+      // function joinLobby(lobbyId) {
+      //   const token = localStorage.getItem("token");
+      //   fetch(`/lobbies/${lobbyId}`, {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   })
+      //     .then((response) => {
+      //       if (response.ok) {
+      //         response.json().then((lobby) => {
+      //           redirectToLobby(lobby);
+      //         });
+      //       } else {
+      //         console.error("Failed to join lobby:", response.statusText);
+      //       }
+      //     })
+      //     .catch((error) => {
+      //       console.error("Failed to join lobby:", error);
+      //     });
+      // }
       function handleCreateLobbyFormSubmit(event) {
         event.preventDefault();
         const lobbyNameInput = document.getElementById("lobbyNameInput");
@@ -201,8 +236,17 @@
           },
           body: JSON.stringify({ name, game, password }),
         })
-          .then(() => {
-            console.log("Lobby created");
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            const { message, lobbyId } = data;
+            if (message === "Lobby created successfully") {
+              storePassword(lobbyId, password);
+              redirectToLobby(lobbyId);
+              //joinLobby(lobbyId);
+            } else {
+              console.error("Failed to create lobby:", message);
+            }
           })
           .catch((error) => {
             console.error("Failed to create lobby:", error);

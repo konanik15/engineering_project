@@ -25,7 +25,6 @@ async function setup() {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static("public"));
   
-  
   let players = new Map();
 
   function getStoredPassword(cookies, lobbyId) {
@@ -400,9 +399,8 @@ async function setup() {
     const lobbyList = await Lobby.find({});
     io.emit("mainMenuLobbiesUpdated", lobbyList);
 
-    const token = req.headers.authorization ? req.headers.authorization.replace(/^Bearer\s+/, "") : null;
-    res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
-    res.redirect(`/lobbies/${lobbyId}`, 301, { headers: { Authorization: `Bearer ${token}` } });
+    //res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
+    res.status(201).json({ message: "Lobby created successfully", lobbyId });
   });
 
   app.get("/lobbies/:id", keycloak.protectHTTP(), async (req, res) => {
@@ -420,40 +418,44 @@ async function setup() {
     if (lobby.players.length === lobby.maxPlayers || lobby.inProgress) {
       return res.status(404).send("You cant join this lobby");
     }
-    const storedPassword = getStoredPassword(req.cookies, lobbyId);
-    let storedPasswordMatches = false;
-    if(storedPassword !== null){
-      storedPasswordMatches = await bcrypt.compare(storedPassword, lobby.password);
-    }
-    if (lobby.passwordProtected && !storedPasswordMatches) {
-      res.redirect(`/password_prompt?lobbyId=${lobbyId}`);
-    } else {
-      res.sendFile(__dirname + "/public/lobby.html");
-    }
+    // const storedPassword = getStoredPassword(req.cookies, lobbyId);
+    // let storedPasswordMatches = false;
+    // if(storedPassword !== null){
+    //   storedPasswordMatches = await bcrypt.compare(storedPassword, lobby.password);
+    //   console.log(storedPasswordMatches);
+    //   console.log(storedPassword);
+    //   console.log(lobby.password);
+    // }
+    // if (lobby.passwordProtected && !storedPasswordMatches) {
+    //   res.redirect(`/password_prompt?lobbyId=${lobbyId}`);
+    //   console.log("2");
+    
+    res.json(lobby);
+
   });
 
-  app
-    .route("/password_prompt")
-    .get((req, res) => {
-      const { error, lobbyId } = req.query;
-      res.render("password_prompt", { error, lobbyId });
-    })
-    .post(async (req, res) => {
-      const { lobbyId, password } = req.body;
-      let lobby = null;
-      try {
-        lobby = await Lobby.findOne({ id: lobbyId });
-      } catch (err) {
-        console.error(err);
-        return res.status(500).send("Internal server error");
-      }
-      if (lobby && await bcrypt.compare(password, lobby.password)) {
-        res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
-        res.redirect(`/lobbies/${lobbyId}`);
-      } else {
-        res.redirect(`/password_prompt?lobbyId=${lobbyId}&error=invalid`);
-      }
-    });
+  // app
+  //   .route("/password_prompt")
+  //   .get((req, res) => {
+  //     const { error, lobbyId } = req.query;
+  //     res.render("password_prompt", { error, lobbyId });
+  //   })
+  //   .post(async (req, res) => {
+  //     const { lobbyId, password } = req.body;
+  //     let lobby = null;
+  //     try {
+  //       lobby = await Lobby.findOne({ id: lobbyId });
+  //     } catch (err) {
+  //       console.error(err);
+  //       return res.status(500).send("Internal server error");
+  //     }
+  //     if (lobby && await bcrypt.compare(password, lobby.password)) {
+  //       res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
+  //       res.redirect(`/lobbies/${lobbyId}`);
+  //     } else {
+  //       res.redirect(`/password_prompt?lobbyId=${lobbyId}&error=invalid`);
+  //     }
+  //   });
   //temp endpoint
   app.get("/lobbies/:lobbyId/game", (req, res) => {
     res.sendFile(__dirname + "/public/game.html");

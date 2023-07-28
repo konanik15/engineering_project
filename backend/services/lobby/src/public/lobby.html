@@ -75,10 +75,55 @@
             console.error("Failed to initialize Keycloak:", error);
           });
       }
+
+      const queryParams = new URLSearchParams(window.location.search);
+      const lobbyId = queryParams.get("lobbyId");
+      joinLobby(lobbyId);
+      
+      function joinLobby(lobbyId) {
+        const token = localStorage.getItem("token");
+        fetch(`/lobbies/${lobbyId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              response.json().then((lobby) => {
+              });
+            } else {
+              console.error("Failed to join lobby:", response.statusText);
+            }
+          })
+          .catch((error) => {
+            console.error("Failed to join lobby:", error);
+          });
+      }
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
       const socket = io();
+
+
+      // function fetchLobby() {
+      //   console.log('lul');
+      //   const lobbyId = window.location.pathname.split("/").pop();
+      //   fetch(`/lobbies/${lobbyId}`, {
+      //     headers: {
+      //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+      //     },
+      //   })
+      //     .then((response) => response.json())
+      //     .then((lobby) => {
+      //       updatePlayerList(lobby.players);
+      //       updateChatMessages(lobby.chatHistory);
+      //     })
+      //     .catch((error) => {
+      //       console.error("Failed to fetch lobby:", error);
+      //     });
+      // }
+
+      //fetchLobby();
 
       function updatePlayerList(players) {
         const playerList = document.getElementById("playerList");
@@ -152,6 +197,8 @@
         const lobbyId = document.getElementById("lobbyId").textContent;
         socket.emit("inProgress", { lobbyId });
       }
+
+      
 
       document.getElementById("leaveLobbyBtn").addEventListener("click", () => {
         socket.emit("leaveLobby"); // Emit the "leaveLobby" event to the server
@@ -227,7 +274,9 @@
       socket.on("connect", () => {
         console.log("Connected to websocket server");
 
-        const lobbyId = window.location.pathname.split("/").pop();
+        const queryParams = new URLSearchParams(window.location.search);
+        const lobbyId = queryParams.get("lobbyId");
+       
         socket.emit("join", { lobbyId });
       });
 
