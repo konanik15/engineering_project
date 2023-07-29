@@ -10,13 +10,9 @@ const lobbySchema = new mongoose.Schema({
   },
   players: [
     {
-      socketId: {
-        type: String,
-        required: true,
-      },
       name: {
         type: String,
-        required: false,
+        required: true,
       },
       ready: {
         type: Boolean,
@@ -64,7 +60,7 @@ const lobbySchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  leaderAvailable: {
+  hasLeader: {
     type: Boolean,
     default: false,
   },

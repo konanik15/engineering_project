@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
+const expressWs = require("express-ws");
+expressWs(app, server);
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const keycloak = require("kc-adapter");
@@ -85,41 +87,139 @@ async function setup() {
     return maxPlayers;
   }
 
-  io.use(keycloak.protectWS(), (socket, next) => {
-    if (isValid(socket.request)) {
-      next();
-    } else {
-      next(new Error("Invalid socket request"));
-    }
-  });
-
-  const mainMenuSocket = io.of("/lobbies");
-  mainMenuSocket.on("connection", async (socket, req) => {
-    console.log("New client connected to main menu:", socket.id);
-
-    socket.on("validatePassword", async (data) => {
-      const { lobbyId, password } = data;
-      let lobby = null;
-      try {
-        lobby = await Lobby.findOne({ id: lobbyId });
-      } catch (err) {
-        console.error(err);
-        socket.emit("passwordValidationResult", { isValid: false });
-      }
-      if (lobby && (await bcrypt.compare(password, lobby.password))) {
-        socket.emit("passwordValidationResult", { isValid: true });
-        console.log("correct password");
-      } else {
-        console.log("wrong password");
-        socket.emit("passwordValidationResult", { isValid: false });
+  function broadcast(clients, message) {
+    clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(message);
       }
     });
+  }
 
-    socket.on("disconnect", () => {
-      console.log("Client disconnected from main menu:", socket.id);
+  const clients = new Set();
+  app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
+    clients.add(ws);
+    console.log("New client connected to main menu:", ws._socket.remoteAddress);
+
+    ws.on("close", () => {
+      clients.delete(ws);
+    });
+    
+    ws.on("message", async (message) => {
+      const { type, data } = JSON.parse(message);
+      
+      switch (type) {
+        //this can be used to validate the password of a lobby client wants to join from main menu
+        case "validatePassword":
+          const { lobbyId, password } = data;
+          let lobby = null;
+          try {
+            lobby = await Lobby.findOne({ id: lobbyId });
+          } catch (err) {
+            console.error(err);
+            ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
+            return;
+          }
+  
+          if (!lobby) {
+            console.log("Lobby not found");
+            ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
+            return;
+          }
+          if (!bcrypt.compare(password, lobby.password)) {
+            console.log("Wrong password");
+            ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
+            return;
+          }
+  
+          ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: true } }));
+          break;
+        default:
+          console.log("Invalid message type:", type);
+      }
     });
   });
 
+  const lobbyClients = new Map();
+  app.ws("/lobby/:lobbyId", keycloak.protectWS(), async (ws, req) => {
+    console.log("New client:", ws._socket.remoteAddress, "connected to lobby:", req.params.lobbyId);
+
+    const lobbyId = req.params.lobbyId;
+    let lobby = null;
+    lobby = await Lobby.findOne({ id: lobbyId });
+    if (!lobby) {
+      console.error("Lobby not found");
+      ws.close(1000, "Connection closed by server");
+    } 
+    tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+    tempClients.add(ws);
+    lobbyClients.set(lobbyId, tempClients);
+
+    const player = {
+      name: req.decoded_token.preferred_username,
+      joinTime: Date.now(),
+    };
+
+    ws.on("close", () => {
+      tempClients.delete(ws);
+      lobbyClients.set(lobbyId, tempClients);
+      ws.close(1000, "Connection closed by server");
+    });
+
+    ws.on("message", async (message) => {
+      const { type, data } = JSON.parse(message);
+      switch (type) {
+        //when a user joins a lobby he sends a message with type "join" and data containing lobbyId
+        //if everything is ok, server assigns the player to the lobby and emits a message to the lobby that a new player joined
+        case "join":
+          if (!lobby.isFull) {
+            if (!lobby.hasLeader) {
+              player.leader = true;
+              lobby.hasLeader = true;
+              //these messages can be used on client side to enable the start game button for the leader
+              //I used them in my htmls, I am not sure if this is a good practice but it worked
+              // ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: false } }));
+              // ws.send(JSON.stringify({ type: "unhideStartButton"}));
+            }
+
+            lobby.players.push(player);
+            await lobby.save();
+            //send info to all of the clients in the lobby that a player joined
+            broadcast(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
+            ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
+            
+            //TODO: how to send a message to /lobbies
+            // const lobbyList = await Lobby.find({});
+            // io.emit("mainMenuLobbiesUpdated", lobbyList);
+          } else {
+            ws.send(JSON.stringify({ type: "joinResult", data: { success: false } }));
+            ws.close(1000, "Connection closed by server");
+          }
+          break;
+        case "chatMessage":
+          const { message } = data;
+          
+          if(message === undefined){
+            ws.send(JSON.stringify({ type: "messageResult", data: { success: false } }));
+            console.error("Message is undefined");
+            return;
+          }
+          const chatMessage = {
+            sender: player.name,
+            message,
+            timestamp: Date.now(),
+          };
+          lobby.chatHistory.push(chatMessage);
+          await lobby.save();
+          broadcast(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
+          ws.send(JSON.stringify({ type: "messageResult", data: { success: true } }));
+          break;
+      }
+
+
+    });
+    
+
+  });
   const lobbySocket = io.of("/lobby");
   lobbySocket.on("connection", async (socket, req) => {
     const lobbyId = socket.handshake.query.lobbyId;
@@ -132,78 +232,6 @@ async function setup() {
       joinTime: Date.now(),
     };
     players.set(socket.id, player);
-
-    socket.on("join", async (data) => {
-      const { lobbyId } = data;
-
-      let lobby = null;
-      try {
-        lobby = await Lobby.findOne({ id: lobbyId });
-      } catch (err) {
-        console.error(err);
-        socket.emit("joinResult", { success: false });
-      }
-
-      if (!lobby) {
-        socket.emit("joinResult", { success: false });
-      }
-
-      if (!lobby.isFull) {
-        if (!lobby.leaderAvailable) {
-          player.leader = true;
-          lobby.leaderAvailable = true;
-          //io.to(player.socketId).emit('enableGameComboBox', { enabled: true });
-          io.to(player.socketId).emit("enableStartButton", { enabled: false });
-          io.to(player.socketId).emit("unhideStartButton");
-        } else {
-          //io.to(lobbyId).emit('enableGameComboBox', { enabled: false });
-          const leaderPlayer = lobby.players.find(
-            (player) => player.leader === true
-          );
-          //io.to(leaderPlayer.socketId).emit('enableGameComboBox', { enabled: true });
-          io.to(leaderPlayer.socketId).emit("enableStartButton", {
-            enabled: false,
-          });
-          io.to(leaderPlayer.socketId).emit("unhideStartButton");
-        }
-        socket.join(lobbyId);
-        lobby.players.push(player);
-        await lobby.save();
-        io.to(lobbyId).emit("lobbyJoined", lobby);
-        const lobbyList = await Lobby.find({});
-        io.emit("mainMenuLobbiesUpdated", lobbyList);
-        socket.emit("joinResult", { success: true });
-      } else {
-        socket.emit("joinResult", { success: false });
-      }
-    });
-
-    socket.on("chatMessage", async (data) => {
-      const { message, lobbyId } = data;
-      const player = players.get(socket.id);
-      if (player) {
-        const chatMessage = {
-          sender: socket.id,
-          message,
-          timestamp: Date.now(),
-        };
-        let lobby = null;
-        try {
-          lobby = await Lobby.findOne({ id: lobbyId });
-        } catch (err) {
-          console.error(err);
-          socket.emit("messageResult", { success: false });
-        }
-        if (lobby) {
-          lobby.chatHistory.push(chatMessage);
-          await lobby.save();
-          io.to(lobbyId).emit("message", { messages: lobby.chatHistory });
-          socket.emit("messageResult", { success: true });
-        } else {
-          socket.emit("messageResult", { success: false });
-        }
-      }
-    });
 
     socket.on("ready", async (data) => {
       const { lobbyId } = data;
@@ -369,31 +397,13 @@ async function setup() {
     });
   });
 
-  // io.on("connection", async (socket, req) => {
-  //   console.log("New client connected:", socket.id);
 
-  //   // socket.on('gameChanged', (data) => {
-  //   //   const { game, lobbyId } = data;
-  //   //   const lobby = lobbies.get(lobbyId);
-  //   //   if (lobby) {
-  //   //     let maxPlayers = maxPlayersForGame(game);
-  //   //     lobby.game = game;
-
-  //   //     lobby.maxPlayers = maxPlayers;
-  //   //     io.emit('mainMenuLobbiesUpdated', Array.from(lobbies.values()));
-  //   //     io.to(lobbyId).emit('gameUpdated', { game });
-  //   //   }
-  //   // })
-
-    
-  // });
-
-  app.get("/api/lobbies", keycloak.protectHTTP(), async (req, res) => {
+  app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const lobbyList = await Lobby.find({});
     res.json(lobbyList);
   });
 
-  app.post("/api/lobbies", keycloak.protectHTTP(), async (req, res) => {
+  app.post("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const { name, game, password } = req.body;
 
     const lobbyExists = await Lobby.exists({ name });
@@ -419,7 +429,7 @@ async function setup() {
       isFull: false,
       game,
       maxPlayers,
-      leaderAvailable: false,
+      hasLeader: false,
       passwordProtected: password.length !== 0,
       password: hashedPassword,
     });
@@ -432,7 +442,7 @@ async function setup() {
     res.status(201).json({ message: "Lobby created successfully", lobbyId });
   });
 
-  app.get("/lobbies/:id", keycloak.protectHTTP(), async (req, res) => {
+  app.get("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
     const lobbyId = req.params.id;
     let lobby = null;
     try {
@@ -444,50 +454,16 @@ async function setup() {
     if (!lobby) {
       return res.status(404).send("Lobby not found");
     }
-    if (lobby.players.length === lobby.maxPlayers || lobby.inProgress) {
-      return res.status(404).send("You cant join this lobby");
-    }
-    // const storedPassword = getStoredPassword(req.cookies, lobbyId);
-    // let storedPasswordMatches = false;
-    // if(storedPassword !== null){
-    //   storedPasswordMatches = await bcrypt.compare(storedPassword, lobby.password);
-    //   console.log(storedPasswordMatches);
-    //   console.log(storedPassword);
-    //   console.log(lobby.password);
+    // I think those things should be handled on websockets
+    // if (lobby.players.length === lobby.maxPlayers || lobby.inProgress) {
+    //   return res.status(404).send("You cant join this lobby");
     // }
-    // if (lobby.passwordProtected && !storedPasswordMatches) {
-    //   res.redirect(`/password_prompt?lobbyId=${lobbyId}`);
-    //   console.log("2");
-
     res.json(lobby);
   });
 
-  // app
-  //   .route("/password_prompt")
-  //   .get((req, res) => {
-  //     const { error, lobbyId } = req.query;
-  //     res.render("password_prompt", { error, lobbyId });
-  //   })
-  //   .post(async (req, res) => {
-  //     const { lobbyId, password } = req.body;
-  //     let lobby = null;
-  //     try {
-  //       lobby = await Lobby.findOne({ id: lobbyId });
-  //     } catch (err) {
-  //       console.error(err);
-  //       return res.status(500).send("Internal server error");
-  //     }
-  //     if (lobby && await bcrypt.compare(password, lobby.password)) {
-  //       res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
-  //       res.redirect(`/lobbies/${lobbyId}`);
-  //     } else {
-  //       res.redirect(`/password_prompt?lobbyId=${lobbyId}&error=invalid`);
-  //     }
-  //   });
-  //temp endpoint
-  app.get("/lobbies/:lobbyId/game", (req, res) => {
-    res.sendFile(__dirname + "/public/game.html");
-  });
+  // app.get("/lobby/:lobbyId/game", (req, res) => {
+  //   res.sendFile(__dirname + "/public/game.html");
+  // });
 
   const PORT = 8080;
   server.listen(PORT, () => {
