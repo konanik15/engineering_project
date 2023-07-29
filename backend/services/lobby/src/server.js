@@ -27,7 +27,10 @@ async function setup() {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static("public"));
 
+  //players is not needed I think
   let players = new Map();
+  const clients = new Set();
+  const lobbyClients = new Map();
 
   // function getStoredPassword(cookies, lobbyId) {
   //   const cookieName = `lobbyPassword_${lobbyId}`;
@@ -87,7 +90,7 @@ async function setup() {
     return maxPlayers;
   }
 
-  function broadcast(clients, message) {
+  function broadcastToClients(clients, message) {
     clients.forEach((client) => {
       if (client.readyState === client.OPEN) {
         client.send(message);
@@ -95,7 +98,11 @@ async function setup() {
     });
   }
 
-  const clients = new Set();
+  // can't send to ws.id, has to be ws
+  // function broadcastToClient(client, message) {
+  //   client.send(message);
+  // }
+
   app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
     clients.add(ws);
     console.log("New client connected to main menu:", ws._socket.remoteAddress);
@@ -139,7 +146,6 @@ async function setup() {
     });
   });
 
-  const lobbyClients = new Map();
   app.ws("/lobby/:lobbyId", keycloak.protectWS(), async (ws, req) => {
     console.log("New client:", ws._socket.remoteAddress, "connected to lobby:", req.params.lobbyId);
 
@@ -177,14 +183,14 @@ async function setup() {
               lobby.hasLeader = true;
               //these messages can be used on client side to enable the start game button for the leader
               //I used them in my htmls, I am not sure if this is a good practice but it worked
-              // ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: false } }));
-              // ws.send(JSON.stringify({ type: "unhideStartButton"}));
+              //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
+              //ws.send(JSON.stringify({ type: "unhideStartButton"}));
             }
 
             lobby.players.push(player);
             await lobby.save();
             //send info to all of the clients in the lobby that a player joined
-            broadcast(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
+            broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
             ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
             
             //TODO: how to send a message to /lobbies
@@ -210,12 +216,37 @@ async function setup() {
           };
           lobby.chatHistory.push(chatMessage);
           await lobby.save();
-          broadcast(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
+          broadcastToClients(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
           ws.send(JSON.stringify({ type: "messageResult", data: { success: true } }));
           break;
+
+        case "ready":
+          player.ready = true;
+          await lobby.save();
+          ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
+          broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: player.name }}));
+          // leaderPlayer = lobby.players.find(
+          //   (player) => player.leader === true
+          // );
+          // if (areAllPlayersReady(lobbyId)) {
+          //   broadcastToClient(leaderPlayer.wsId, JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
+          // }
+          break;
+        
+        case "unready":
+          player.ready = false;
+          await lobby.save();
+          ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
+          broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: player.name }}));
+          // leaderPlayer = lobby.players.find(
+          //   (player) => player.leader === true
+          // );
+          // broadcastToClient(leaderPlayer.wsId, JSON.stringify({ type: "enableStartButton", data: { enabled: false } }));
+          // break;
+
+        default:
+          console.log("Invalid message type:", type);
       }
-
-
     });
     
 
@@ -232,68 +263,6 @@ async function setup() {
       joinTime: Date.now(),
     };
     players.set(socket.id, player);
-
-    socket.on("ready", async (data) => {
-      const { lobbyId } = data;
-      const player = players.get(socket.id);
-      if (player) {
-        player.ready = true;
-        let lobby = null;
-        try {
-          lobby = await Lobby.findOne({ id: lobbyId });
-        } catch (err) {
-          console.error(err);
-          socket.emit("readyResult", { success: false });
-        }
-        if (lobby) {
-          const leaderPlayer = lobby.players.find(
-            (player) => player.leader === true
-          );
-          if (areAllPlayersReady(lobbyId)) {
-            io.to(leaderPlayer.socketId).emit("enableStartButton", {
-              enabled: true,
-            });
-          }
-          await lobby.save();
-          io.to(lobbyId).emit("playerReady", lobby);
-          socket.emit("readyResult", { success: true });
-        } else {
-          socket.emit("readyResult", { success: false });
-        }
-      } else {
-        socket.emit("readyResult", { success: false });
-      }
-    });
-
-    socket.on("unready", async (data) => {
-      const { lobbyId } = data;
-      const player = players.get(socket.id);
-      if (player) {
-        player.ready = false;
-        let lobby = null;
-        try {
-          lobby = await Lobby.findOne({ id: lobbyId });
-        } catch (err) {
-          console.error(err);
-          socket.emit("readyResult", { success: false });
-        }
-        if (lobby) {
-          await lobby.save();
-          const leaderPlayer = lobby.players.find(
-            (player) => player.leader === true
-          );
-          io.to(lobbyId).emit("playerUnready", { lobby });
-          io.to(leaderPlayer.socketId).emit("enableStartButton", {
-            enabled: false,
-          });
-          socket.emit("readyResult", { success: true });
-        } else {
-          socket.emit("readyResult", { success: false });
-        }
-      } else {
-        socket.emit("readyResult", { success: false });
-      }
-    });
 
     socket.on("inProgress", async (data) => {
       const { lobbyId } = data;
