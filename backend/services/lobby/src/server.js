@@ -206,6 +206,7 @@ async function setup() {
           if(message === undefined){
             ws.send(JSON.stringify({ type: "messageResult", data: { success: false } }));
             console.error("Message is undefined");
+            //return or break?
             return;
           }
           const chatMessage = {
@@ -282,7 +283,7 @@ async function setup() {
     const maxPlayers = maxPlayersForGame(game);
 
     let hashedPassword = null;
-    if (password.length !== 0) {
+    if (password && password.length !== 0) {
       const saltRounds = 10;
       hashedPassword = await bcrypt.hash(password, saltRounds);
     }
@@ -297,7 +298,7 @@ async function setup() {
       game,
       maxPlayers,
       hasLeader: false,
-      passwordProtected: password.length !== 0,
+      passwordProtected: password ? true : false,
       password: hashedPassword,
     });
     await lobby.save();

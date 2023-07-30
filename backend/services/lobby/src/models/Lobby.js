@@ -70,7 +70,7 @@ const lobbySchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    default: "",
+    default: null,
   },
 });
 
