@@ -42,7 +42,17 @@ async function setup() {
     return uuidv4();
   }
 
-  function pickNewLeader(lobby) {
+  async function pickNewLeader(lobbyId) {
+    let lobby = null;
+    try {
+      lobby = await Lobby.findOne({ id: lobbyId });
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+    if (!lobby) {
+      return false;
+    }
     let oldestPlayer = null;
     let oldestJoinTime = Infinity;
 
@@ -68,7 +78,6 @@ async function setup() {
     }
     return lobby.players.every((player) => player.ready);
   }
-
   function maxPlayersForGame(game) {
     let maxPlayers = 0;
     switch (game) {
@@ -109,6 +118,7 @@ async function setup() {
 
     ws.on("close", () => {
       clients.delete(ws);
+      ws.close(1000, "Connection closed by server");
     });
     
     ws.on("message", async (message) => {
@@ -149,42 +159,56 @@ async function setup() {
   app.ws("/lobby/:lobbyId", keycloak.protectWS(), async (ws, req) => {
     console.log("New client:", ws._socket.remoteAddress, "connected to lobby:", req.params.lobbyId);
 
-    const lobbyId = req.params.lobbyId;
-    let lobby = null;
-    lobby = await Lobby.findOne({ id: lobbyId });
-    if (!lobby) {
-      console.error("Lobby not found");
-      ws.close(1000, "Connection closed by server");
-    } 
+      const lobbyId = req.params.lobbyId;
+      let lobby = null;
+      lobby = await Lobby.findOne({ id: lobbyId });
+      if (!lobby) {
+        console.error("Lobby not found");
+        ws.close(1000, "Connection closed by server");
+      } 
 
-    //setting up the client in the lobby
-    tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
-    tempClients.add(ws);
-    lobbyClients.set(lobbyId, tempClients);
+      //setting up the client in the lobby
+      const player = {
+        name: req.decoded_token.preferred_username,
+        joinTime: Date.now(),
+      };
 
-    const player = {
-      name: req.decoded_token.preferred_username,
-      joinTime: Date.now(),
-    };
+      tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+      tempClients.add(ws);
+      lobbyClients.set(lobbyId, tempClients);
 
-    if (!lobby.hasLeader) {
-      player.leader = true;
-      lobby.hasLeader = true;
-      //these messages can be used on client side to enable the start game button for the leader
-      //I used them in my htmls, I am not sure if this is a good practice but it worked
-      //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
-      //ws.send(JSON.stringify({ type: "unhideStartButton"}));
-    }
-    lobby.players.push(player);
-    await lobby.save();
-    //send info to all of the clients in the lobby that a player joined
-    broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
-    ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
-
-
-    ws.on("close", () => {
+      if (!lobby.hasLeader) {
+        player.leader = true;
+        lobby.hasLeader = true;
+        //these messages can be used on client side to enable the start game button for the leader
+        //I used them in my htmls, I am not sure if this is a good practice but it worked
+        //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
+        //ws.send(JSON.stringify({ type: "unhideStartButton"}));
+      }
+      lobby.players.push(player);
+      await lobby.save();
+      //send info to all of the clients in the lobby that a player joined
+      broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
+      //send info to mainmenu clients that a player joined
+      broadcastToClients(clients, JSON.stringify({ type: "playerJoined", data: { lobbyId: lobbyId }}));
+      ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
+    
+    ws.on("close", async () => {
       tempClients.delete(ws);
       lobbyClients.set(lobbyId, tempClients);
+      await Lobby.findOneAndUpdate({ id: lobbyId }, { $pull: { players: { name: player.name } } }, { new: false} );
+
+      if(player.leader) {
+        lobby.hasLeader = false;
+        const newLeader = pickNewLeader(lobbyId);
+        if (newLeader) {
+          newLeader.leader = true;
+          lobby.hasLeader = true;
+        }
+      }
+      await lobby.save();
+      broadcastToClients(tempClients, JSON.stringify({ type: "playerLeft", data: { username: player.name }}));
+      broadcastToClients(clients, JSON.stringify({ type: "playerLeft", data: { lobbyId: lobbyId }}));
       ws.close(1000, "Connection closed by server");
     });
 
@@ -212,7 +236,7 @@ async function setup() {
 
         case "ready":
           player.ready = true;
-          await lobby.save();
+          await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': true } }, { new: false} );
           ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
           broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: player.name }}));
           // leaderPlayer = lobby.players.find(
@@ -225,15 +249,31 @@ async function setup() {
         
         case "unready":
           player.ready = false;
-          await lobby.save();
+          await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': false } }, { new: false} );
           ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
           broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: player.name }}));
           // leaderPlayer = lobby.players.find(
           //   (player) => player.leader === true
           // );
           // broadcastToClient(leaderPlayer.wsId, JSON.stringify({ type: "enableStartButton", data: { enabled: false } }));
-          // break;
+          break;
 
+        case "startGame":
+          if (!areAllPlayersReady(lobbyId) || lobby.inProgress) {
+            console.log("Not all players are ready or the lobby is already in progress");
+            ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
+            break;
+          }
+          lobby.inProgress = true;
+          await lobby.save();
+
+          ws.send(JSON.stringify({ type: "startGameResult", data: { success: true } }));
+          //maybe send what game or something idk
+          broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"}));
+          //broadcast to mainmenu clients that the lobby is in progress
+          broadcastToClients(clients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
+          break;
+    
         default:
           console.log("Invalid message type:", type);
       }
@@ -254,62 +294,6 @@ async function setup() {
     };
     players.set(socket.id, player);
 
-    socket.on("inProgress", async (data) => {
-      const { lobbyId } = data;
-      let lobby = null;
-      try {
-        lobby = await Lobby.findOne({ id: lobbyId });
-      } catch (err) {
-        console.error(err);
-        socket.emit("inProgressResult", { success: false });
-      }
-      if (lobby) {
-        lobby.inProgress = true;
-        await lobby.save();
-        const lobbyList = await Lobby.find({});
-        io.emit("mainMenuLobbiesUpdated", lobbyList);
-        io.to(lobbyId).emit("gameStarted", { lobbyId });
-        socket.emit("inProgressResult", { success: true });
-      } else {
-        socket.emit("inProgressResult", { success: false });
-      }
-    });
-
-    socket.on("leaveLobby", async () => {
-      const socketId = socket.id;
-      const player = players.get(socketId);
-
-      if (player) {
-        const lobbyId = player.lobbyId;
-        let lobby = null;
-        try {
-          lobby = await Lobby.findOne({ id: lobbyId });
-        } catch (err) {
-          console.error(err);
-          socket.emit("leaveLobbyResult", { success: false });
-        }
-
-        if (lobby) {
-          lobby.players = lobby.players.filter((p) => p.socketId !== socketId);
-          players.delete(socketId);
-
-          if (player.leader) {
-            const newLeader = chooseNewLeader(lobby.players);
-            if (newLeader) {
-              newLeader.leader = true;
-              io.to(lobbyId).emit("updateLobby", lobby);
-            }
-          }
-          io.to(lobbyId).emit("updateLobby", lobby);
-          await lobby.save();
-          const lobbyList = await Lobby.find({});
-          io.emit("mainMenuLobbiesUpdated", lobbyList);
-          socket.emit("leaveLobbyResult", { success: true });
-        } else {
-          socket.emit("leaveLobbyResult", { success: false });
-        }
-      }
-    });
 
     socket.on("disconnect", async () => {
       console.log("Client disconnected:", socket.id, "lobbyId:", lobbyId);
@@ -394,10 +378,7 @@ async function setup() {
     });
     await lobby.save();
 
-    const lobbyList = await Lobby.find({});
-    io.of('lobbies').emit("mainMenuLobbiesUpdated", lobbyList);
-
-    //res.cookie(`lobbyPassword_${lobbyId}`, password, { maxAge: 3600000 });
+    broadcastToClients(clients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobbyId }}));
     res.status(201).json({ message: "Lobby created successfully", lobbyId });
   });
 
