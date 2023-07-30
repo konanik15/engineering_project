@@ -278,66 +278,6 @@ async function setup() {
           console.log("Invalid message type:", type);
       }
     });
-    
-
-  });
-  const lobbySocket = io.of("/lobby");
-  lobbySocket.on("connection", async (socket, req) => {
-    const lobbyId = socket.handshake.query.lobbyId;
-    console.log("New client connected to lobby:", socket.id, "lobbyId:", lobbyId);
-
-    const player = {
-      socketId: socket.id,
-      ready: false,
-      leader: false,
-      joinTime: Date.now(),
-    };
-    players.set(socket.id, player);
-
-
-    socket.on("disconnect", async () => {
-      console.log("Client disconnected:", socket.id, "lobbyId:", lobbyId);
-
-      players.delete(socket.id);
-      const lobbyList = await Lobby.find({});
-      lobbyList.forEach(async (lobby, lobbyId) => {
-        const index = lobby.players.findIndex((p) => p.socketId === socket.id);
-        if (index !== -1) {
-          const leftPlayer = lobby.players.splice(index, 1)[0];
-          if (lobby.players.length === 0) {
-            await Lobby.deleteOne({ id: lobbyId });
-          } else {
-            if (leftPlayer.leader) {
-              lobby.leaderAvailable = false;
-              const newLeader = pickNewLeader(lobby);
-              if (newLeader !== null) {
-                newLeader.leader = true;
-                lobby.leaderAvailable = true;
-              }
-            }
-            const leaderPlayer = lobby.players.find(
-              (player) => player.leader === true
-            );
-            if (areAllPlayersReady(lobbyId)) {
-              io.to(leaderPlayer.socketId).emit("enableStartButton", {
-                enabled: true,
-              });
-            }
-            await lobby.save();
-            io.to(leaderPlayer.socketId).emit("unhideStartButton");
-            io.to(lobby.id).emit("lobbyUpdated", lobby);
-            io.to(lobby.id).emit("joinMessage", {
-              message: `${leftPlayer.socketId} left the lobby`,
-              type: "leave",
-            });
-          }
-          const lobbyList = await Lobby.find({});
-          io.emit("mainMenuLobbiesUpdated", lobbyList);
-        }
-
-        socket.leave(lobby.id);
-      });
-    });
   });
 
 
