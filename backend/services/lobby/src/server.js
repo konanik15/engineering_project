@@ -156,6 +156,8 @@ async function setup() {
       console.error("Lobby not found");
       ws.close(1000, "Connection closed by server");
     } 
+
+    //setting up the client in the lobby
     tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
     tempClients.add(ws);
     lobbyClients.set(lobbyId, tempClients);
@@ -164,6 +166,21 @@ async function setup() {
       name: req.decoded_token.preferred_username,
       joinTime: Date.now(),
     };
+
+    if (!lobby.hasLeader) {
+      player.leader = true;
+      lobby.hasLeader = true;
+      //these messages can be used on client side to enable the start game button for the leader
+      //I used them in my htmls, I am not sure if this is a good practice but it worked
+      //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
+      //ws.send(JSON.stringify({ type: "unhideStartButton"}));
+    }
+    lobby.players.push(player);
+    await lobby.save();
+    //send info to all of the clients in the lobby that a player joined
+    broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
+    ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
+
 
     ws.on("close", () => {
       tempClients.delete(ws);
@@ -174,33 +191,6 @@ async function setup() {
     ws.on("message", async (message) => {
       const { type, data } = JSON.parse(message);
       switch (type) {
-        //when a user joins a lobby he sends a message with type "join" and data containing lobbyId
-        //if everything is ok, server assigns the player to the lobby and emits a message to the lobby that a new player joined
-        case "join":
-          if (!lobby.isFull) {
-            if (!lobby.hasLeader) {
-              player.leader = true;
-              lobby.hasLeader = true;
-              //these messages can be used on client side to enable the start game button for the leader
-              //I used them in my htmls, I am not sure if this is a good practice but it worked
-              //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
-              //ws.send(JSON.stringify({ type: "unhideStartButton"}));
-            }
-
-            lobby.players.push(player);
-            await lobby.save();
-            //send info to all of the clients in the lobby that a player joined
-            broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
-            ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
-            
-            //TODO: how to send a message to /lobbies
-            // const lobbyList = await Lobby.find({});
-            // io.emit("mainMenuLobbiesUpdated", lobbyList);
-          } else {
-            ws.send(JSON.stringify({ type: "joinResult", data: { success: false } }));
-            ws.close(1000, "Connection closed by server");
-          }
-          break;
         case "chatMessage":
           const { message } = data;
           
