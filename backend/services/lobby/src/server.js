@@ -8,8 +8,7 @@ const keycloak = require("kc-adapter");
 const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
 const bcrypt = require("bcrypt");
-const axios = require("axios");
-const { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients } = require("./lobby/helper.js");
+const { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
 
 
 async function setup() {
@@ -26,20 +25,6 @@ async function setup() {
 
   const clients = new Set();
   const lobbyClients = new Map();
-
-
-  async function getGameTypeInfo(gameType) {
-    const url = `http://game-core:8080/${gameType}`;
-    let gameInfo = null;
-    try{
-      const response = await axios.get(url);
-      gameInfo = response.data;
-    } catch (err) {
-      console.error(err);
-      return gameInfo;
-    }
-    return gameInfo;
-  }
 
   app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
     clients.add(ws);

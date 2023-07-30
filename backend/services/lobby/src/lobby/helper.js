@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const Lobby = require("../models/Lobby");
+const axios = require("axios");
 
 function generateRandomLobbyId() {
   return uuidv4();
@@ -50,4 +51,17 @@ function broadcastToClients(clients, message) {
   });
 }
 
-module.exports = { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients };
+async function getGameTypeInfo(gameType) {
+  const url = `http://game-core:8080/${gameType}`;
+  let gameInfo = null;
+  try{
+    const response = await axios.get(url);
+    gameInfo = response.data;
+  } catch (err) {
+    console.error(err);
+    return gameInfo;
+  }
+  return gameInfo;
+}
+
+module.exports = { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo };
