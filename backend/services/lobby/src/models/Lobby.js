@@ -56,6 +56,10 @@ const lobbySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  minPlayers: {
+    type: Number,
+    required: true,
+  },
   maxPlayers: {
     type: Number,
     required: true,

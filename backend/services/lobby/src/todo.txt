@@ -1,0 +1,6 @@
+TODO:
+
+1. get max players for a lobby from gamecore
+2. start game, who should check if the minimum players req is met?
+2. isFull? - wyjebac i po prostu sprawdzac czy jest maksymalna liczba osob na connection, na endpoint moze tez
+3. delete endpoint for a lobby

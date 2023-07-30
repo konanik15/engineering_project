@@ -1,15 +1,16 @@
 const express = require("express");
 const app = express();
 const server = require("http").Server(app);
-const io = require("socket.io")(server);
 const expressWs = require("express-ws");
 expressWs(app, server);
 const bodyParser = require("body-parser");
 const keycloak = require("kc-adapter");
 const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
-const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const axios = require("axios");
+const { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients } = require("./lobby/helper.js");
+
 
 async function setup() {
   await Promise.all([keycloak.init(), mongo.connect()]);
@@ -26,79 +27,19 @@ async function setup() {
   const clients = new Set();
   const lobbyClients = new Map();
 
-  function generateRandomLobbyId() {
-    return uuidv4();
-  }
 
-  async function pickNewLeader(lobbyId) {
-    let lobby = null;
-    try {
-      lobby = await Lobby.findOne({ id: lobbyId });
+  async function getGameTypeInfo(gameType) {
+    const url = `http://game-core:10101/${gameType}`;
+    let gameInfo = null;
+    try{
+      const response = await axios.get(url);
+      gameInfo = response.data;
     } catch (err) {
       console.error(err);
-      return false;
+      return gameInfo;
     }
-    if (!lobby) {
-      return false;
-    }
-    let oldestPlayer = null;
-    let oldestJoinTime = Infinity;
-
-    for (const player of lobby.players) {
-      if (player.joinTime < oldestJoinTime) {
-        oldestPlayer = player;
-        oldestJoinTime = player.joinTime;
-      }
-    }
-    return oldestPlayer;
+    return gameInfo;
   }
-
-  async function areAllPlayersReady(lobbyId) {
-    let lobby = null;
-    try {
-      lobby = await Lobby.findOne({ id: lobbyId });
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-    if (!lobby) {
-      return false;
-    }
-    return lobby.players.every((player) => player.ready);
-  }
-  function maxPlayersForGame(game) {
-    let maxPlayers = 0;
-    switch (game) {
-      case "wojna":
-        maxPlayers = 4;
-        break;
-      case "duren":
-        maxPlayers = 5;
-        break;
-      case "makao":
-        maxPlayers = 6;
-        break;
-      case "poker":
-        maxPlayers = 7;
-        break;
-      default:
-        console.log("wrong game");
-    }
-    return maxPlayers;
-  }
-
-  function broadcastToClients(clients, message) {
-    clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(message);
-      }
-    });
-  }
-
-  // can't send to ws.id, has to be ws
-  // function broadcastToClient(client, message) {
-  //   client.send(message);
-  // }
 
   app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
     clients.add(ws);
@@ -276,7 +217,6 @@ async function setup() {
     });
   });
 
-
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const lobbyList = await Lobby.find({});
     res.json(lobbyList);
@@ -291,8 +231,12 @@ async function setup() {
         .status(409)
         .json({ message: "Lobby with the same name already exists" });
     }
-    const maxPlayers = maxPlayersForGame(game);
 
+    const gameInfo = await getGameTypeInfo(game);
+    if (!gameInfo) {
+      return res.status(404).json({ message: "Game not found" });
+    }
+    
     let hashedPassword = null;
     if (password && password.length !== 0) {
       const saltRounds = 10;
@@ -307,7 +251,8 @@ async function setup() {
       inProgress: false,
       isFull: false,
       game,
-      maxPlayers,
+      minPlayers: gameInfo.minPlayers,
+      maxPlayers: gameInfo.maxPlayers,
       hasLeader: false,
       passwordProtected: password ? true : false,
       password: hashedPassword,
