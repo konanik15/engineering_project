@@ -291,6 +291,22 @@ async function setup() {
     res.status(200).send(lobby);
   });
 
+  app.delete("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
+    const lobbyId = req.params.id;
+    let lobby = null;
+    try {
+      lobby = await Lobby.findOne({ id: lobbyId });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
+    if (!lobby) {
+      return res.status(404).send("Lobby not found");
+    }
+    await Lobby.deleteOne({ id: lobbyId });
+    res.status(200).send("Lobby deleted successfully");
+  });
+      
   const PORT = 8080;
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
