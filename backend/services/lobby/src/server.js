@@ -15,28 +15,17 @@ const bcrypt = require("bcrypt");
 async function setup() {
   await Promise.all([keycloak.init(), mongo.connect()]);
 
-  app.set("view engine", "ejs");
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
     next();
   });
-  app.use(cookieParser());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(express.static("public"));
 
-  //players is not needed I think
-  let players = new Map();
   const clients = new Set();
   const lobbyClients = new Map();
-
-  // function getStoredPassword(cookies, lobbyId) {
-  //   const cookieName = `lobbyPassword_${lobbyId}`;
-  //   const storedPassword = cookies[cookieName];
-  //   return storedPassword || null;
-  // }
 
   function generateRandomLobbyId() {
     return uuidv4();
@@ -180,10 +169,6 @@ async function setup() {
       if (!lobby.hasLeader) {
         player.leader = true;
         lobby.hasLeader = true;
-        //these messages can be used on client side to enable the start game button for the leader
-        //I used them in my htmls, I am not sure if this is a good practice but it worked
-        //ws.send(JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
-        //ws.send(JSON.stringify({ type: "unhideStartButton"}));
       }
       lobby.players.push(player);
       await lobby.save();
@@ -232,6 +217,7 @@ async function setup() {
           await lobby.save();
           broadcastToClients(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
           ws.send(JSON.stringify({ type: "messageResult", data: { success: true } }));
+
           break;
 
         case "ready":
@@ -239,12 +225,7 @@ async function setup() {
           await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': true } }, { new: false} );
           ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
           broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: player.name }}));
-          // leaderPlayer = lobby.players.find(
-          //   (player) => player.leader === true
-          // );
-          // if (areAllPlayersReady(lobbyId)) {
-          //   broadcastToClient(leaderPlayer.wsId, JSON.stringify({ type: "enableStartButton", data: { enabled: true } }));
-          // }
+
           break;
         
         case "unready":
@@ -252,10 +233,7 @@ async function setup() {
           await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': false } }, { new: false} );
           ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
           broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: player.name }}));
-          // leaderPlayer = lobby.players.find(
-          //   (player) => player.leader === true
-          // );
-          // broadcastToClient(leaderPlayer.wsId, JSON.stringify({ type: "enableStartButton", data: { enabled: false } }));
+
           break;
 
         case "startGame":
@@ -272,10 +250,16 @@ async function setup() {
           broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"}));
           //broadcast to mainmenu clients that the lobby is in progress
           broadcastToClients(clients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
+
           break;
     
+        case "gameEnded":
+
+          break;
+
         default:
           console.log("Invalid message type:", type);
+          break;
       }
     });
   });
@@ -340,10 +324,6 @@ async function setup() {
     // }
     res.json(lobby);
   });
-
-  // app.get("/lobby/:lobbyId/game", (req, res) => {
-  //   res.sendFile(__dirname + "/public/game.html");
-  // });
 
   const PORT = 8080;
   server.listen(PORT, () => {
