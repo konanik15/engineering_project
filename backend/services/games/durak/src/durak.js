@@ -16,6 +16,8 @@ class Durak {
         this.meta = obj.meta || {};
     }
 
+    static getPack() { return pack; }
+
     setup() {
         let cards = _.shuffle(pack.cards);
 

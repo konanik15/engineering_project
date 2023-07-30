@@ -142,6 +142,64 @@ An example of what actions might look like:
 TODO: implement and describe other actions
 
 # Endpoints
+## Get available games
+GET /
+
+Returns an array of available implemented games
+
+### Examples
+#### Request
+GET http://example:80/<br>
+
+#### Response
+Body: 
+```json
+[{
+    "type": "durak",
+    "description": "A classic card game of Russian origins that is popular in many post-Soviet states."
+}, {
+    "type": "uno",
+    "description": "A fun game that is sadly not implemented yet"
+}]
+```
+
+## Get game info
+GET /{gameType}
+
+Returns detailed information about a specific game
+
+### Examples
+#### Request
+GET http://example:80/durak<br>
+
+#### Response
+Body: 
+```json
+{
+    "description": "A classic card game of Russian origins that is popular in many post-Soviet states.",
+    "pack": {
+        "type": "standard36",
+        "name": "Standard 36-card deck",
+        "cards": [
+            {
+                "suit": "clubs",
+                "rank": "ace"
+            },
+            {
+                "suit": "clubs",
+                "rank": "6"
+            },
+            .
+            .
+            .
+        ]
+    },
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "type": "durak"
+}
+```
+
 ## Create new game
 POST /{gameType}
 

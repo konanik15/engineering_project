@@ -10,13 +10,14 @@ import app from "./app.js";
 async function setup() {
     await Promise.all([
         keycloak.init(),
+        app.init(),
         mongo.connect()
     ]);
 
     //server.use(bodyParser.urlencoded({ extended: false }));
     //server.use(bodyParser.json());
 
-    server.use(app);
+    server.use(app.router);
 
     const port = 8080;
     server.listen(port, () => {
