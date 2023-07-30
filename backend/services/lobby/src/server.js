@@ -29,7 +29,7 @@ async function setup() {
 
 
   async function getGameTypeInfo(gameType) {
-    const url = `http://game-core:10101/${gameType}`;
+    const url = `http://game-core:8080/${gameType}`;
     let gameInfo = null;
     try{
       const response = await axios.get(url);
@@ -168,6 +168,7 @@ async function setup() {
             message,
             timestamp: Date.now(),
           };
+          lobby = await Lobby.findOne({ id: lobbyId });
           lobby.chatHistory.push(chatMessage);
           await lobby.save();
           broadcastToClients(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
@@ -190,8 +191,19 @@ async function setup() {
           break;
 
         case "startGame":
-          if (!(await areAllPlayersReady(lobbyId)) || lobby.inProgress) {
-            console.log("Not all players are ready or the lobby is already in progress");
+          lobby = await Lobby.findOne({ id: lobbyId });
+          if (!(await areAllPlayersReady(lobbyId))) {
+            console.log("Not all players are ready");
+            ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
+            break;
+          }
+          if (lobby.inProgress) {
+            console.log("Lobby is already in progress");
+            ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
+            break;
+          }
+          if (lobby.players.length < lobby.minPlayers) {
+            console.log("Not enough players for this game type");
             ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
             break;
           }
@@ -219,7 +231,7 @@ async function setup() {
 
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     const lobbyList = await Lobby.find({});
-    res.json(lobbyList);
+    res.status(200).send(lobbyList);
   });
 
   app.post("/lobbies", keycloak.protectHTTP(), async (req, res) => {
@@ -229,14 +241,14 @@ async function setup() {
     if (lobbyExists) {
       return res
         .status(409)
-        .json({ message: "Lobby with the same name already exists" });
+        .send({ message: "Lobby with the same name already exists" });
     }
 
     const gameInfo = await getGameTypeInfo(game);
     if (!gameInfo) {
-      return res.status(404).json({ message: "Game not found" });
+      return res.status(404).send({ message: "Game not found" });
     }
-    
+
     let hashedPassword = null;
     if (password && password.length !== 0) {
       const saltRounds = 10;
@@ -260,7 +272,7 @@ async function setup() {
     await lobby.save();
 
     broadcastToClients(clients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobbyId }}));
-    res.status(201).json({ message: "Lobby created successfully", lobbyId });
+    res.status(201).send({ message: "Lobby created successfully", lobbyId });
   });
 
   app.get("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
@@ -275,11 +287,8 @@ async function setup() {
     if (!lobby) {
       return res.status(404).send("Lobby not found");
     }
-    // I think those things should be handled on websockets
-    // if (lobby.players.length === lobby.maxPlayers || lobby.inProgress) {
-    //   return res.status(404).send("You cant join this lobby");
-    // }
-    res.json(lobby);
+    
+    res.status(200).send(lobby);
   });
 
   const PORT = 8080;
