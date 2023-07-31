@@ -319,7 +319,7 @@ Response to the client:
   "password": "$2b$10$FYheQLMMM350h3W/mXJJaOBk389JQkEKD9eS1/oHpTnPXPvPa/XmO",
   "__v": 1
 }
-```json
+```
 
 - id: UUID generated while creating the, it's used for rest, websockets
 - name: name of the lobby 
