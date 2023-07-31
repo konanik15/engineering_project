@@ -162,21 +162,37 @@ async function setup() {
           break;
 
         case "ready":
-          await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': true } }, { new: false} );
-          ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
-          broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: player.name }}));
+          try {
+            await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': true } }, { new: false} );
+            ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
+            broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: player.name }}));
+          } catch (err) {
+            console.error(err);
+            ws.send(JSON.stringify({ type: "readyResult", data: { success: false } }));
+            return res.status(500).send("Internal server error");
+          }
 
           break;
         
         case "unready":
-          await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': false } }, { new: false} );
-          ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
-          broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: player.name }}));
-
+          try {
+            await Lobby.findOneAndUpdate({ id: lobbyId, 'players.name': player.name }, { '$set': { 'players.$.ready': false } }, { new: false} );
+            ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
+            broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: player.name }}));
+          } catch (err) {
+            console.error(err);
+            ws.send(JSON.stringify({ type: "unreadyResult", data: { success: false } }));
+            return res.status(500).send("Internal server error");
+          }
           break;
 
         case "startGame":
-          lobby = await Lobby.findOne({ id: lobbyId });
+          try {
+            lobby = await Lobby.findOne({ id: lobbyId });
+          } catch (err) {
+            console.error(err);
+            ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
+          }
           if (!(await areAllPlayersReady(lobbyId))) {
             console.log("Not all players are ready");
             ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
@@ -196,8 +212,7 @@ async function setup() {
           await lobby.save();
 
           ws.send(JSON.stringify({ type: "startGameResult", data: { success: true } }));
-          //maybe send what game or something idk
-          broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"}));
+          broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"} ));
           //broadcast to mainmenu clients that the lobby is in progress
           broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
 
