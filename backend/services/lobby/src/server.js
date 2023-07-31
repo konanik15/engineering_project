@@ -215,8 +215,13 @@ async function setup() {
   });
 
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
-    const lobbyList = await Lobby.find({});
-    res.status(200).send(lobbyList);
+    try {
+      const lobbyList = await Lobby.find({});
+      res.status(200).send(lobbyList);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal server error");
+    }
   });
 
   app.post("/lobbies", keycloak.protectHTTP(), async (req, res) => {
@@ -288,8 +293,13 @@ async function setup() {
     if (!lobby) {
       return res.status(404).send("Lobby not found");
     }
-    await Lobby.deleteOne({ id: lobbyId });
-    res.status(200).send("Lobby deleted successfully");
+    try {
+      await Lobby.deleteOne({ id: lobbyId });
+      res.status(200).send("Lobby deleted successfully");
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
   });
       
   const PORT = 8080;
