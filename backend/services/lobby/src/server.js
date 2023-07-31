@@ -127,6 +127,8 @@ async function setup() {
       lobby = await Lobby.findOne({ id: lobbyId });
       const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
       await Lobby.findOneAndUpdate({ id: lobbyId }, { $pull: { players: { wsId: ws.id } } }, { new: false} );
+      //ugly code idk how to do it better
+      lobby = await Lobby.findOne({ id: lobbyId });
 
       if(lobby.isFull) {
         lobby.isFull = false;
@@ -140,7 +142,6 @@ async function setup() {
       }
 
       if(pulledPlayer.leader) {
-        console.log(pulledPlayer.name);
         lobby.hasLeader = false;
         await lobby.save();
         const newLeader = await pickNewLeader(lobbyId);
