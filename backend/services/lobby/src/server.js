@@ -342,6 +342,7 @@ async function setup() {
     }
     try {
       await Lobby.deleteOne({ id: lobbyId });
+      broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
       res.status(200).send("Lobby deleted successfully");
     } catch (err) {
       console.error(err);
