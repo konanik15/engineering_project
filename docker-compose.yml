@@ -65,11 +65,6 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-      PROXY_ADDRESS_FORWARDING: true
-      KEYCLOAK_CORS: true
-      KEYCLOAK_CORS_ALLOWED_METHODS: GET,POST,PUT,DELETE,OPTIONS
-      KEYCLOAK_CORS_ALLOWED_HEADERS: Authorization,Content-Type
-      KEYCLOAK_CORS_EXPOSED_HEADERS: Access-Control-Allow-Origin,Access-Control-Allow-Credentials
     volumes:
       - ./backend/services/keycloak/imports:/opt/keycloak/data/import
     depends_on:
