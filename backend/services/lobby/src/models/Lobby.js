@@ -4,12 +4,17 @@ const lobbySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  
   name: {
     type: String,
     required: true,
   },
   players: [
     {
+      wsId: {
+        type: String,
+        required: true,
+      },
       name: {
         type: String,
         required: true,

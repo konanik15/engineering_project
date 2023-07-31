@@ -1,5 +1,0 @@
-TODO:
-
-1. error while providing wrong gameType
-2. isFull? - when to check? wyjebac i po prostu sprawdzac czy jest maksymalna liczba osob na connection, na endpoint moze tez
-3. refactoring, move endpoints and connection messages so it's cleaner? also better error handling
