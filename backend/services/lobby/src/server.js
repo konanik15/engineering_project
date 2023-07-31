@@ -23,15 +23,15 @@ async function setup() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
-  const clients = new Set();
+  const mainMenuClients = new Set();
   const lobbyClients = new Map();
 
   app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
-    clients.add(ws);
+    mainMenuClients.add(ws);
     console.log("New client connected to main menu:", ws._socket.remoteAddress);
 
     ws.on("close", () => {
-      clients.delete(ws);
+      mainMenuClients.delete(ws);
       ws.close(1000, "Connection closed by server");
     });
     
@@ -102,7 +102,7 @@ async function setup() {
     //send info to all of the clients in the lobby that a player joined
     broadcastToClients(tempClients, JSON.stringify({ type: "playerJoined", data: { username: player.name }}));
     //send info to mainmenu clients that a player joined
-    broadcastToClients(clients, JSON.stringify({ type: "playerJoined", data: { lobbyId: lobbyId }}));
+    broadcastToClients(mainMenuClients, JSON.stringify({ type: "playerJoined", data: { lobbyId: lobbyId }}));
     ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
     
     ws.on("close", async () => {
@@ -114,7 +114,7 @@ async function setup() {
       await Lobby.findOneAndUpdate({ id: lobbyId }, { $pull: { players: { name: player.name } } }, { new: false} );
       if(lobby.players.length === 0) {
         await Lobby.deleteOne({ id: lobbyId });
-        broadcastToClients(clients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
+        broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
         return;
       }
 
@@ -132,7 +132,7 @@ async function setup() {
       }
 
       broadcastToClients(tempClients, JSON.stringify({ type: "playerLeft", data: { username: player.name }}));
-      broadcastToClients(clients, JSON.stringify({ type: "playerLeft", data: { lobbyId: lobbyId }}));
+      broadcastToClients(mainMenuClients, JSON.stringify({ type: "playerLeft", data: { lobbyId: lobbyId }}));
       ws.close(1000, "Connection closed by server");
     });
 
@@ -199,7 +199,7 @@ async function setup() {
           //maybe send what game or something idk
           broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"}));
           //broadcast to mainmenu clients that the lobby is in progress
-          broadcastToClients(clients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
+          broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
 
           break;
     
@@ -256,7 +256,7 @@ async function setup() {
     });
     await lobby.save();
 
-    broadcastToClients(clients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobbyId }}));
+    broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobbyId }}));
     res.status(201).send({ message: "Lobby created successfully", lobbyId });
   });
 
