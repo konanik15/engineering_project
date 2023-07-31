@@ -26,6 +26,8 @@ async function setup() {
   const mainMenuClients = new Set();
   const lobbyClients = new Map();
 
+
+  //websocket endpoints
   app.ws("/lobbies", keycloak.protectWS(), async (ws, req) => {
     mainMenuClients.add(ws);
     console.log("New client connected to main menu:", ws._socket.remoteAddress);
@@ -229,6 +231,8 @@ async function setup() {
     });
   });
 
+
+  //rest api endpoints
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     try {
       const lobbyList = await Lobby.find({});
