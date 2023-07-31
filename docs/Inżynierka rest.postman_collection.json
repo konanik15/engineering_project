@@ -594,6 +594,92 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "get lobbies",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobbies",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobbies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get lobby",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobby/{{LOBBY_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobby",
+								"{{LOBBY_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobby/{{LOBBY_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobby",
+								"{{LOBBY_ID}}"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
