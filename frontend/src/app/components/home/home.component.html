@@ -1,0 +1,11 @@
+<p>Enter message : </p>
+
+<div class="input-group mb-3">
+  <input aria-describedby="basic-addon2" aria-label="Message" class="form-control" placeholder="Message to send"
+         type="text">
+</div>
+
+<button (click)="sendMessage()" class="btn btn-primary" type="submit" value="Submit">Send message</button>
+
+<br>
+Response : {{this.homeService.response}}
