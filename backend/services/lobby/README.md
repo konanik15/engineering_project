@@ -89,8 +89,6 @@ This one gets the lobby info. You have to provide
 
 This one deletes a lobby. 
 
-```json
-Lobby deleted successfully
 
 ## WEBSOCKET Endpoints 
 
