@@ -1,11 +1,15 @@
-<p>Enter message : </p>
-
-<div class="input-group mb-3">
-  <input aria-describedby="basic-addon2" aria-label="Message" class="form-control" placeholder="Message to send"
-         type="text">
+<div class="game-card-grid">
+  <button
+    *ngFor="let game of games"
+    (click)="toggleSelect(game.name)"
+    class="card game-card"
+    [ngClass]="{ 'game-card__active': activeGames.has(game.name) }"
+  >
+    <div class="card-body">
+      <h5 class="card-title">{{ game.name }}</h5>
+      <p class="card-text game-description">
+        {{ game.description }}
+      </p>
+    </div>
+  </button>
 </div>
-
-<button (click)="sendMessage()" class="btn btn-primary" type="submit" value="Submit">Send message</button>
-
-<br>
-Response : {{this.homeService.response}}

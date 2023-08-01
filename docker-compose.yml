@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: ${POSTGRES_KEYCLOAK_DB_USER}
       POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_KEYCLOAK_DB_USER} -d ${POSTGRES_KEYCLOAK_DB}'"]
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_KEYCLOAK_DB_USER} -d ${POSTGRES_KEYCLOAK_DB}'" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,22 +21,22 @@ services:
   mongodb:
     image: mongo:6
     environment:
-        MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN_USER}
-        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ADMIN_PASSWORD}
-        DB_NAME: ${MONGO_DB}
-        DB_USER: ${MONGO_DB_USER}
-        DB_PASSWORD: ${MONGO_DB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ADMIN_PASSWORD}
+      DB_NAME: ${MONGO_DB}
+      DB_USER: ${MONGO_DB_USER}
+      DB_PASSWORD: ${MONGO_DB_PASSWORD}
     ports:
-        - ${MONGO_MAPPED_PORT}:27017
+      - ${MONGO_MAPPED_PORT}:27017
     volumes:
-        - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
-        - ./backend/services/mongo/data:/data/db:rw
+      - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - ./backend/services/mongo/data:/data/db:rw
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/${DB_NAME} --quiet
       interval: 10s
       timeout: 5s
       retries: 5
-    command: 
+    command:
       - '--logpath'
       - '/dev/null'
 
@@ -52,8 +52,8 @@ services:
 
   keycloak:
     build: ./backend/services/keycloak #using custom kc build in order to install curl into container
-    command: ["start-dev", "--import-realm"] #sort out how to setup kc configuration for production later
-    environment:      
+    command: [ "start-dev", "--import-realm" ] #sort out how to setup kc configuration for production later
+    environment:
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
       KC_DB_URL_DATABASE: ${POSTGRES_KEYCLOAK_DB}
@@ -73,7 +73,7 @@ services:
     ports:
       - "${KEYCLOAK_MAPPED_PORT}:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://localhost:8080/auth/realms/${KEYCLOAK_REALM}"]
+      test: [ "CMD-SHELL", "curl --fail http://localhost:8080/auth/realms/${KEYCLOAK_REALM}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -111,3 +111,14 @@ services:
 
   game-durak:
     build: ./backend/services/games/durak
+
+  frontend-service:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./app:/usr/src/app/app-ui
+      - /usr/src/app/app/node_modules
