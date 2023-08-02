@@ -1,6 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {AppEndpoints} from '../utils/app.endpoints';
+import {SharedUrls} from '../utils/shared-urls';
+import {LobbyDTO} from "../utils/dto";
+import {Observable} from "rxjs";
+
 @Injectable({
   providedIn: 'root',
 })
@@ -20,10 +23,8 @@ export class LobbyService {
       .subscribe((e) => this.response = e)
   }
 
-  getLobbies(): void {
-    console.log('getting lobbies' + AppEndpoints.LOBBY)
+  getLobbies(): Observable<Array<LobbyDTO>> {
+    return this.http.get<Array<LobbyDTO>>(`${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBIES}`)
   }
-
-
 
 }

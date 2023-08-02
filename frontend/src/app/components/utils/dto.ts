@@ -1,17 +1,29 @@
+export interface LobbyDTO {
+  id: string,
+  name: string,
+  players: PlayerDTO[],
+  chat: ChatHistoryDTO[],
+  inProgress: boolean,
+  isFull: boolean,
+  game: string,
+  minPlayers: number,
+  maxPlayers: number,
+  hasLeader: boolean,
+  passwordProtected: boolean,
+  password: string
+}
 
-interface Lobby {
-  "_id":
-  "id":
-  "name": "55511",
-  "players": [],
-  "chatHistory": [],
-  "inProgress": false,
-  "isFull": false,
-  "game": "durak",
-  "minPlayers": 2,
-  "maxPlayers": 5,
-  "hasLeader": false,
-  "passwordProtected": true,
-  "password": "$2b$10$E0cPaAMj8dNhiB66aYaX8.v77hZIjHYaFkPFbw87m9CYmiiO50LYC",
-  "__v": 0
+export interface PlayerDTO {
+  wsId: string,
+  name: string,
+  ready: boolean,
+  leader: boolean,
+  joinTime: Date,
+}
+
+export interface ChatHistoryDTO {
+
+  sender: string
+  message: string
+  timestamp: Date
 }

@@ -1,5 +1,8 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {LobbyService} from './lobby-service';
+import {LobbyDTO} from "../utils/dto";
+import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.component";
+import {MatDialog} from "@angular/material/dialog";
 
 type Game = {
   name: string;
@@ -11,9 +14,28 @@ type Game = {
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.css'],
 })
-export class LobbyComponent {
-  constructor(public lobbyService: LobbyService) {
+export class LobbyComponent implements OnInit {
+
+  constructor(public lobbyService: LobbyService, private dialog: MatDialog) {
   }
+
+  displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
+
+  lobbies: LobbyDTO[] = []
+
+  ngOnInit(): void {
+    this.lobbyService.getLobbies().subscribe({
+      complete: () => {
+        console.log('Completed getting lobbies')
+      },
+      next: (value) => {
+        this.lobbies = value
+      },
+      error: () => {
+        console.log('Smth went wrong with getting lobbies')
+      }
+    })
+  };
 
   games: Readonly<Game[]> = [
     {name: 'Poker', description: 'Loose all your money'},
@@ -31,6 +53,18 @@ export class LobbyComponent {
   activeGames: Set<string> = new Set();
 
   toggleSelect(name: string) {
+    this.lobbyService.getLobbies().subscribe({
+      complete: () => {
+        console.log('Completed getting lobbies')
+      },
+      next: (value) => () => {
+        this.lobbies = value
+      },
+      error: () => {
+        console.log('Smth went wrong with getting lobbies')
+      }
+    })
+
     if (this.activeGames.has(name)) {
       this.activeGames.delete(name);
     } else {
@@ -45,4 +79,21 @@ export class LobbyComponent {
   sendMessage() {
     this.lobbyService.sendMessage();
   }
+
+
+  announceSortChange($event: any) {
+
+  }
+
+  joinLobby(id: string) {
+    console.log('IM JOINING THIS EPIC AMAZING LOBBY :', id);
+  }
+
+  viewModal(id: string) {
+    console.log('showing modal: ', id)
+    const dialogRef = this.dialog.open(JoinLobbyModalComponent, {
+      id: id
+    })
+  }
+
 }
