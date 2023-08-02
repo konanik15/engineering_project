@@ -1,0 +1,725 @@
+{
+	"info": {
+		"_postman_id": "9a971e23-8f6e-41d1-8004-af366dc7235b",
+		"name": "Inżynierka rest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28733594"
+	},
+	"item": [
+		{
+			"name": "keycloak",
+			"item": [
+				{
+					"name": "token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "cardz",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "Gt6vBW86h9UmdtJy4wfYzfPzxjUBgTxO",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "test2",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "test",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:10100/auth/realms/cardz/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "10100",
+							"path": [
+								"auth",
+								"realms",
+								"cardz",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "realm info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:10100/auth/realms/Cardz",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "10100",
+							"path": [
+								"auth",
+								"realms",
+								"Cardz"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "game-core",
+			"item": [
+				{
+					"name": "actions",
+					"item": [
+						{
+							"name": "transfer",
+							"item": [
+								{
+									"name": "from hand",
+									"item": [
+										{
+											"name": "to pile",
+											"item": [
+												{
+													"name": "as user 1",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER1_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"hand\"\n    },\n    \"destination\": {\n        \"type\": \"pile\",\n        \"name\": \"attack3\"\n    },\n    \"cards\": [{\n        \"suit\": \"diamonds\",\n        \"rank\": \"queen\"\n    }]\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "as user 2",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER2_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "[{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"hand\"\n    },\n    \"destination\": {\n        \"type\": \"pile\",\n        \"name\": \"attack0\"\n    },\n    \"cards\": [{\n        \"suit\": \"clubs\",\n        \"rank\": \"ace\"\n    }]\n}, {\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"hand\"\n    },\n    \"destination\": {\n        \"type\": \"pile\",\n        \"name\": \"attack1\"\n    },\n    \"cards\": [{\n        \"suit\": \"clubs\",\n        \"rank\": \"king\"\n    }]\n}]",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "from stack",
+									"item": [
+										{
+											"name": "to hand",
+											"item": [
+												{
+													"name": "as user 1",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER1_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"stack\",\n        \"name\": \"draw\"\n    },\n    \"destination\": {\n        \"type\": \"hand\"\n    },\n    \"amount\": 1\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "as user 2",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER2_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"stack\",\n        \"name\": \"draw\"\n    },\n    \"destination\": {\n        \"type\": \"hand\"\n    },\n    \"amount\": 1\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "from pile",
+									"item": [
+										{
+											"name": "to hand",
+											"item": [
+												{
+													"name": "as user 1",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER1_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"pile\",\n        \"name\": \"attack0\"\n    },\n    \"destination\": {\n        \"type\": \"hand\"\n    },\n    \"amount\": 1\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "as user 2",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER2_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"pile\",\n        \"name\": \"attack0\"\n    },\n    \"destination\": {\n        \"type\": \"hand\"\n    },\n    \"cards\": [{\n        \"suit\": \"diamonds\",\n        \"rank\": \"10\"\n    }]\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												}
+											]
+										},
+										{
+											"name": "to stack",
+											"item": [
+												{
+													"name": "as user 1",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER1_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "[{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"pile\",\n        \"name\": \"attack0\"\n    },\n    \"destination\": {\n        \"type\": \"stack\",\n        \"name\": \"discard\"\n    },\n    \"amount\": 2\n}, {\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"pile\",\n        \"name\": \"attack1\"\n    },\n    \"destination\": {\n        \"type\": \"stack\",\n        \"name\": \"discard\"\n    },\n    \"amount\": 2\n}]",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												},
+												{
+													"name": "as user 2",
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{USER2_TOKEN}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"type\": \"transfer\",\n    \"source\": {\n        \"type\": \"pile\",\n        \"name\": \"attack0\"\n    },\n    \"destination\": {\n        \"type\": \"stack\",\n        \"name\": \"discard\"\n    },\n    \"amount\": 2\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "http://localhost:{{GAME_CORE_PORT}}/{{CURRENT_GAME_ID}}",
+															"protocol": "http",
+															"host": [
+																"localhost"
+															],
+															"port": "{{GAME_CORE_PORT}}",
+															"path": [
+																"{{CURRENT_GAME_ID}}"
+															]
+														}
+													},
+													"response": []
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "new game",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participants\": [{\n        \"username\": \"neterpila1\"\n    }, {\n        \"username\": \"neterpila2\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:{{GAME_CORE_PORT}}/durak",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "{{GAME_CORE_PORT}}",
+							"path": [
+								"durak"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "games info",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participants\": [{\n        \"username\": \"neterpila1\"\n    }, {\n        \"username\": \"neterpila2\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:{{GAME_CORE_PORT}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "{{GAME_CORE_PORT}}"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "game info",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participants\": [{\n        \"username\": \"neterpila1\"\n    }, {\n        \"username\": \"neterpila2\"\n    }]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:{{GAME_CORE_PORT}}/durak",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "{{GAME_CORE_PORT}}",
+							"path": [
+								"durak"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "lobby",
+			"item": [
+				{
+					"name": "create a lobby",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"response is ok\",  ()=>{\r",
+									"    pm.response.to.have.status(200)\r",
+									"})\r",
+									"\r",
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"pm.globals.set(\"LOBBY_ID\", jsonData.lobbyId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "55511",
+									"type": "text"
+								},
+								{
+									"key": "game",
+									"value": "durak",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": " ",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:10104/lobbies",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobbies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get lobbies",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobbies",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobbies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get lobby",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobby/{{LOBBY_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobby",
+								"{{LOBBY_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{USER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:10104/lobby/{{LOBBY_ID}}",
+							"host": [
+								"localhost"
+							],
+							"port": "10104",
+							"path": [
+								"lobby",
+								"{{LOBBY_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "GAME_CORE_PORT",
+			"value": "10101"
+		},
+		{
+			"key": "USER2_TOKEN",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5aU1RRWFmTWllR0xKMFFXUmM4andNZENhTHhpNlhHak8teTlOZUV1U3hZIn0.eyJleHAiOjE3NzU5OTAxNzEsImlhdCI6MTY4OTY3NjU3MSwianRpIjoiMzAxYWRkMzMtZDExMS00NzNkLWFkOWUtYzNjNjNhNTQzNmY3IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDoxMDEwMC9hdXRoL3JlYWxtcy9jYXJkeiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMWYxYTc2Zi1iNTkxLTQ4ZWUtYTk2Mi0zMWYzMWE1N2Y5OTgiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjYXJkeiIsInNlc3Npb25fc3RhdGUiOiJjN2Y2MDg3My1kMjk4LTQ0YWMtOTUwMC0wNWE2MWE3M2JiYjUiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWNhcmR6Iiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsInNpZCI6ImM3ZjYwODczLWQyOTgtNDRhYy05NTAwLTA1YTYxYTczYmJiNSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkX3VzZXJuYW1lIjoibmV0ZXJwaWxhMiIsImdpdmVuX25hbWUiOiIiLCJmYW1pbHlfbmFtZSI6IiJ9.VR3jkraS-WeBzgp24WrB1SvPdD4zle61SYC6ox9J_0qouPDYddJtJiON7yMa2KyiQlYYhUXWXh_Q1ChmrAHJ4KVQsD3RJ0cXL413z8MTikokKHEHQ_K_9w3lvlv1LlEBUKpsyWvXo0MejNHCRBEWJaNht6K_p46mjoMIRm26capv-35vB-M7aI0fnFleZzfg4pIABR4BnZkNMSLu1TKqzv-mPOYoR7XcgSg2u1aWyX7HqhUejBJQb2mqzoFo7Ss44f_80mBMfAccRl59KVqzpW_T7FOgif7ef0zolcWRNwaNgRkCfCXtuAKMHuLR0qDFeszXJBSzVNPPxedHvWgKVQ"
+		},
+		{
+			"key": "USER1_TOKEN",
+			"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5aU1RRWFmTWllR0xKMFFXUmM4andNZENhTHhpNlhHak8teTlOZUV1U3hZIn0.eyJleHAiOjE3NzU5ODk0MzksImlhdCI6MTY4OTY3NTgzOSwianRpIjoiNzZiYTY3YmItMzgwMS00NzQyLThlYjUtYjEyOTU0YjQ2OGEzIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDoxMDEwMC9hdXRoL3JlYWxtcy9jYXJkeiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJhMjQ0MDAxYS05ZjNlLTQ5YmItOGJiZC0zMTY4ZWQ4M2I5NGIiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjYXJkeiIsInNlc3Npb25fc3RhdGUiOiIxZDdlNDdjMy1lMzE0LTQyYjAtOGU1ZC1lZTljYjNiMDlkZTAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIi8qIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLWNhcmR6Iiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsInNpZCI6IjFkN2U0N2MzLWUzMTQtNDJiMC04ZTVkLWVlOWNiM2IwOWRlMCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwicHJlZmVycmVkX3VzZXJuYW1lIjoibmV0ZXJwaWxhMSIsImdpdmVuX25hbWUiOiIiLCJmYW1pbHlfbmFtZSI6IiJ9.nDzitvcSVEMWqtDExRVSujz5jAkCbfqBGLJXI47DdtJ6H_zbi3iL6Ymr2DxacDI8WRWld6AIxOMA8Rzoacq9PfFp9i6TYmqbjETFhMB6NpNk58CxF4izcW-zhR6W4zZGKKrizCpoLsdGqIQQc_tXIb-hTI6QzKeLaQejRPhF5yrjhcDigKdAcErI0AMbQ_BONqis5ziK8nBJkov1ZE4sbt4SaJbdVejEBPG5Kv9m-uSiOO_-zdpw9J41X1w_Is_eUQIP5VjIyFXWJfnAw3x8DwAuGax_v140UBy-j2riXbA-knzbr2iWJKx5D_X-96S5sda9496ojdIm2uGA8viOng"
+		},
+		{
+			"key": "CURRENT_GAME_ID",
+			"value": "64bbc84e794e40669c3a6055"
+		}
+	]
+}

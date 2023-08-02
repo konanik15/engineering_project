@@ -32,7 +32,7 @@ services:
       - ./backend/services/mongo/scripts/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       - ./backend/services/mongo/data:/data/db:rw
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/${DB_NAME} --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/${MONGO_DB} --quiet
       interval: 10s
       timeout: 5s
       retries: 5
@@ -89,7 +89,23 @@ services:
     ports:
       - "10102:8080"
     depends_on:
+      - keycloak
+
+  lobby:
+    build: ./backend/services/lobby
+    environment:
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_HOST: keycloak
+      MONGO_HOST: mongodb
+      MONGO_DB: ${MONGO_DB}
+      MONGO_USERNAME: ${MONGO_DB_USER}
+      MONGO_PASSWORD: ${MONGO_DB_PASSWORD}
+    ports:
+      - "${LOBBY_MAPPED_PORT}:8080"
+    depends_on:
       keycloak:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
 
   game-core:

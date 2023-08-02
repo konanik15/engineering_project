@@ -91,7 +91,7 @@ router.get("/", bodyParser.json(), async (req, res, next) => {
 router.get("/:gameType", bodyParser.json(), async (req, res, next) => {
     let game = _.find(gamesInfo, { type: req.params.gameType });
     if (!game)
-        return res.status(404).send(`No game found with type ${gameType}`);
+        return res.status(404).send(`No game found with type ${req.params.gameType}`);
     return res.status(200).send(game);
 });
 
