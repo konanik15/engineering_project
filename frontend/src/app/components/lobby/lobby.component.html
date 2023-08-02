@@ -3,7 +3,7 @@
     *ngFor="let game of games"
     (click)="toggleSelect(game.name)"
     class="card game-card"
-    [ngClass]="{ 'game-card__active': activeGames.has(game.name) }"
+    [ngClass]="{ 'game-card--active': activeGames.has(game.name) }"
   >
     <div class="card-body">
       <h5 class="card-title">{{ game.name }}</h5>

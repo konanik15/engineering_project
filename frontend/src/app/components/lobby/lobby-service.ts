@@ -1,10 +1,10 @@
-import {Injectable} from "@angular/core";
-import {HttpClient, HttpParams} from "@angular/common/http";
-
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {AppEndpoints} from '../utils/app.endpoints';
 @Injectable({
   providedIn: 'root',
 })
-export class HomeService {
+export class LobbyService {
 
   path: string = '/api'
   response: string = ""
@@ -19,4 +19,11 @@ export class HomeService {
     this.http.get(this.path + '/rest/echo', {params, responseType: 'text'})
       .subscribe((e) => this.response = e)
   }
+
+  getLobbies(): void {
+    console.log('getting lobbies' + AppEndpoints.LOBBY)
+  }
+
+
+
 }

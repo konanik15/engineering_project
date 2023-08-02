@@ -1,21 +1,22 @@
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" routerLink="/home">Demo Auth</a>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                <li *ngIf="token" class="nav-item">
-                  <a aria-current="page" class="nav-link active" routerLink="/home">Home</a>
-                </li>
-                <li *ngIf="!token" class="nav-item">
-                    <a (click)="login()" class="nav-link" role="button">Login</a>
-                </li>
-                <li *ngIf="token" class="nav-item">
-                    <a (click)="logout()" class="nav-link" role="button">Logout</a>
-                </li>
-                <li *ngIf="token" class="nav-item">
-                    <span class="nav-link" style="color:#0a58ca">{{name}}</span>
-                </li>
-            </ul>
-        </div>
+  <div class="container-fluid">
+    <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
+      <ul class="navbar-nav  mb-2 mb-md-0">
+        <a class="navbar-brand" routerLink="/home">Coop App</a>
+
+        <li *ngIf="token" class="nav-item">
+          <a aria-current="page" class="nav-link active" routerLink="/lobby">Lobby</a>
+        </li>
+        <li *ngIf="!token" class="nav-item">
+          <a (click)="login()" class="nav-link" role="button">Login</a>
+        </li>
+        <li *ngIf="token" class="nav-item">
+          <a (click)="logout()" class="nav-link" role="button">Logout</a>
+        </li>
+        <li *ngIf="token" class="nav-item">
+          <span class="nav-link" style="color:#0a58ca">Welcome {{name}}</span>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>

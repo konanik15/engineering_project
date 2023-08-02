@@ -24,7 +24,8 @@ export class NavbarComponent implements OnInit {
     ngOnInit(): void {
         this.configureSingleSignOn();
         const userClaims: any = this.oAuthService.getIdentityClaims();
-        this.name = userClaims.name ? userClaims.name : "";
+        console.log(userClaims)
+        this.name = userClaims.family_name ? userClaims.family_name : "Anonim";
     }
 
     configureSingleSignOn() {
