@@ -226,7 +226,7 @@ Response to the client that sent the message:
 
 #### startGame
 
-After this message is sent the server checks if all players are ready, minimum number of players condition is met, the lobby is not already in progress. If all those things are met the server emits back to the client, emits a message to all clients in the lobby that the game has started, emits a message to clients in mainmenu that this lobby is in progress. It also changes the .inProgress field in db to true. 
+After this message is sent the server checks if all players are ready, minimum number of players condition is met, the lobby is not already in progress. If all those things are met the server uses POST REST Endpoint from game-core to start a game. It then emits back to the client, emits a message to all clients in the lobby that the game has started with the game id, emits a message to clients in mainmenu that this lobby is in progress. It also changes the .inProgress field in db to true. 
 
 Sent by client:
 ```json
@@ -246,7 +246,10 @@ Response to all the clients in main menu:
 Response to all the clients in the lobby:
 ```json
 {
-    "type": "gameStarted"
+    "type": "gameStarted",
+    "data": {
+        "gameId": "64cc0a505597f7e0e67adfa1"
+    }
 }
 ```
 Response to the client:
