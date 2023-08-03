@@ -59,7 +59,8 @@ async function setup() {
             ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
             return;
           }
-          if (!bcrypt.compare(password, lobby.password)) {
+          const isValidPassword = await bcrypt.compare(password, lobby.password);
+          if (!isValidPassword) {
             console.log("Wrong password");
             ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
             return;
