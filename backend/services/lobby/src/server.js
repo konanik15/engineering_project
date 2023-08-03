@@ -265,7 +265,7 @@ async function setup() {
   //rest api endpoints
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     try {
-      const lobbyList = await Lobby.find({});
+      const lobbyList = await Lobby.find({}).select("-password");
       res.status(200).send(lobbyList);
     } catch (err) {
       console.error(err);
@@ -315,7 +315,7 @@ async function setup() {
     const lobbyId = req.params.id;
     let lobby = null;
     try {
-      lobby = await Lobby.findById(lobbyId);
+      lobby = await Lobby.findById(lobbyId).select("-password");
     } catch (err) {
       console.error(err);
       return res.status(500).send("Internal server error");
