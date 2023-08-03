@@ -92,6 +92,23 @@ async function setup() {
       ws.close(1000, "Connection closed by server");
       return;
     }
+
+    if (lobby.passwordProtected) {
+      const password = req.headers.password;
+      if (!password) {
+        console.error("Password is required");
+        ws.close(1000, "Connection closed by server");
+        return;
+      }
+
+      const isValidPassword = await bcrypt.compare(password, lobby.password);
+      if (!isValidPassword) {
+        console.error("Wrong password");
+        ws.close(1000, "Connection closed by server");
+        return;
+      }
+    }
+    
     ws.id = uuidv4();
     console.log("New client:", ws.id, "connected to lobby:", req.params.lobbyId);
     //setting up the client in the lobby
