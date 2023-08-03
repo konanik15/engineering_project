@@ -328,27 +328,29 @@ async function setup() {
     res.status(200).send(lobby);
   });
 
-  app.delete("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
-    const lobbyId = req.params.id;
-    let lobby = null;
-    try {
-      lobby = await Lobby.findById(lobbyId);
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
-    if (!lobby) {
-      return res.status(404).send("Lobby not found");
-    }
-    try {
-      await Lobby.deleteOne({ _id: lobbyId });
-      broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
-      res.status(200).send("Lobby deleted successfully");
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
-  });
+  // Commented out for now 
+
+  // app.delete("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
+  //   const lobbyId = req.params.id;
+  //   let lobby = null;
+  //   try {
+  //     lobby = await Lobby.findById(lobbyId);
+  //   } catch (err) {
+  //     console.error(err);
+  //     return res.status(500).send("Internal server error");
+  //   }
+  //   if (!lobby) {
+  //     return res.status(404).send("Lobby not found");
+  //   }
+  //   try {
+  //     await Lobby.deleteOne({ _id: lobbyId });
+  //     broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
+  //     res.status(200).send("Lobby deleted successfully");
+  //   } catch (err) {
+  //     console.error(err);
+  //     return res.status(500).send("Internal server error");
+  //   }
+  // });
       
   const PORT = 8080;
   server.listen(PORT, () => {
