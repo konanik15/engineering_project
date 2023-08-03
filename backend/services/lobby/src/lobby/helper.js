@@ -1,15 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
 const Lobby = require("../models/Lobby");
 const axios = require("axios");
-
-function generateRandomLobbyId() {
-  return uuidv4();
-}
 
 async function pickNewLeader(lobbyId) {
   let lobby = null;
   try {
-    lobby = await Lobby.findOne({ id: lobbyId });
+    lobby = await Lobby.findById(lobbyId);
   } catch (err) {
     console.error(err);
     return false;
@@ -32,7 +27,7 @@ async function pickNewLeader(lobbyId) {
 async function areAllPlayersReady(lobbyId) {
   let lobby = null;
   try {
-    lobby = await Lobby.findOne({ id: lobbyId });
+    lobby = await Lobby.findById(lobbyId);
   } catch (err) {
     console.error(err);
     return false;
@@ -64,4 +59,4 @@ async function getGameTypeInfo(gameType) {
   return gameInfo;
 }
 
-module.exports = { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo };
+module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo };
