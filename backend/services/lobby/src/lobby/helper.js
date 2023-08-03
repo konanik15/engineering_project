@@ -59,4 +59,19 @@ async function getGameTypeInfo(gameType) {
   return gameInfo;
 }
 
-module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo };
+async function startGame(gameType, players) {
+  const url = `http://game-core:8080/${gameType}`;
+  const participants = players.map((player) => ({ username: player.name }));
+  const data = { participants };
+  let gameInfo = null;
+  try{
+    const response = await axios.post(url, data);
+    gameInfo = response.data;
+  } catch (err) {
+    console.error(err);
+    return gameInfo;
+  }
+  return gameInfo;
+}
+
+module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, startGame };

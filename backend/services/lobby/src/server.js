@@ -9,7 +9,7 @@ const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
-const { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
+const { startGame, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
 
 
 async function setup() {
@@ -108,7 +108,7 @@ async function setup() {
         return;
       }
     }
-    
+
     ws.id = uuidv4();
     console.log("New client:", ws.id, "connected to lobby:", req.params.lobbyId);
     //setting up the client in the lobby
@@ -139,7 +139,7 @@ async function setup() {
     
     ws.on("close", async () => {
       console.log("Client:", ws.id, "disconnected from lobby:", req.params.lobbyId);
-      tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+      tempClients = lobbyClients.get(lobbyId);
       tempClients.delete(ws);
       lobbyClients.set(lobbyId, tempClients);
       lobby = await Lobby.findById(lobbyId);
@@ -200,7 +200,7 @@ async function setup() {
           lobby = await Lobby.findById(lobbyId);
           lobby.chatHistory.push(chatMessage);
           await lobby.save();
-          tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+          tempClients = lobbyClients.get(lobbyId);
           broadcastToClients(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
           ws.send(JSON.stringify({ type: "messageResult", data: { success: true } }));
 
@@ -210,7 +210,7 @@ async function setup() {
           try {
             await Lobby.findOneAndUpdate({ _id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': true } }, { new: false} );
             ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
-            tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+            tempClients = lobbyClients.get(lobbyId);
             const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
             broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: pulledPlayer.name }}));
           } catch (err) {
@@ -224,7 +224,7 @@ async function setup() {
           try {
             await Lobby.findOneAndUpdate({ _id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': false } }, { new: false} );
             ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
-            tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+            tempClients = lobbyClients.get(lobbyId);
             const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
             broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: pulledPlayer.name }}));
           } catch (err) {
@@ -257,12 +257,20 @@ async function setup() {
             ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
             break;
           }
+          try {
+            const gameInfo = await startGame(lobby.game, lobby.players);
+            tempClients = lobbyClients.get(lobbyId);
+            broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted", data: { gameId: gameInfo._id } }));
+            console.log("game created: " + gameInfo._id);
+          } catch (err) {
+            console.error(err);
+            break;
+          }
+
           lobby.inProgress = true;
           await lobby.save();
 
-          ws.send(JSON.stringify({ type: "startGameResult", data: { success: true } }));
-          tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
-          broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"} ));
+          ws.send(JSON.stringify({ type: "startGameResult", data: { success: true} }));
           //broadcast to mainmenu clients that the lobby is in progress
           broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
 
