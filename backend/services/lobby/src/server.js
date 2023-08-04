@@ -83,13 +83,13 @@ async function setup() {
     
     if (!lobby) {
       console.error("Lobby not found");
-      ws.close(1000, "Connection closed by server");
+      ws.close(1008, `No lobby found with id ${lobbyId}`);
       return;
     } 
 
     if (lobby.isFull) {
       console.error("Lobby is full");
-      ws.close(1000, "Connection closed by server");
+      ws.close(1008, "Lobby is full");
       return;
     }
 
@@ -97,14 +97,14 @@ async function setup() {
       const password = req.headers.password;
       if (!password) {
         console.error("Password is required");
-        ws.close(1000, "Connection closed by server");
+        ws.close(1008, "Password is required");
         return;
       }
 
       const isValidPassword = await bcrypt.compare(password, lobby.password);
       if (!isValidPassword) {
         console.error("Wrong password");
-        ws.close(1000, "Connection closed by server");
+        ws.close(1008, "Wrong lobby password");
         return;
       }
     }
