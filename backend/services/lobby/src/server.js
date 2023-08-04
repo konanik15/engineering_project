@@ -9,7 +9,7 @@ const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
-const { generateRandomLobbyId, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
+const { startGame, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
 
 
 async function setup() {
@@ -47,7 +47,7 @@ async function setup() {
           const { lobbyId, password } = data;
           let lobby = null;
           try {
-            lobby = await Lobby.findOne({ id: lobbyId });
+            lobby = await Lobby.findById(lobbyId);
           } catch (err) {
             console.error(err);
             ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
@@ -59,7 +59,8 @@ async function setup() {
             ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
             return;
           }
-          if (!bcrypt.compare(password, lobby.password)) {
+          const isValidPassword = await bcrypt.compare(password, lobby.password);
+          if (!isValidPassword) {
             console.log("Wrong password");
             ws.send(JSON.stringify({ type: "passwordValidationResult", data: { isValid: false } }));
             return;
@@ -78,19 +79,36 @@ async function setup() {
 
     const lobbyId = req.params.lobbyId;
     let lobby = null;
-    lobby = await Lobby.findOne({ id: lobbyId });
+    lobby = await Lobby.findById(lobbyId);
     
     if (!lobby) {
       console.error("Lobby not found");
-      ws.close(1000, "Connection closed by server");
+      ws.close(1008, `No lobby found with id ${lobbyId}`);
       return;
     } 
 
     if (lobby.isFull) {
       console.error("Lobby is full");
-      ws.close(1000, "Connection closed by server");
+      ws.close(1008, "Lobby is full");
       return;
     }
+
+    if (lobby.passwordProtected) {
+      const password = req.headers.password;
+      if (!password) {
+        console.error("Password is required");
+        ws.close(1008, "Password is required");
+        return;
+      }
+
+      const isValidPassword = await bcrypt.compare(password, lobby.password);
+      if (!isValidPassword) {
+        console.error("Wrong password");
+        ws.close(1008, "Wrong lobby password");
+        return;
+      }
+    }
+
     ws.id = uuidv4();
     console.log("New client:", ws.id, "connected to lobby:", req.params.lobbyId);
     //setting up the client in the lobby
@@ -121,14 +139,14 @@ async function setup() {
     
     ws.on("close", async () => {
       console.log("Client:", ws.id, "disconnected from lobby:", req.params.lobbyId);
-      tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+      tempClients = lobbyClients.get(lobbyId);
       tempClients.delete(ws);
       lobbyClients.set(lobbyId, tempClients);
-      lobby = await Lobby.findOne({ id: lobbyId });
+      lobby = await Lobby.findById(lobbyId);
       const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
-      await Lobby.findOneAndUpdate({ id: lobbyId }, { $pull: { players: { wsId: ws.id } } }, { new: false} );
+      await Lobby.findOneAndUpdate({ _id: lobbyId }, { $pull: { players: { wsId: ws.id } } }, { new: false} );
       //ugly code idk how to do it better
-      lobby = await Lobby.findOne({ id: lobbyId });
+      lobby = await Lobby.findById(lobbyId);
 
       if(lobby.isFull) {
         lobby.isFull = false;
@@ -136,7 +154,7 @@ async function setup() {
       }
 
       if(lobby.players.length === 0) {
-        await Lobby.deleteOne({ id: lobbyId });
+        await Lobby.deleteOne({ _id: lobbyId });
         broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
         return;
       }
@@ -148,7 +166,7 @@ async function setup() {
         if (newLeader) {
           console.log("new leader is:", newLeader.name);
           newLeader.leader = true;
-          await Lobby.findOneAndUpdate({ id: lobbyId, 'players.wsId': newLeader.wsId }, { '$set': { 'players.$.leader': true } }, { new: false} );
+          await Lobby.findOneAndUpdate({ _id: lobbyId, 'players.wsId': newLeader.wsId }, { '$set': { 'players.$.leader': true } }, { new: false} );
           lobby.hasLeader = true;
           await lobby.save();
         }
@@ -172,17 +190,17 @@ async function setup() {
             return;
           }
 
-          lobby = await Lobby.findOne({ id: lobbyId });
+          lobby = await Lobby.findById(lobbyId);
           const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
           const chatMessage = {
             sender: pulledPlayer.name,
             message,
             timestamp: Date.now(),
           };
-          lobby = await Lobby.findOne({ id: lobbyId });
+          lobby = await Lobby.findById(lobbyId);
           lobby.chatHistory.push(chatMessage);
           await lobby.save();
-          tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+          tempClients = lobbyClients.get(lobbyId);
           broadcastToClients(tempClients, JSON.stringify({ type: "newMessage", data: { message: chatMessage }}));
           ws.send(JSON.stringify({ type: "messageResult", data: { success: true } }));
 
@@ -190,9 +208,9 @@ async function setup() {
 
         case "ready":
           try {
-            await Lobby.findOneAndUpdate({ id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': true } }, { new: false} );
+            await Lobby.findOneAndUpdate({ _id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': true } }, { new: false} );
             ws.send(JSON.stringify({ type: "readyResult", data: { success: true } }));
-            tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+            tempClients = lobbyClients.get(lobbyId);
             const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
             broadcastToClients(tempClients, JSON.stringify({ type: "playerReady", data: { username: pulledPlayer.name }}));
           } catch (err) {
@@ -204,9 +222,9 @@ async function setup() {
         
         case "unready":
           try {
-            await Lobby.findOneAndUpdate({ id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': false } }, { new: false} );
+            await Lobby.findOneAndUpdate({ _id: lobbyId, 'players.wsId': ws.id }, { '$set': { 'players.$.ready': false } }, { new: false} );
             ws.send(JSON.stringify({ type: "unreadyResult", data: { success: true } }));
-            tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
+            tempClients = lobbyClients.get(lobbyId);
             const pulledPlayer = lobby.players.find((player) => player.wsId === ws.id);
             broadcastToClients(tempClients, JSON.stringify({ type: "playerUnready", data: { username: pulledPlayer.name }}));
           } catch (err) {
@@ -218,10 +236,11 @@ async function setup() {
 
         case "startGame":
           try {
-            lobby = await Lobby.findOne({ id: lobbyId });
+            lobby = await Lobby.findById(lobbyId);
           } catch (err) {
             console.error(err);
             ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
+            break;
           }
           if (!(await areAllPlayersReady(lobbyId))) {
             console.log("Not all players are ready");
@@ -238,12 +257,20 @@ async function setup() {
             ws.send(JSON.stringify({ type: "startGameResult", data: { success: false } }));
             break;
           }
+          try {
+            const gameInfo = await startGame(lobby.game, lobby.players);
+            tempClients = lobbyClients.get(lobbyId);
+            broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted", data: { gameId: gameInfo._id } }));
+            console.log("game created: " + gameInfo._id);
+          } catch (err) {
+            console.error(err);
+            break;
+          }
+
           lobby.inProgress = true;
           await lobby.save();
 
-          ws.send(JSON.stringify({ type: "startGameResult", data: { success: true } }));
-          tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
-          broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted"} ));
+          ws.send(JSON.stringify({ type: "startGameResult", data: { success: true} }));
           //broadcast to mainmenu clients that the lobby is in progress
           broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyInProgress", data: { lobbyId: lobbyId }}));
 
@@ -264,7 +291,7 @@ async function setup() {
   //rest api endpoints
   app.get("/lobbies", keycloak.protectHTTP(), async (req, res) => {
     try {
-      const lobbyList = await Lobby.find({});
+      const lobbyList = await Lobby.find({}).select("-password");
       res.status(200).send(lobbyList);
     } catch (err) {
       console.error(err);
@@ -292,9 +319,7 @@ async function setup() {
       const saltRounds = 10;
       hashedPassword = await bcrypt.hash(password, saltRounds);
     }
-    const lobbyId = generateRandomLobbyId().toString();
     const lobby = new Lobby({
-      id: lobbyId,
       name,
       players: [],
       chatHistory: [],
@@ -308,15 +333,15 @@ async function setup() {
     });
     await lobby.save();
 
-    broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobbyId }}));
-    res.status(201).send({ message: "Lobby created successfully", lobbyId });
+    broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyCreated", data: { lobbyId: lobby._id }}));
+    res.status(201).send({ message: "Lobby created successfully", lobbyId: lobby._id });
   });
 
   app.get("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
     const lobbyId = req.params.id;
     let lobby = null;
     try {
-      lobby = await Lobby.findOne({ id: lobbyId });
+      lobby = await Lobby.findById(lobbyId).select("-password");
     } catch (err) {
       console.error(err);
       return res.status(500).send("Internal server error");
@@ -328,27 +353,29 @@ async function setup() {
     res.status(200).send(lobby);
   });
 
-  app.delete("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
-    const lobbyId = req.params.id;
-    let lobby = null;
-    try {
-      lobby = await Lobby.findOne({ id: lobbyId });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
-    if (!lobby) {
-      return res.status(404).send("Lobby not found");
-    }
-    try {
-      await Lobby.deleteOne({ id: lobbyId });
-      broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
-      res.status(200).send("Lobby deleted successfully");
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
-  });
+  // Commented out for now 
+
+  // app.delete("/lobby/:id", keycloak.protectHTTP(), async (req, res) => {
+  //   const lobbyId = req.params.id;
+  //   let lobby = null;
+  //   try {
+  //     lobby = await Lobby.findById(lobbyId);
+  //   } catch (err) {
+  //     console.error(err);
+  //     return res.status(500).send("Internal server error");
+  //   }
+  //   if (!lobby) {
+  //     return res.status(404).send("Lobby not found");
+  //   }
+  //   try {
+  //     await Lobby.deleteOne({ _id: lobbyId });
+  //     broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyDeleted", data: { lobbyId: lobbyId }}));
+  //     res.status(200).send("Lobby deleted successfully");
+  //   } catch (err) {
+  //     console.error(err);
+  //     return res.status(500).send("Internal server error");
+  //   }
+  // });
       
   const PORT = 8080;
   server.listen(PORT, () => {
