@@ -41,7 +41,8 @@ const Game = new Schema({
     status: { type: String, enum: [ "pending", "inProgress", "ended" ], default: "pending" },
     participants: [ Participant ],
     state: State,
-    meta: Meta
+    meta: Meta,
+    lobbyId: { type: String, required: false },
 });
 
 export default model("Game", Game);
