@@ -1,98 +1,89 @@
-import {Component, OnInit} from '@angular/core';
-import {LobbyService} from './lobby-service';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute} from "@angular/router";
+import {Subscription} from "rxjs";
 import {LobbyDTO} from "../utils/dto";
-import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.component";
-import {MatDialog} from "@angular/material/dialog";
+import {LobbiesService} from "../utils/lobbies-service";
+import {OAuthService} from "angular-oauth2-oidc";
+import {SharedUrls} from "../utils/shared-urls";
+import {webSocket} from "rxjs/webSocket";
 
-type Game = {
-  name: string;
-  description: string;
-};
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-lobby',
   templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.css'],
+  styleUrls: ['./lobby.component.css']
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent implements OnInit, OnDestroy {
 
-  constructor(public lobbyService: LobbyService, private dialog: MatDialog) {
+  private routeSub!: Subscription;
+
+  private socket: any;
+
+  ready: boolean = false;
+
+  lobby!: LobbyDTO;
+
+  title = 'angular8-springboot-websocket';
+
+  constructor(private lobbiesService: LobbiesService,
+              private route: ActivatedRoute,
+              private oAuthService: OAuthService) {
   }
 
-  displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
-
-  lobbies: LobbyDTO[] = []
 
   ngOnInit(): void {
-    this.lobbyService.getLobbies().subscribe({
+    let lobbyId = '';
+    this.routeSub = this.route.params.subscribe(params => {
+      lobbyId = params['id']//log the value of id
+    });
+
+    this.lobbiesService.getLobby(lobbyId).subscribe({
       complete: () => {
-        console.log('Completed getting lobbies')
+        console.log('Completed getting lobby')
       },
       next: (value) => {
-        this.lobbies = value
+        this.lobby = value
+        this.establishWebSocketConnection()
       },
       error: () => {
-        console.log('Smth went wrong with getting lobbies')
+        console.log('Smth went wrong with getting lobby by Id ', lobbyId)
       }
     })
-  };
+  }
 
-  games: Readonly<Game[]> = [
-    {name: 'Poker', description: 'Loose all your money'},
-    {name: 'Durak', description: 'How do you even play this sh*t'},
-    {name: 'Factorio', description: 'Launch the rocket get bitches'},
-    {name: 'Dark Souls', description: 'DEX >>> SEX'},
-    {name: 'Chess', description: 'Szacher matter'},
-    {
-      name: 'Star Realms',
-      description:
-        'Actually you need to have an IQ of over 200 to even understand how to play this game at the lowest possible level.',
-    },
-  ] as const;
+  private establishWebSocketConnection() {
+    console.log('connecting to lobbyService via WS')
 
-  activeGames: Set<string> = new Set();
+    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
+    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby.id}${tokenQuery}`)
 
-  toggleSelect(name: string) {
-    this.lobbyService.getLobbies().subscribe({
-      complete: () => {
-        console.log('Completed getting lobbies')
-      },
-      next: (value) => () => {
-        this.lobbies = value
-      },
-      error: () => {
-        console.log('Smth went wrong with getting lobbies')
-      }
-    })
+    this.socket = webSocket(url);
 
-    if (this.activeGames.has(name)) {
-      this.activeGames.delete(name);
+    this.socket.subscribe(
+      // @ts-ignore
+      msg => console.log('message received: ' + msg), // Called whenever there is a message from the server.
+      // @ts-ignore
+      err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
+      () => console.log('complete') // Called when connection is closed (for whatever reason).
+    );
+  }
+
+  ngOnDestroy() {
+    this.socket.complete();
+    this.routeSub.unsubscribe();
+  }
+
+  revertReady() {
+    this.ready = !this.ready;
+    let status: string;
+    if (this.ready) {
+      status = "ready"
     } else {
-      this.activeGames.add(name);
+      status = 'unready'
     }
-  }
-
-  debug(...args: (string | number)[]) {
-    console.log(...args);
-  }
-
-  sendMessage() {
-    this.lobbyService.sendMessage();
-  }
-
-
-  announceSortChange($event: any) {
-
-  }
-
-  joinLobby(id: string) {
-    console.log('IM JOINING THIS EPIC AMAZING LOBBY :', id);
-  }
-
-  viewModal(id: string) {
-    console.log('showing modal: ', id)
-    const dialogRef = this.dialog.open(JoinLobbyModalComponent, {
-      id: id
+    console.log('Im :', status)
+    this.socket.next({
+      "type": status
     })
   }
 

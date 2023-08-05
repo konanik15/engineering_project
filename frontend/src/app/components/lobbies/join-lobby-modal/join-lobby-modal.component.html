@@ -1,0 +1,28 @@
+<div class="modal-header">
+  <h3 class="modal-title" id="exampleModalLabel">Lobby {{ name }}</h3>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<form class="form-horizontal" [formGroup]="joinLobbyForm">
+
+  <div class="form-group">
+    <div class="col-sm-12">
+      <label for="password" class="control-label">Password</label>
+      <input type="password" id="password" class="form-control" formControlName="password">
+    </div>
+  </div>
+
+
+</form>
+<div class="modal-footer">
+
+  <div *ngIf="wrongPassword" class="alert alert-danger" role="alert">
+    Wrong password! Try again
+  </div>
+  <button type="button" class="btn btn-primary" (click)="validatePassword()" [disabled]=!joinLobbyForm.valid>Join Game
+  </button>
+</div>

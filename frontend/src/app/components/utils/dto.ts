@@ -27,3 +27,8 @@ export interface ChatHistoryDTO {
   message: string
   timestamp: Date
 }
+
+export interface GameLiteDTO {
+  type: string,
+  description: string
+}

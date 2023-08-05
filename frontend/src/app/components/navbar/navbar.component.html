@@ -2,19 +2,16 @@
   <div class="container-fluid">
     <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
       <ul class="navbar-nav  mb-2 mb-md-0">
-        <a class="navbar-brand" routerLink="/home">Coop App</a>
+        <a class="navbar-brand" routerLink="/home"></a>
 
         <li *ngIf="token" class="nav-item">
-          <a aria-current="page" class="nav-link active" routerLink="/lobby">Lobby</a>
-        </li>
-        <li *ngIf="!token" class="nav-item">
-          <a (click)="login()" class="nav-link" role="button">Login</a>
+          <a aria-current="page" class="nav-link active" routerLink="/lobbies">Lobbies</a>
         </li>
         <li *ngIf="token" class="nav-item">
           <a (click)="logout()" class="nav-link" role="button">Logout</a>
         </li>
         <li *ngIf="token" class="nav-item">
-          <span class="nav-link" style="color:#0a58ca">Welcome {{name}}</span>
+          <span class="nav-link" style="color:#ca7d0a">You are logged in as {{name}}</span>
         </li>
       </ul>
     </div>

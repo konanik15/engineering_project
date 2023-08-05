@@ -1,1 +1,12 @@
-<p>welcome works!</p>
+<div class="p-5 text-center bg-light .welcome-hero" style="margin-top: 58px;">
+  <h1 class="display-1">Coop Application</h1>
+  <h4 class="mb-3">The one and only one place you need to play card games</h4>
+  <a *ngIf="!token" class="btn btn-primary " role="button" (click)="login()">Login</a>
+  <h4 *ngIf="token" class="mb-3">
+    Welcome {{getUserName()}}
+  </h4>
+</div>
+<app-available-games></app-available-games>
+
+
+
