@@ -66,6 +66,7 @@ function protectWS() {
     
         try {
             req.decoded_token = verifyToken(token);
+            req.token = token;
         } catch (error) {
             return connection.close(1008, error.message);
         }
@@ -74,4 +75,24 @@ function protectWS() {
     }
 }
 
-module.exports = { init, protectHTTP, protectWS };
+async function userExists(username, token) {
+    try {
+        let response = await axios.get(`http://${kcHost}:${kcPort}/auth/admin/realms/${kcRealm}/users`, {
+            params: {
+                username
+            },
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (response.status !== 200 || !Array.isArray(response.data))
+            throw new Error("Invalid response");
+        
+        return response.data.length !== 0;
+    } catch (e) {
+        throw new Error("Unable to verify user existence", { cause: e });
+    }
+}
+
+module.exports = { init, protectHTTP, protectWS, userExists };
