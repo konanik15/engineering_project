@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h3 class="modal-title" id="exampleModalLabel">Lobby {{ name }}</h3>
+  <h3 class="modal-title" id="exampleModalLabel">Lobby</h3>
   <button
     type="button"
     class="btn-close"
@@ -23,6 +23,6 @@
   <div *ngIf="wrongPassword" class="alert alert-danger" role="alert">
     Wrong password! Try again
   </div>
-  <button type="button" class="btn btn-primary" (click)="validatePassword()" [disabled]=!joinLobbyForm.valid>Join Game
+  <button type="button" class="btn btn-primary" (click)="validatePassword()" [disabled]=!joinLobbyForm.valid>Join Lobby
   </button>
 </div>

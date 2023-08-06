@@ -1,0 +1,38 @@
+<div class="modal-header">
+  <h3 class="modal-title" id="exampleModalLabel">Create Lobby</h3>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="modalRef.close()"
+  ></button>
+</div>
+<form class="form-horizontal" [formGroup]="lobbyForm">
+
+  <div class="form-group">
+    <input formControlName="lobbyName" type="text" class="form-control" id="lobbyName" placeholder="Lobby name">
+  </div>
+
+  <div class="form-group" *ngIf="games.length >= 0">
+    <select #game formControlName="game" class="form-control" id="game">
+      <option *ngFor="let game of games" value="{{game.type}}">{{game.type}}</option>
+    </select>
+  </div>
+
+  <div class="input-group mb-3">
+    <div class="input-group-text">
+      <input formControlName="passwordProtected" class="form-check-input mt-0" type="checkbox" id="passwordProtected"
+             value="" aria-label="Checkbox for password protected lobby"/>
+      <label class="form-check-label" for="passwordProtected">
+        Private Lobby
+      </label>
+    </div>
+    <input formControlName="password" type="text" class="form-control" aria-label="password"/>
+  </div>
+
+</form>
+<div class="modal-footer">
+
+  <button type="button" class="btn btn-primary" (click)="submit()" [disabled]=!lobbyForm.valid>Create Lobby
+  </button>
+</div>

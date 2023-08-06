@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {MdbModalRef} from "mdb-angular-ui-kit/modal";
-import {LobbyDTO} from "../../utils/dto";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {Router} from "@angular/router";
 
@@ -16,11 +15,9 @@ export class JoinLobbyModalComponent implements OnInit {
 
   wrongPassword: boolean = false;
 
-  lobby: LobbyDTO | undefined;
+  lobbyId: string = '';
 
-  password: string = '';
-
-  name: string | null = null;
+  socket: any;
 
   constructor(public modalRef: MdbModalRef<JoinLobbyModalComponent>,
               private formBuilder: FormBuilder,
@@ -28,7 +25,6 @@ export class JoinLobbyModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('Innit JoinLobbyModalComponent')
     this.joinLobbyForm = this.formBuilder.group({
       password: [null, Validators.required],
     });
@@ -36,16 +32,29 @@ export class JoinLobbyModalComponent implements OnInit {
 
   validatePassword() {
     let password: string = this.joinLobbyForm.get('password')?.value
+
+    this.socket.next({
+      "type": 'validatePassword',
+      "data": {
+        "lobbyId": this.lobbyId,
+        "password": password
+      }
+    }).subscribe(
+      response => {
+        console.log(response)
+      }
+    )
+
     if (password === this.lobby?.password) {
       console.log('password ', password, 'lobbyPass ', this.lobby?.password)
       this.wrongPassword = false
       this.modalRef.close()
       const url = this.router.serializeUrl(
-        this.router.createUrlTree([`/lobby/${this.lobby.id}`])
+        this.router.createUrlTree([`/lobby/${this.id}`])
       );
       window.open(url, '_blank');
     } else {
-      console.log('password ', password, 'lobbyPass ', this.lobby?.password)
+      console.log('password ', password, 'lobbyPass ', this.lobby)
       this.wrongPassword = true
     }
   }

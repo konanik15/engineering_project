@@ -21,4 +21,8 @@ export class LobbiesService {
     return this.http.get<LobbyDTO>(`${SharedUrls.LOBBY_SERVER_HTTP}${SharedUrls.LOBBY}/${lobbyId}`)
   }
 
+  createLobby(lobbyDTO: LobbyDTO) {
+    return this.http.post<LobbyDTO>(`${SharedUrls.LOBBY_SERVER_HTTP}${SharedUrls.LOBBIES}`, lobbyDTO)
+  }
+
 }

@@ -1,11 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {GamesService} from "../utils/games.service";
-
-type Game = {
-  type: string;
-  description: string;
-};
-
+import {GameLiteDTO} from "../utils/dto";
 
 @Component({
   selector: 'app-available-games',
@@ -14,7 +9,9 @@ type Game = {
 })
 export class AvailableGamesComponent implements OnInit {
 
-  games: Game[] = [];
+  games: GameLiteDTO[] = [];
+
+  activeGames: Set<string> = new Set();
 
   name: string = "";
 
@@ -34,5 +31,13 @@ export class AvailableGamesComponent implements OnInit {
         console.log('Smth went wrong with getting available games')
       }
     });
+  }
+
+  toggleSelect(name: string) {
+    if (this.activeGames.has(name)) {
+      this.activeGames.delete(name);
+    } else {
+      this.activeGames.add(name);
+    }
   }
 }

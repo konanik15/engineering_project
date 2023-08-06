@@ -4,11 +4,10 @@ import {MdbModalRef, MdbModalService} from 'mdb-angular-ui-kit/modal';
 import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.component";
 import {Router} from "@angular/router";
 import {LobbiesService} from "../utils/lobbies-service";
-
-type Game = {
-  name: string;
-  description: string;
-};
+import {CreateLobbyModalComponent} from "./create-lobby-modal/create-lobby-modal.component";
+import {SharedUrls} from "../utils/shared-urls";
+import {webSocket} from "rxjs/webSocket";
+import {OAuthService} from "angular-oauth2-oidc";
 
 @Component({
   selector: 'app-home',
@@ -17,50 +16,36 @@ type Game = {
 })
 export class LobbiesComponent implements OnInit {
 
-  constructor(public lobbiesService: LobbiesService, private modalService: MdbModalService, private router: Router) {
+  constructor(public lobbiesService: LobbiesService,
+              private modalService: MdbModalService,
+              private router: Router,
+              private oAuthService: OAuthService) {
   }
 
-  modalRef: MdbModalRef<JoinLobbyModalComponent> | null = null;
+  joinLobbyModalRef: MdbModalRef<JoinLobbyModalComponent> | null = null;
+
+  createLobbyModalRef: MdbModalRef<CreateLobbyModalComponent> | null = null;
 
   displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
 
   lobbies: LobbyDTO[] = []
 
+  private socket: any;
+
   ngOnInit(): void {
     this.loadLobbies()
-
+    this.establishWebSocketConnectionToMainMenu()
   };
 
-  games: Readonly<Game[]> = [
-    {name: 'Poker', description: 'Loose all your money'},
-    {name: 'Durak', description: 'How do you even play this sh*t'},
-    {name: 'Factorio', description: 'Launch the rocket get bitches'},
-    {name: 'Dark Souls', description: 'DEX >>> SEX'},
-    {name: 'Chess', description: 'Szacher matter'},
-    {
-      name: 'Star Realms',
-      description:
-        'Actually you need to have an IQ of over 200 to even understand how to play this game at the lowest possible level.',
-    },
-  ] as const;
-
-  activeGames: Set<string> = new Set();
-
-  toggleSelect(name: string) {
-    if (this.activeGames.has(name)) {
-      this.activeGames.delete(name);
-    } else {
-      this.activeGames.add(name);
-    }
-  }
-
+  // TODO lobby filtering and sorting
   announceSortChange($event: any) {
     console.log("sort change")
   }
 
   joinLobby(lobby: LobbyDTO) {
+    console.log('lobby: ', lobby)
     if (lobby.passwordProtected) {
-      this.openModal(lobby)
+      this.openPasswordModal(lobby)
     } else {
       //this.router.navigate(['/lobby'])
       const url = this.router.serializeUrl(
@@ -70,9 +55,10 @@ export class LobbiesComponent implements OnInit {
     }
   }
 
-  openModal(lobby: LobbyDTO) {
-    this.modalRef = this.modalService.open(JoinLobbyModalComponent, {
+  openPasswordModal(lobby: LobbyDTO) {
+    this.joinLobbyModalRef = this.modalService.open(JoinLobbyModalComponent, {
       data: {
+        id: `${lobby.id}`,
         name: `${lobby.name} `,
         game: `${lobby.game}`,
         lobby: lobby
@@ -82,8 +68,19 @@ export class LobbiesComponent implements OnInit {
   }
 
   createLobby() {
+    this.openCreateLobbyModal()
     console.log('creatingLobby')
   }
+
+  openCreateLobbyModal() {
+    this.createLobbyModalRef = this.modalService.open(CreateLobbyModalComponent, {
+      data: {
+        socket: this.socket
+      },
+      modalClass: 'modal-dialog-centered'
+    });
+  }
+
 
   refreshLobbiesList() {
     this.loadLobbies()
@@ -101,5 +98,22 @@ export class LobbiesComponent implements OnInit {
         console.log('Smth went wrong with getting lobbies')
       }
     })
+  }
+
+  private establishWebSocketConnectionToMainMenu() {
+    console.log('Connecting to lobbyService via WS for Main menu')
+
+    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
+    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBIES}/${tokenQuery}`)
+
+    this.socket = webSocket(url);
+
+    this.socket.subscribe(
+      // @ts-ignore
+      msg => console.log('message received: ' + msg), // Called whenever there is a message from the server.
+      // @ts-ignore
+      err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
+      () => console.log('complete') // Called when connection is closed (for whatever reason).
+    );
   }
 }
