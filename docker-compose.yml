@@ -128,6 +128,23 @@ services:
   game-durak:
     build: ./backend/services/games/durak
 
+  social:
+    build: ./backend/services/social
+    environment:
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_HOST: keycloak
+      MONGO_HOST: mongodb
+      MONGO_DB: ${MONGO_DB}
+      MONGO_USERNAME: ${MONGO_DB_USER}
+      MONGO_PASSWORD: ${MONGO_DB_PASSWORD}
+    ports:
+      - "${SOCIAL_MAPPED_PORT}:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
   frontend-service:
     container_name: frontend
     build:
