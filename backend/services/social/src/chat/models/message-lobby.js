@@ -10,4 +10,4 @@ const Message = new Schema({
     }
 });
 
-export default model("Message", Message, "messagesLobby");
+export default model("MessageLobby", Message, "messagesLobby");

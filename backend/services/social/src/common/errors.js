@@ -12,7 +12,31 @@ class LobbyNotAParticipantError extends Error {
     }
 }
 
+class MessageDoesNotExistError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'MessageDoesNotExistError';
+    }
+}
+
+class MessageNotReceiverError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'MessageNotReceiverError';
+    }
+}
+
+class UserDoesNotExistError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'UserDoesNotExistError';
+    }
+}
+
 export {
     LobbyDoesNotExistError,
-    LobbyNotAParticipantError
+    LobbyNotAParticipantError,
+    MessageDoesNotExistError,
+    MessageNotReceiverError,
+    UserDoesNotExistError
 };

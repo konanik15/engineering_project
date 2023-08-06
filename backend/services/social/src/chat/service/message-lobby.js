@@ -4,9 +4,7 @@ import Lobby from "./lobby.js";
 async function get(lobbyId, page = 1, perPage = 100) {
     await Lobby.findById(lobbyId);
     return await Message.find({ lobbyId }, null, { 
-        sort: { 
-            sent: -1 
-        }
+        sort: { sent: -1 }
         //todo: add limit and paging
     });
 }

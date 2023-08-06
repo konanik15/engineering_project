@@ -11,4 +11,6 @@ const Message = new Schema({
     }
 });
 
-export default model("Message", Message, "messagesPrivate");
+Message.index({ sent: -1 });
+
+export default model("MessagePrivate", Message, "messagesPrivate");

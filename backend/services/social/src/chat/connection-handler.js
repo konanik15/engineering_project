@@ -1,7 +1,6 @@
-import mongoose from "mongoose";
-
 import Lobby from "./service/lobby.js";
-import MessageLobby from "./models/message-lobby.js";
+import Lock from "async-lock";
+const lock = new Lock();
 
 let lobbyConnections = {};
 let privateConnections = [];
@@ -14,9 +13,41 @@ async function connectLobby(lobbyId, username, connection) {
 }
 
 async function connectPrivate(username, connection) {
-    privateConnections.push({
-        username,
-        connection
+    lock.acquire("private-connections", (done) => {
+        privateConnections.push({
+            username,
+            connection
+        });
+        done();
+    });
+}
+
+async function disconnectPrivate(username, connection) {
+    lock.acquire("private-connections", (done) => {
+        privateConnections = privateConnections.filter(c => c.connection === connection);
+        done();
+    });
+}
+
+function handlePrivateMessageSent(message) {
+    lock.acquire("private-connections", (done) => {
+        privateConnections.filter(c => c.username === message.to).forEach(c => 
+            c.connection.send(JSON.stringify({
+                event: "newMessage",
+                data: { message }
+            })));
+        done();
+    });
+}
+
+function handlePrivateMessageRead(message) {
+    lock.acquire("private-connections", (done) => {
+        privateConnections.filter(c => c.username === message.from).forEach(c => 
+        c.connection.send(JSON.stringify({
+            event: "messageRead",
+            data: { message }
+        })));
+        done();
     });
 }
 
@@ -38,4 +69,10 @@ setTimeout(async () => {
     });
 }, 1000);
 
-export default { connectLobby, connectPrivate };
+export default { 
+    connectLobby, 
+    connectPrivate, 
+    disconnectPrivate, 
+    handlePrivateMessageRead, 
+    handlePrivateMessageSent
+};
