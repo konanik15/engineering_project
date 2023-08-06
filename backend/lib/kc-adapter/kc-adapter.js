@@ -45,6 +45,8 @@ function protectHTTP() {
         
         try {
             req.decoded_token = verifyToken(token);
+            req.token = token;
+            req.username = req.decoded_token.preferred_username;
         } catch (error) {
             return res.status(401).send(error.message);
         }
@@ -67,6 +69,7 @@ function protectWS() {
         try {
             req.decoded_token = verifyToken(token);
             req.token = token;
+            req.username = req.decoded_token.preferred_username;
         } catch (error) {
             return connection.close(1008, error.message);
         }
@@ -82,7 +85,8 @@ async function userExists(username, token) {
                 username
             },
             headers: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
+                Host: verifyToken(token).iss.match(/(?<=https?:\/\/)[^/]+/)[0] //this is an ugly kludge to solve kc 401 issue
             }
         });
 
