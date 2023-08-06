@@ -203,7 +203,7 @@ Body:
 ## Create new game
 POST /{gameType}
 
-Expects participants in request body.
+Expects participants and lobby id (optional) in request body.
 
 ### Examples
 #### Request
@@ -215,7 +215,8 @@ Body:
         "username": "foo"
     }, {
         "username": "bar"
-    }]
+    }],
+    "lobbyId": "64cd4358d52d6c7d2bdad986"
 }
 ```
 

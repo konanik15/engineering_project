@@ -59,10 +59,10 @@ async function getGameTypeInfo(gameType) {
   return gameInfo;
 }
 
-async function startGame(gameType, players) {
+async function startGame(gameType, players, lobbyId) {
   const url = `http://game-core:8080/${gameType}`;
   const participants = players.map((player) => ({ username: player.name }));
-  const data = { participants };
+  const data = { participants, lobbyId };
   let gameInfo = null;
   try{
     const response = await axios.post(url, data);
