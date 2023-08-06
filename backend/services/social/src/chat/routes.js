@@ -29,7 +29,7 @@ router.ws("/private", keycloak.protectWS(), async (connection, req, next) => {
 });
 
 router.get("/private", keycloak.protectHTTP(), async (req, res, next) => {
-
+    
 });
 
 router.get("/private/:collocutor", keycloak.protectHTTP(), async (req, res, next) => {
