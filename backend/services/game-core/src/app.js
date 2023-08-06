@@ -32,7 +32,7 @@ const closeOnError = (connection) => { connection.close(1011, "Oops, something w
 
 router.post("/:gameType", bodyParser.json(), async (req, res, next) => {
     try {
-        let game = await service.create(req.params.gameType, req.body.participants);
+        let game = await service.create(req.params.gameType, req.body.participants, req.body.lobbyId);
         return res.status(201).send(game);
     } catch (e) {
         if (e instanceof GameTypeUnsupportedError ||
@@ -53,14 +53,6 @@ router.ws("/:gameId", keycloak.protectWS(), async (connection, req, next) => {
         next(e);
         return closeOnError(connection);
     }
-
-    /*connection.on("message", async message => {
-        try {
-            message = JSON.parse(message);
-        } catch (e) {
-            return connection.close(1007, `Message is not a valid json: ${e.message}`);
-        }
-    });*/
 
     connection.on("close", () => {
         handler.disconnect(req.params.gameId, connection);

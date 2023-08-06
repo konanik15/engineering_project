@@ -12,6 +12,9 @@ import {
     GameNotInProgressError
 } from "../common/errors.js";
 
+const lobbyHost = process.env.LOBBY_HOST || "lobby";
+const lobbyPort = process.env.LOBBY_PORT || "80";
+
 const gamesConfig = JSON.parse(fs.readFileSync("./config/games.json"));
 
 let connections = {};
@@ -145,6 +148,13 @@ async function performActions(gameId, actions, user) {
             }));
             item.connection.close(1000, "Game ended");
         });
+
+        if (lobbyHost && game.lobbyId) {
+            axios.patch(`http://${lobbyHost}:${lobbyPort}/lobby/reset/${game.lobbyId}`)
+                .catch( e => {
+                    console.error("Could not notify lobby about game ending: ", e);
+                });
+        }
     }
 }
 

@@ -262,6 +262,36 @@ Response to the client:
 }
 ```
 
+## Game ending
+When the game ends, lobby inProgress property goes back to false and clients automatically become unready. 
+
+Clients connected to /lobby/:lobbyId endpoint receive the following messages:
+```json
+{
+    "type": "gameEnded"
+}
+```
+And for each of the connected clients everyonre receives:
+```json
+{
+    "type": "playerUnready",
+    "data": {
+        "username": "foo"
+    }
+}
+```
+
+Clients connected to /lobbies endpoint receive:
+```json
+{
+    "type": "lobbyPending",
+    "data": {
+        "lobbyId": "64cd4c74525763c9622d6a05"
+    }
+}
+```
+Which is the oposite of "lobbyInProgress" message the clients get when a game starts 
+
 ## Lobby db schema explained
 ```json
 {
