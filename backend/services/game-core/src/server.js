@@ -2,6 +2,7 @@ import express from 'express';
 const server = express();
 import expressWS from 'express-ws';
 expressWS(server);
+import cors from "cors";
 
 import keycloak from "kc-adapter";
 import mongo from "./common/mongo.js";
@@ -17,6 +18,11 @@ async function setup() {
     //server.use(bodyParser.urlencoded({ extended: false }));
     //server.use(bodyParser.json());
 
+    const corsMiddleware = cors({
+        origin: "*"
+    });
+    server.use(corsMiddleware);
+    server.options('*', corsMiddleware);
     server.use(app.router);
 
     const port = 8080;
