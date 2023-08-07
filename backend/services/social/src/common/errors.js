@@ -33,10 +33,18 @@ class UserDoesNotExistError extends Error {
     }
 }
 
+class InvalidParameters extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvalidParameters';
+    }
+}
+
 export {
     LobbyDoesNotExistError,
     LobbyNotAParticipantError,
     MessageDoesNotExistError,
     MessageNotReceiverError,
-    UserDoesNotExistError
+    UserDoesNotExistError,
+    InvalidParameters
 };

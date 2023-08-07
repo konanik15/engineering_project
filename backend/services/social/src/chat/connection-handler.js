@@ -51,28 +51,47 @@ function handlePrivateMessageRead(message) {
     });
 }
 
+function handleLobbyMessageSent(message) {
+    lock.acquire(`lobby-connections:${message.lobbyId}`, (done) => {
+        if (lobbyConnections[message.lobbyId]) {
+            lobbyConnections[message.lobbyId]
+                .filter(c => c.username !== message.from)
+                .forEach(c => c.connection.send(JSON.stringify({
+                    event: "newMessage",
+                    data: { message }
+                })));
+        }
+        done();
+    });
+}
+
 //todo: rewrite the part below to use a replicaset and mongo change stream
 //or make an endpoint for lobby service to notify social about ws closures
-setTimeout(async () => {
+setInterval(async () => {
     let lobbies = await Lobby.retrieveAll();
     lobbies.forEach(lobby => {
-        if (lobbyConnections[lobby.id]) {
-            let connections = lobbyConnections[lobby.id].filter(c => 
-                !lobby.players.map(p => p.name).includes(c.username));
-            console.log("for deletion: ", connections.map(c => c.username));
-            connections.forEach(c => {
-                c.connection.close(1000, "Disconnected from lobby");
-                lobbyConnections[lobby.id] = lobbyConnections[lobby.id]
-                    .filter(lc => lc.connection === c.connection)
-            });
-        }
+        lobby = JSON.parse(JSON.stringify(lobby)); //hotfix for a wierd undefined obj property bug
+        lock.acquire(`lobby-connections:${lobby._id}`, (done) => {
+            if (lobbyConnections[lobby._id]) {
+                let connections = lobbyConnections[lobby._id].filter(c => 
+                    !lobby.players.map(p => p.name).includes(c.username));
+                //console.log("for deletion: ", connections.map(c => c.username));
+                connections.forEach(c => {
+                    c.connection.close(1000, "Disconnected from lobby");
+                    lobbyConnections[lobby._id] = lobbyConnections[lobby._id]
+                        .filter(lc => lc.connection !== c.connection);
+                });
+            }
+            done();
+        });
     });
-}, 1000);
+}, 2000);
 
 export default { 
     connectLobby, 
     connectPrivate, 
     disconnectPrivate, 
     handlePrivateMessageRead, 
-    handlePrivateMessageSent
+    handlePrivateMessageSent,
+    handleLobbyMessageSent
 };

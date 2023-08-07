@@ -1,4 +1,5 @@
-import { MessageDoesNotExistError } from "../../common/errors.js";
+import { type } from "os";
+import { InvalidParameters, MessageDoesNotExistError } from "../../common/errors.js";
 import Message from "../models/message-private.js";
 import Lock from "async-lock";
 const lock = new Lock();
@@ -14,13 +15,18 @@ async function findById(id) {
     }
 }
 
-async function getConversation(participant1, participant2, page = 1, perPage = 100) {
+async function getConversation(participant1, participant2, page, perPage) {
+    page = parseInt(page); 
+    perPage = parseInt(perPage);
+    if (!Number.isInteger(page) || !Number.isInteger(perPage))
+        throw new InvalidParameters("page and perPage parameters are not valid integers");
+
     let messages = await Message.find({
         from: { $in: [ participant1, participant2 ] },
         to: { $in: [ participant1, participant2 ] }
     }, null, {
         sort: { sent: -1 }
-    });
+    }).skip(perPage * (page - 1)).limit(perPage);
     return messages;
 }
 
@@ -62,21 +68,6 @@ async function getSummary(participant) {
         }
     }]);
     lastMessages = await Promise.all(lastMessages.map(async m => await findById(m.last)));
-
-    /*return {
-        unread: unreadMessages.map(um => { 
-            return {
-                from: um._id,
-                count: um.count
-            }
-        }),
-        last: lastMessages.map(lm => {
-            return {
-                with: [lm.from, lm.to].find(p => p !== participant),
-                message: lm
-            }
-        })
-    }*/
 
     let conversations = lastMessages.map(lm => {
         return {

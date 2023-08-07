@@ -19,7 +19,8 @@ async function findById(id) {
 
 async function ensureParticipant(lobbyId, username) {
     let lobby = await findById(lobbyId);
-    if (lobby.players.every(p => p.username !== username))
+    lobby = JSON.parse(JSON.stringify(lobby));
+    if (lobby.players.every(p => p.name !== username))
         throw new LobbyNotAParticipantError(`You are not a participant of this lobby`);
     return;
 }

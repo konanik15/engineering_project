@@ -9,6 +9,7 @@ import handler from "./connection-handler.js";
 import chatLobby from './service/message-lobby.js';
 import chatPrivate from './service/message-private.js';
 import { 
+    InvalidParameters,
     LobbyDoesNotExistError, 
     LobbyNotAParticipantError,
     MessageDoesNotExistError,
@@ -48,9 +49,12 @@ router.get("/private/:collocutor", keycloak.protectHTTP(), async (req, res, next
     try {
         if (!(await keycloak.userExists(req.params.collocutor, req.token)))
             throw new UserDoesNotExistError(`User ${req.params.collocutor} does not exist`);
-        return res.status(200).send(await chatPrivate.getConversation(req.username, req.params.collocutor));
+        return res.status(200).send(
+            await chatPrivate.getConversation(req.username, req.params.collocutor, 
+                req.query.page || 1, req.query.perPage || 50));
     } catch (e) {
-        if (e instanceof UserDoesNotExistError)
+        if (e instanceof UserDoesNotExistError ||
+            e instanceof InvalidParameters)
             return res.status(400).send(e.message);
         return next(e);
     }
@@ -92,7 +96,7 @@ router.patch("/private/message/read/:id", keycloak.protectHTTP(), async (req, re
 
 router.ws("/lobby/:id", keycloak.protectWS(), async (connection, req, next) => { 
     try {
-        await handler.connectLobby(req.params.id, req.decoded_token.preferred_username, connection);
+        await handler.connectLobby(req.params.id, req.username, connection);
     } catch (e) {
         if (e instanceof LobbyDoesNotExistError ||
             e instanceof LobbyNotAParticipantError) 
@@ -104,17 +108,22 @@ router.ws("/lobby/:id", keycloak.protectWS(), async (connection, req, next) => {
 
 router.get("/lobby/:id", keycloak.protectHTTP(), async (req, res, next) => {
     try {
-        return res.status(200).send(await chatLobby.get(req.params.id));
+        return res.status(200).send(
+            await chatLobby.get(req.params.id, req.username, req.query.page || 1, req.query.perPage || 50));
     } catch (e) {
-        if (e instanceof LobbyDoesNotExistError)
+        if (e instanceof LobbyDoesNotExistError ||
+            e instanceof InvalidParameters)
             return res.status(400).send(e.message);
+        else if (e instanceof LobbyNotAParticipantError)
+            return res.status(403).send(e.message);  
         return next(e);
     }
 });
 
 router.post("/lobby/:id", keycloak.protectHTTP(), bodyParser.text(), async (req, res, next) => {
     try {
-        await chatLobby.send(req.params.id, req.decoded_token.preferred_username, req.body);
+        let message = await chatLobby.send(req.params.id, req.decoded_token.preferred_username, req.body);
+        await handler.handleLobbyMessageSent(message);
         return res.status(201).send();
     } catch (e) {
         if (e instanceof LobbyDoesNotExistError ||
