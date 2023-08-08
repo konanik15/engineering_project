@@ -1,4 +1,4 @@
-import Lobby from "./service/lobby.js";
+import Lobby from "../common/lobby.js";
 import Lock from "async-lock";
 const lock = new Lock();
 
@@ -22,7 +22,7 @@ async function connectPrivate(username, connection) {
     });
 }
 
-async function disconnectPrivate(username, connection) {
+async function disconnectPrivate(connection) {
     lock.acquire("private-connections", (done) => {
         privateConnections = privateConnections.filter(c => c.connection === connection);
         done();

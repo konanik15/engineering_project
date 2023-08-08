@@ -1,5 +1,5 @@
 import Message from "../models/message-lobby.js";
-import Lobby from "./lobby.js";
+import Lobby from "../../common/lobby.js";
 
 async function get(lobbyId, reader, page, perPage) {
     page = parseInt(page); 

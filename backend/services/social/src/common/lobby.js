@@ -4,7 +4,7 @@ const Lobby = mongoose.model("Lobby", new Schema(), "lobbies");
 import {
     LobbyDoesNotExistError,
     LobbyNotAParticipantError
-} from "../../common/errors.js";
+} from "./errors.js";
 
 async function findById(id) {
     try {
