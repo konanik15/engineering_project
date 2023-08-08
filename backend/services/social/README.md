@@ -194,9 +194,9 @@ Every private message has the following properties:
 Lobby messaging is simpler when it comes to certain functionalities. E.g. backend does not track the fact that a message has been read and by whom. Messages are simply sent and received by the members of the lobby.
 
 ### Endpoints 
-- WS chat/lobby/\<lobbyId\> - receive new lobby messages as they arrive
-- GET chat/lobby/\<lobbyId\> - get whole chat history within the lobby
-- POST chat/lobby/\<lobbyId\> - send a message to the lobby (todo: how to disconnect clients who left the lobby?)
+- <a href=#follow-lobby-chat-updates>WS chat/lobby/\<lobbyId\></a> - receive new lobby messages as they arrive
+- <a href=#get-lobby-message-history>GET chat/lobby/\<lobbyId\></a> - get whole chat history within the lobby
+- <a href=#send-a-lobby-message>POST chat/lobby/\<lobbyId\></a> - send a message to the lobby (todo: how to disconnect clients who left the lobby?)
 
 ### Get lobby message history
 GET chat/lobby/\<lobbyId\>
