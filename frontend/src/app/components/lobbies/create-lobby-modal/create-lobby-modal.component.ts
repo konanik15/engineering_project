@@ -1,9 +1,10 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {MdbModalRef} from "mdb-angular-ui-kit/modal";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {LobbiesService} from "../../utils/lobbies-service";
 import {GameLiteDTO, LobbyDTO} from '../../utils/dto';
 import {GamesService} from "../../utils/games.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-create-lobby-modal',
@@ -16,21 +17,15 @@ export class CreateLobbyModalComponent implements OnInit {
 
   games: GameLiteDTO[] = [];
 
-  @Output()
-  change = new EventEmitter();
-
   constructor(public modalRef: MdbModalRef<CreateLobbyModalComponent>,
               private formBuilder: FormBuilder,
               private lobbiesService: LobbiesService,
-              private gamesService: GamesService) {
+              private gamesService: GamesService,
+              private router: Router) {
   }
 
   ngOnInit(): void {
     this.gamesService.getGames().subscribe({
-      complete: () => {
-        console.log('Completed getting games')
-        console.log(this.games)
-      },
       next: (value) => {
         this.games = value
       },
@@ -76,7 +71,6 @@ export class CreateLobbyModalComponent implements OnInit {
 
   get fromValues(): LobbyDTO {
     return {
-      id: '',
       name: this.lobbyName,
       game: this.game,
       password: this.password
@@ -87,12 +81,15 @@ export class CreateLobbyModalComponent implements OnInit {
     console.log('submitting lobby creation')
     this.lobbiesService.createLobby(this.fromValues).subscribe({
       complete: () => {
-        console.log('Completed creating lobbies')
-        this.change.emit('newLobby');
         this.modalRef.close()
       },
-      next: (value) => {
-        console.log(value)
+      next: (lobby) => {
+        //Can't move it into nice service due to popup blocker
+        const url = this.router.serializeUrl(
+          this.router.createUrlTree([`/lobby/${lobby.lobbyId}`])
+        );
+
+        window.open(url, '_blank')?.focus();
       },
       error: () => {
         console.log('Smth went wrong with creating lobbies')

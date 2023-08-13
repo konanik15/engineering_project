@@ -5,3 +5,23 @@
 .red {
   background-color: red;
 }
+
+.table-div {
+  margin-right: 5%;
+  margin-left: 5%;
+}
+
+.lobby-table-grid {
+  text-align: center;
+}
+
+player-status {
+  background-color: palevioletred;
+  color: red;
+}
+
+player-status--active {
+  background-color: greenyellow;
+  color: green;
+}
+

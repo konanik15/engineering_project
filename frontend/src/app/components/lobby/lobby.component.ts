@@ -38,9 +38,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     });
 
     this.lobbiesService.getLobby(lobbyId).subscribe({
-      complete: () => {
-        console.log('Completed getting lobby')
-      },
       next: (value) => {
         this.lobby = value
         this.establishWebSocketConnection()
@@ -51,21 +48,48 @@ export class LobbyComponent implements OnInit, OnDestroy {
     })
   }
 
+  playerIsReady(player: any) {
+    let foundPlayer = this.lobby.players?.find(player => player.wsId === player.wsId)
+    console.log("checking player", player)
+    return foundPlayer ? foundPlayer.ready : false
+
+  }
+
   private establishWebSocketConnection() {
-    console.log('connecting to lobbyService via WS')
+    console.log('Connecting to lobbyService via WS')
 
     let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
-    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby.id}${tokenQuery}`)
+    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}`)
 
     this.socket = webSocket(url);
 
     this.socket.subscribe(
       // @ts-ignore
-      msg => console.log('message received: ' + msg), // Called whenever there is a message from the server.
+      msg => this.handleMessage(msg),
       // @ts-ignore
-      err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
-      () => console.log('complete') // Called when connection is closed (for whatever reason).
+      err => console.log(err),
+      () => console.log('Closing WS connection to Lobby')
     );
+  }
+
+  private handleMessage(message: any) {
+    //TODO might use ws to update list, but just http refreshing is so much easier
+    switch (message.type) {
+
+      case "playerJoined":
+      case "newMessage":
+      case "playerReady":
+      case "playerUnready":
+      case "gameEnded":
+        this.refreshLobby()
+        console.log("Handling ws message from LobbyService", (message.type))
+        break;
+
+      default: {
+        console.log("Wrong message type:", message.type)
+        break;
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -87,4 +111,14 @@ export class LobbyComponent implements OnInit, OnDestroy {
     })
   }
 
+  private refreshLobby() {
+    this.lobbiesService.getLobby(<string>this.lobby._id).subscribe({
+      next: (value) => {
+        this.lobby = value
+      },
+      error: () => {
+        console.log('Smth went wrong with getting lobby by Id ', this.lobby.id)
+      }
+    })
+  }
 }

@@ -1,5 +1,6 @@
 export interface LobbyDTO {
-  id: string,
+  id?: string,
+  _id?: string,
   name: string,
   players?: PlayerDTO[],
   chat?: ChatHistoryDTO[],
@@ -10,6 +11,12 @@ export interface LobbyDTO {
   maxPlayers?: number,
   hasLeader?: boolean,
   passwordProtected?: boolean,
+  password?: string
+}
+
+export interface LobbyLiteDTO {
+  message?: string,
+  lobbyId: string,
 }
 
 export interface PlayerDTO {

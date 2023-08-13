@@ -5,8 +5,6 @@ import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.compo
 import {Router} from "@angular/router";
 import {LobbiesService} from "../utils/lobbies-service";
 import {CreateLobbyModalComponent} from "./create-lobby-modal/create-lobby-modal.component";
-import {SharedUrls} from "../utils/shared-urls";
-import {webSocket} from "rxjs/webSocket";
 import {OAuthService} from "angular-oauth2-oidc";
 
 @Component({
@@ -29,12 +27,20 @@ export class LobbiesComponent implements OnInit {
   displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
 
   lobbies: LobbyDTO[] = []
+  tempLobbyId: string = '';
 
   private socket: any;
 
   ngOnInit(): void {
     this.loadLobbies()
-    this.establishWebSocketConnectionToMainMenu()
+    this.lobbiesService.establishWebSocketConnectionToMainMenu()
+    this.lobbiesService.socket.subscribe(
+      // @ts-ignore // TODO mby some type handling
+      message => this.handleMessage(message),
+      // @ts-ignore
+      err => console.log(err),
+      () => console.log('Connection with lobbyService is closed')
+    );
   };
 
   // TODO lobby filtering and sorting
@@ -47,24 +53,20 @@ export class LobbiesComponent implements OnInit {
     if (lobby.passwordProtected) {
       this.openPasswordModal(lobby)
     } else {
-      //this.router.navigate(['/lobby'])
-      const url = this.router.serializeUrl(
-        this.router.createUrlTree([`/lobby/${lobby.id}`])
-      );
-      window.open(url, '_blank');
+      this.lobbiesService.joinLobby(<string>lobby._id)
     }
   }
 
   openPasswordModal(lobby: LobbyDTO) {
     this.joinLobbyModalRef = this.modalService.open(JoinLobbyModalComponent, {
       data: {
-        id: `${lobby.id}`,
-        name: `${lobby.name} `,
-        game: `${lobby.game}`,
-        lobby: lobby
+        lobbyId: `${lobby._id}`,
       },
       modalClass: 'modal-dialog-centered'
     });
+    this.tempLobbyId = <string>lobby._id
+
+    this.joinLobbyModalRef.component.socket = this.socket;
   }
 
   createLobby() {
@@ -74,9 +76,6 @@ export class LobbiesComponent implements OnInit {
 
   openCreateLobbyModal() {
     this.createLobbyModalRef = this.modalService.open(CreateLobbyModalComponent, {
-      data: {
-        socket: this.socket
-      },
       modalClass: 'modal-dialog-centered'
     });
   }
@@ -88,9 +87,6 @@ export class LobbiesComponent implements OnInit {
 
   private loadLobbies() {
     this.lobbiesService.getLobbies().subscribe({
-      complete: () => {
-        console.log('Completed getting lobbies')
-      },
       next: (value) => {
         this.lobbies = value
       },
@@ -100,20 +96,34 @@ export class LobbiesComponent implements OnInit {
     })
   }
 
-  private establishWebSocketConnectionToMainMenu() {
-    console.log('Connecting to lobbyService via WS for Main menu')
+  private handleMessage(message: any) {
+    //TODO might use ws to update list, but just http refreshing is so much easier
+    switch (message.type) {
+      case "lobbyCreated":
+      case "lobbyDeleted":
+      case "playerJoined":
+      case "playerLeft":
+      case "startGameResult":
+      case "lobbyPending":
 
-    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
-    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBIES}/${tokenQuery}`)
+        this.refreshLobbiesList()
+        console.log("Handling ws message from LobbyService", (message.type))
+        break;
 
-    this.socket = webSocket(url);
+      case "passwordValidationResult":
+        if (message.data.isValid) {
+          console.log("goodPass", message)
+          this.lobbiesService.joinLobby(this.tempLobbyId)
 
-    this.socket.subscribe(
-      // @ts-ignore
-      msg => console.log('message received: ' + msg), // Called whenever there is a message from the server.
-      // @ts-ignore
-      err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
-      () => console.log('complete') // Called when connection is closed (for whatever reason).
-    );
+        } else {
+          console.log("badPass")
+        }
+        break;
+
+      default: {
+        console.log("Wrong message type")
+        break;
+      }
+    }
   }
 }

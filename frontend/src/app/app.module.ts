@@ -18,6 +18,7 @@ import {MatTableModule} from "@angular/material/table";
 import {LobbyComponent} from './components/lobby/lobby.component';
 import {AvailableGamesComponent} from './components/available-games/available-games.component';
 import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal/create-lobby-modal.component';
+import {ChatComponent} from './components/chat/chat.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal
     LobbyComponent,
     AvailableGamesComponent,
     CreateLobbyModalComponent,
+    ChatComponent,
   ],
   imports: [
     BrowserModule,

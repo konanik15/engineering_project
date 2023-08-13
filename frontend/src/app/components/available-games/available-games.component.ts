@@ -21,9 +21,6 @@ export class AvailableGamesComponent implements OnInit {
 
   ngOnInit(): void {
     this.gamesService.getGames().subscribe({
-      complete: () => {
-        console.log('Completed getting games')
-      },
       next: (value) => {
         this.games = value
       },

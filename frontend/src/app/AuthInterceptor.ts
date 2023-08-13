@@ -23,12 +23,9 @@ export class AuthInterceptor implements HttpInterceptor {
           "Authorization", "Bearer " + accessToken)
       });
 
-      console.log('Token added to HTTP request');
-
       return next.handle(cloned);
     } else {
       //No token; proceed request without bearer token
-      console.log('No token added to HTTP request');
       return next.handle(req);
     }
   }

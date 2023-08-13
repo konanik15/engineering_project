@@ -1,0 +1,14 @@
+<div class="container-fluid">
+  <div class="chat-box">
+    <div *ngFor="let message of chatMessages" class="message">
+      <span class="sender">{{ message.sender }}:</span>
+      <span class="content">{{ message.content }}</span>
+    </div>
+  </div>
+
+  <div class="input-box">
+    <input type="text" id="form1" class="form-control message-input" [(ngModel)]="newMessage"
+           placeholder="Napisz wiadomość..." (keyup.enter)="sendMessage()">
+    <button type="button" class="btn btn-primary" (click)="sendMessage()">Send</button>
+  </div>
+</div>

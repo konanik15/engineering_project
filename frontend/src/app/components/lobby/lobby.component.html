@@ -1,9 +1,50 @@
 <div *ngIf="lobby">
-  <h1 class="display-1">Lobby : {{lobby.name}}</h1>
+  <div class="p-5 text-center bg-light" style="margin-top: 58px;">
+    <h1 class="mb-3">Lobby : {{lobby.name | titlecase}}</h1>
+    <h4 class="mb-3">{{lobby.game | titlecase}}</h4>
 
+    <button type="button" class="btn btn-success" (click)="revertReady()"
+            [ngClass]="{'green' : ready, 'red': !ready}">Ready
+    </button>
+  </div>
+  <div class="table-responsive table-div .bg-primary border-light">
+    <table class="table table-striped .bg-primary lobby-table-grid ">
+      <thead>
+      <tr>
+        <th scope="col">Player</th>
+        <th scope="col">Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let player of lobby.players">
+        <td>
+          {{ player.name }}
+        </td>
+        <!--        This ugly code is due to my lack of powe and low iq-->
+        <td *ngIf="player.ready" class="table-success">{{ player.ready }}</td>
+        <td *ngIf="!player.ready" class="table-danger">{{ player.ready }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="container-fluid">
+    <table class="table table-striped .bg-primary lobby-table-grid ">
+      <thead>
+      <tr>
+        <th scope="col">Chat</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <app-chat></app-chat>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 
-<button type="button" class="btn btn-success" (click)="revertReady()"
-        [ngClass]="{'green' : ready, 'red': !ready}">Ready
-</button>
+
+
+
+
