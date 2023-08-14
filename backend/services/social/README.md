@@ -3,7 +3,7 @@
 Each user has a social profile. Each profile consists of:
 - username - this is unique and derived from keycloak
 - bio - some description a user might write about themselves
-- avatar - some image of thir choosing to represent them
+- avatar - some image of their choosing to represent them
 - friends - other users this user is friends with
 - online - whether or not this user is online
 
@@ -13,7 +13,7 @@ Examples:
     "username": "bar",
     "avatar": "/profile/bar/avatar",
     "bio": "some clever story about myself",
-    "friendsWith": [ "foo", "baz" ],
+    "friends": [ "foo", "baz" ],
     "online": true
 }
 ```
@@ -22,16 +22,17 @@ Examples:
     "username": "xyz",
     "avatar": null,
     "bio": "",
-    "friendsWith": [ "abc" ],
+    "friends": [ "abc" ],
     "online": false
 }
 ```
 
-Avatar can either be null - that means a user hasn't set it yet. Or a relative link where it can be downloaded.
+Avatar can either be null (that means a user hasn't set it yet) or a relative link where it can be downloaded.
 
 By default bio is an empty string, it will only contain something if the user fills it.
 
-Note: friend list and online status are only available for users you are friends with. 
+<i>Note:</i> 
+> friend list and online status are only available for users you are friends with. 
 
 ### Endpoints
 - <a href=#getting-profile>GET /profile/\<username\></a> - get someone else's profile
@@ -64,7 +65,8 @@ foo is not friends with xyz, foo makes a GET /profile/xyz request and receives:
 }
 ```
 
-Note: getting your own profile yields full info as well, like in the first example.
+<i>Note:</i> 
+> getting your own profile yields full info as well, like in the first example.
 
 ### Downloading avatar
 GET /profile/\<username\>/avatar
@@ -74,11 +76,12 @@ Returns a file of one of the image types. You'll get 404 if either user does not
 ### Uploading avatar
 POST /profile/avatar
 
-An avatar must be uploaded as a form-data in a 'file' key. E.g.:
-POST http://host:1234/profile/avatar
+An avatar must be uploaded as a form-data in a 'file' key. E.g.:<br>
+POST http://host:1234/profile/avatar<br>
 Headers:
 - Content-Type: multipart/form-data - <i>this is important</i>
 - Authorization: Bearer \<your_token\>
+
 Body (form-data keys):
 - file: \<your_file\>
 
@@ -90,11 +93,12 @@ There are certain restrictions on the files that can be uploaded:
 ### Editing profile
 PATCH /profile
 
-In order to edit your profile, include all the fields you want to update as a json in request body:
-PATCH http://host:1234/profile
-Headers:
+In order to edit your profile, include all the fields you want to update as a json in request body:<br>
+PATCH http://host:1234/profile<br>
+Headers:<br>
 - Content-Type: application/json
 - Authorization: Bearer \<your_token\>
+
 Body:
 ```json
 {
@@ -121,17 +125,18 @@ A friend request looks like this:
 - sent - when was the friend request sent
 
 ### Endpoints
+Friends:
 - GET /friends - get a list of all your friends
 - DELETE /friends/\<username\> - remove a user from your friends 
+- <a href=#follow-updates-from-your-friends>WS /friends</a> - receive events like new friend requests received, answers to yours, other activities.
 
+Requests:
 - GET /friends/requests/received - get friend requests sent to you
 - GET /friends/requests/sent - get friend requests sent by you to others
 - POST /friends/requests/\<username\> - send a friend request to another user
 - DELETE /friends/requests/\<username\> - cancel your friend request sent to the specified user
 - PATCH /friends/requests/\<username\>/accept - accept a friend request from the specified user
 - PATCH /friends/requests/\<username\>/reject - reject a friend request from the specified user
-
-- <a href=#follow-updates-from-your-friends>WS /friends</a> - receive events like new friend requests received, answers to yours, other activities.
 
 ### Follow updates from your friends
 Being connected to this endpoint sets your status as "online" for all your friends. Also you receive events related to your friends here.
@@ -236,11 +241,11 @@ Every private message has the following properties:
 }
 ```
 ### Endpoints
-- <a href=#follow-private-chat-updates>WS chat/private</a> - follow chat updates
 - <a href=#get-conversations-summary>GET chat/private</a> - conversations summary
 - <a href=#get-conversation-history>GET chat/private/\<username\></a> - conversation history
 - <a href=#send-a-message>POST chat/private/\<username\></a> - send a message
 - <a href=#read-a-message>PATCH chat/private/message/read/\<messageId\></a> - read a message
+- <a href=#follow-private-chat-updates>WS chat/private</a> - follow chat updates
 
 ### Get conversations summary
 GET chat/private
@@ -319,11 +324,11 @@ Messages are always sorted by sent time (most recent go first).
 #### Pagination
 In order to not generate unncessary traffic and not to send excessive amounts of data, the endpoint supports pagination and limits the amount of messages sent in the response. In order to use it, you may add 'perPage' and 'page' query parameters.
 
-Examples:
-GET chat/private/\<username\>?page=1&perPage=10 will get you most recent 10 messages
+Examples:<br>
+GET chat/private/\<username\>?page=1&perPage=10 will get you most recent 10 messages<br>
 GET chat/private/\<username\>?page=2&perPage=10 will get you second most recent 10 messages... and so on.
 
-By default perPage is 50. If page isn't specified
+By default perPage is 50. If page isn't specified, the server returns the first one (with most recent messages).
 
 This may be used to load messages gradually for example as the user scrolls the chat history.
 
@@ -332,19 +337,20 @@ POST chat/private/\<username\>
 
 Send a message to another user. Text is sent as a request body.
 
-Example:
-POST chat/private/bar
+Example:<br>
+POST chat/private/bar<br>
 Headers:
 - Content-Type: text/plain
+
 Body:
-how are u doin?
+- how are u doin?
 
 ### Read a message
 PATCH chat/private/message/read/\<messageId\>
 
 Notify the server (and the other user if online) that a message they sent to you has been read.
 
-Example:
+Example:<br>
 POST chat/private/message/read/64cfdb92e810fd60bb40b241
 
 ### Follow private chat updates
@@ -390,7 +396,7 @@ Examples (connected as <i>foo</i>):
 
 ## Lobby
 ### Overview
-Every private message has the following properties:
+Every lobby message has the following properties:
 - from - a sender
 - lobbyId - id of the lobby it was sent to
 - text - the content of a message
@@ -457,12 +463,13 @@ POST chat/lobby/\<lobbyId\>
 
 Send a message to the specfied lobby. Text is sent as a request body.
 
-Example:
-POST chat/private/bar
+Example:<br>
+POST chat/private/bar<br>
 Headers:
 - Content-Type: text/plain
+
 Body:
-are you guys new to the game?
+- are you guys new to the game?
 
 A message can only be sent if you are connected to the corresponding lobby. Otherwise you will get 403 error.
 
