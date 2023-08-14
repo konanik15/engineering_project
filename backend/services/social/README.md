@@ -1,3 +1,26 @@
+# Profile
+### Endpoints
+- GET /profile - get own profile
+- GET /profile/\<username\> - get someone else's profile
+- GET /profile/avatar - download own avatar
+- GET /profile/\<username\>/avatar - download someone else's avatar
+- POST /profile/avatar - upload a new avatar for your profile
+- PATCH /profile - update your profile info
+
+# Friends
+### Endpoints
+- GET /friends - get a list of all your friends
+- DELETE /friends/\<username\> - remove a user from your friends 
+
+- GET /friends/requests/received - get friend requests sent to you
+- GET /friends/requests/sent - get friend requests sent by you to others
+- POST /friends/requests/\<username\> - send a friend request to a user
+- DELETE /friends/requests/\<username\> - cancel your friend request
+- PATCH /friends/requests/\<username\>/accept - accept a friend request from another user
+- PATCH /friends/requests/\<username\>/reject - reject a friend request from another user
+
+- WS /friends - receive events like new friend requests received, answers to yours, etc.
+
 # Chat
 ## Private
 ### Overview

@@ -40,11 +40,59 @@ class InvalidParameters extends Error {
     }
 }
 
+class AlreadyFriendsWithError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'AlreadyFriendsWithError';
+    }
+}
+
+class NotFriendsWithError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NotFriendsWithError';
+    }
+}
+
+class FriendRequestAlreadySent extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FriendRequestAlreadySent';
+    }
+}
+
+class FriendRequestAlreadyReceived extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FriendRequestAlreadyReceived';
+    }
+}
+
+class FriendRequestNotFound extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FriendRequestNotFound';
+    }
+}
+
+class UserInvalidData extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'UserInvalidData';
+    }
+}
+
 export {
     LobbyDoesNotExistError,
     LobbyNotAParticipantError,
     MessageDoesNotExistError,
     MessageNotReceiverError,
     UserDoesNotExistError,
-    InvalidParameters
+    InvalidParameters,
+    NotFriendsWithError,
+    AlreadyFriendsWithError,
+    FriendRequestAlreadySent,
+    FriendRequestAlreadyReceived,
+    FriendRequestNotFound,
+    UserInvalidData
 };

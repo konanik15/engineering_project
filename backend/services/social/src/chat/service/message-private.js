@@ -1,4 +1,3 @@
-import { type } from "os";
 import { InvalidParameters, MessageDoesNotExistError } from "../../common/errors.js";
 import Message from "../models/message-private.js";
 import Lock from "async-lock";
