@@ -20,6 +20,7 @@
     "mongoose": "^7.3.4",
     "async-lock": "^1.4.0",
     "multer": "^1.4.5-lts.1",
+    "image-size": "^1.0.2",
     "minio": "^7.1.1"
   }
 }

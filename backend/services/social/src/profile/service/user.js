@@ -1,4 +1,4 @@
-import { AlreadyFriendsWithError, NotFriendsWithError, UserInvalidData } from "../../common/errors.js";
+import { AlreadyFriendsError, NotFriendsError, UserInvalidData } from "../../common/errors.js";
 import User from "../models/user.js";
 import Lock from "async-lock";
 const lock = new Lock();
@@ -19,7 +19,7 @@ async function retrieve(username) {
 
 async function getFriends(username) {
     let user = await retrieve(username);
-    return user.friendsWith;
+    return user.friends;
 }
 
 async function makeFriends(username1, username2) {
@@ -29,8 +29,8 @@ async function makeFriends(username1, username2) {
         let user1 = await retrieve(username1);
         let user2 = await retrieve(username2);
 
-        user1.friendsWith.push(user2.username);
-        user2.friendsWith.push(user1.username);
+        user1.friends.push(user2.username);
+        user2.friends.push(user1.username);
         await Promise.all([user1.save(), user2.save()]);
     });
     return;
@@ -43,8 +43,8 @@ async function unmakeFriends(username1, username2) {
         let user1 = await retrieve(username1);
         let user2 = await retrieve(username2);
 
-        user1.friendsWith = user1.friendsWith.filter(f => f !== user2.username);
-        user2.friendsWith = user2.friendsWith.filter(f => f !== user1.username);
+        user1.friends = user1.friends.filter(f => f !== user2.username);
+        user2.friends = user2.friends.filter(f => f !== user1.username);
         await Promise.all([user1.save(), user2.save()]);
     });
     return;
@@ -52,14 +52,14 @@ async function unmakeFriends(username1, username2) {
 
 async function ensureFriends(username1, username2) {
     let user1 = await retrieve(username1);
-    if (!user1.friendsWith.includes(username2))
-        throw new NotFriendsWithError(`User ${username2} is not a friend`);
+    if (!user1.friends.includes(username2))
+        throw new NotFriendsError(`User ${username2} is not a friend`);
 }
 
 async function ensureNotFriends(username1, username2) {
     let user1 = await retrieve(username1);
-    if (user1.friendsWith.includes(username2))
-        throw new AlreadyFriendsWithError(`User ${username2} is already a friend`);
+    if (user1.friends.includes(username2))
+        throw new AlreadyFriendsError(`User ${username2} is already a friend`);
 }
 
 async function update(username, data) {

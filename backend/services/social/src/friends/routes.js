@@ -7,7 +7,7 @@ import bodyParser from 'body-parser';
 
 import User from "../profile/service/user.js";
 import Request from "./service/request.js";
-import { AlreadyFriendsWithError, FriendRequestAlreadyReceived, FriendRequestAlreadySent, FriendRequestNotFound, NotFriendsWithError, UserDoesNotExistError } from '../common/errors.js';
+import { AlreadyFriendsError, FriendRequestAlreadyReceived, FriendRequestAlreadySent, FriendRequestNotFound, NotFriendsError, UserDoesNotExistError } from '../common/errors.js';
 import handler from "./connection-handler.js";
 
 //error handling really sucks in express-ws, you don't have the tools to make a proper
@@ -20,17 +20,21 @@ router.ws("/", keycloak.protectWS(), async (connection, req, next) => {
         let reconnected = await handler.connect(req.username, connection);
         if (!reconnected) {
             let user = await User.retrieve(req.username);
-            handler.handleConnected(user.username, user.friendsWith);
+            handler.handleConnected(user.username, user.friends);
         }
     } catch (e) {
         closeOnError(connection);
         return next(e);
     }
 
-    connection.on("close", async () => {
-        handler.disconnect(connection);
+    connection.on("close", async (code, reason) => {
+        if (code === 1001 &&
+            reason === "Established another connection")
+            return;
+
+        handler.disconnect(req.username);
         let user = await User.retrieve(req.username);
-        handler.handleDisconnected(user.username, user.friendsWith);
+        handler.handleDisconnected(user.username, user.friends);
     });
 });
 
@@ -53,7 +57,7 @@ router.delete("/:username", keycloak.protectHTTP(), async (req, res, next) => {
         let code;
         if (e instanceof UserDoesNotExistError)
             code = 404;
-        else if (e instanceof NotFriendsWithError)
+        else if (e instanceof NotFriendsError)
             code = 409;
         
         return code ? res.status(code).send(e.message) : next(e);
@@ -87,7 +91,7 @@ router.post("/requests/:username", keycloak.protectHTTP(), async (req, res, next
         let code;
         if (e instanceof UserDoesNotExistError)
             code = 404;
-        else if (e instanceof AlreadyFriendsWithError ||
+        else if (e instanceof AlreadyFriendsError ||
             e instanceof FriendRequestAlreadySent ||
             e instanceof FriendRequestAlreadyReceived)
             code = 409;

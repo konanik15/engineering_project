@@ -6,6 +6,7 @@ import keycloak from "kc-adapter";
 import bodyParser from 'body-parser';
 import minio from "../common/minio.js";
 import Multer from "multer";
+import ImageSize from "image-size";
 
 import User from "./service/user.js";
 import friendsConnectionHandler from "../friends/connection-handler.js";
@@ -34,6 +35,10 @@ router.post("/avatar", keycloak.protectHTTP(), async (req, res, next) => {
             if (e) throw e;
             if (!req.file)
                 throw new Multer.MulterError("File is required");
+            
+            let dimensions = ImageSize(req.file.buffer);
+            if (dimensions.height !== dimensions.width)
+                throw new Multer.MulterError("Image must be a square");
 
             if (!(await minio.bucketExists(bucketName)))
                 await minio.makeBucket(bucketName);
@@ -47,9 +52,9 @@ router.post("/avatar", keycloak.protectHTTP(), async (req, res, next) => {
     });
 });
 
-router.get("/avatar", keycloak.protectHTTP(), async (req, res, next) => {
+/*router.get("/avatar", keycloak.protectHTTP(), async (req, res, next) => {
     return downloadAvatar(res, next, req.username);
-});
+});*/
 
 router.get("/:username/avatar", keycloak.protectHTTP(), async (req, res, next) => {
     return downloadAvatar(res, next, req.params.username);
@@ -69,9 +74,9 @@ function downloadAvatar(res, next, username) {
     });
 }
 
-router.get("/", keycloak.protectHTTP(), async (req, res, next) => {
+/*router.get("/", keycloak.protectHTTP(), async (req, res, next) => {
     return getProfile(req, res, next, req.username);
-});
+});*/
 
 router.get("/:username", keycloak.protectHTTP(), async (req, res, next) => {
     try {
@@ -86,10 +91,10 @@ router.get("/:username", keycloak.protectHTTP(), async (req, res, next) => {
 async function getProfile(req, res, next, username) {
     try {
         let user = (await User.retrieve(username)).toJSON();
-        if (username === req.username || user.friendsWith.includes(req.username))
+        if (username === req.username || user.friends.includes(req.username))
             user.online = friendsConnectionHandler.isOnline(username);
         else
-            delete user.friendsWith;
+            delete user.friends;
 
         user.avatar = null;
         try { 

@@ -9,7 +9,7 @@ function isOnline(username) {
 
 async function connect(username, connection) {
     let reconnected = false;
-    lock.acquire(`connections:${username}`, (done) => {
+    await lock.acquire(`connections:${username}`, (done) => {
         if (connections[username]) {
             connections[username].close(1001, "Established another connection");
             reconnected = true;
@@ -20,7 +20,7 @@ async function connect(username, connection) {
     return reconnected;
 }
 
-async function disconnect(connection) {
+async function disconnect(username) {
     lock.acquire(`connections:${username}`, (done) => {
         delete connections[username];
         done();
@@ -28,7 +28,7 @@ async function disconnect(connection) {
 }
 
 function handleFriendRequestSent(request) {
-    lock.acquire(`connections:${username}`, (done) => {
+    lock.acquire(`connections:${request.to}`, (done) => {
         let connection = connections[request.to];
         if (connection)
             connection.send(JSON.stringify({
@@ -40,7 +40,7 @@ function handleFriendRequestSent(request) {
 }
 
 function handleFriendRequestResponded(request, response) {
-    lock.acquire(`connections:${username}`, (done) => {
+    lock.acquire(`connections:${request.from}`, (done) => {
         let connection = connections[request.from];
         if (connection)
             connection.send(JSON.stringify({
@@ -52,7 +52,7 @@ function handleFriendRequestResponded(request, response) {
 }
 
 function handleUnfriended(initiator, target) {
-    lock.acquire(`connections:${username}`, (done) => {
+    lock.acquire(`connections:${target}`, (done) => {
         let connection = connections[target];
         if (connection)
             connection.send(JSON.stringify({
@@ -83,7 +83,7 @@ function handleDisconnected(username, friends) {
             let connection = connections[friend];
             if (connection)
                 connection.send(JSON.stringify({
-                    event: "friendCameOnline",
+                    event: "friendCameOffline",
                     data: { username }
                 }));
             done();

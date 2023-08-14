@@ -40,17 +40,17 @@ class InvalidParameters extends Error {
     }
 }
 
-class AlreadyFriendsWithError extends Error {
+class AlreadyFriendsError extends Error {
     constructor(message) {
         super(message);
-        this.name = 'AlreadyFriendsWithError';
+        this.name = 'AlreadyFriendsError';
     }
 }
 
-class NotFriendsWithError extends Error {
+class NotFriendsError extends Error {
     constructor(message) {
         super(message);
-        this.name = 'NotFriendsWithError';
+        this.name = 'NotFriendsError';
     }
 }
 
@@ -89,8 +89,8 @@ export {
     MessageNotReceiverError,
     UserDoesNotExistError,
     InvalidParameters,
-    NotFriendsWithError,
-    AlreadyFriendsWithError,
+    NotFriendsError,
+    AlreadyFriendsError,
     FriendRequestAlreadySent,
     FriendRequestAlreadyReceived,
     FriendRequestNotFound,
