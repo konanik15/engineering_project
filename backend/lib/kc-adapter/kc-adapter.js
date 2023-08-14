@@ -5,6 +5,9 @@ let publicKey;
 const kcRealm = process.env.KEYCLOAK_REALM;
 const kcHost = process.env.KEYCLOAK_HOST;
 const kcPort = process.env.KEYCLOAK_PORT || "8080";
+const kcUserAPIAccess = process.env.KEYCLOAK_REQUIRE_USER_API_ACCESS ? 
+    ["1", "true"].includes(process.env.KEYCLOAK_REQUIRE_USER_API_ACCESS.toLowerCase()) :
+    false;
 
 async function init() {
     if (!kcRealm || !kcHost)
@@ -50,6 +53,12 @@ function protectHTTP() {
         } catch (error) {
             return res.status(401).send(error.message);
         }
+
+        if (kcUserAPIAccess)
+            try { await userExists("dummy", req.token); }
+            catch (error) {
+                return res.status(401).send("Token does not have access to kc user api");
+            }
         
         return next();
     }
@@ -73,6 +82,12 @@ function protectWS() {
         } catch (error) {
             return connection.close(1008, error.message);
         }
+
+        if (kcUserAPIAccess)
+            try { await userExists("dummy", req.token); }
+            catch (error) {
+                return connection.close(1008, "Token does not have access to kc user api");
+            }
     
         return next();
     }
