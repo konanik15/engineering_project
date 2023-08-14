@@ -40,6 +40,17 @@ services:
       - '--logpath'
       - '/dev/null'
 
+  minio:
+    image: minio/minio
+    command: server --console-address ":9001" /data
+    environment:
+      MINIO_ROOT_USER: user123
+      MINIO_ROOT_PASSWORD: pass1234
+    volumes:
+      - ./backend/services/minio/data:/data:rw
+    ports:
+      - ${MINIO_MAPPED_PORT}:9000
+
   redis:
     profiles:
       - donotstart
@@ -133,10 +144,14 @@ services:
     environment:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       KEYCLOAK_HOST: keycloak
+      KEYCLOAK_REQUIRE_USER_API_ACCESS: true
       MONGO_HOST: mongodb
       MONGO_DB: ${MONGO_DB}
       MONGO_USERNAME: ${MONGO_DB_USER}
       MONGO_PASSWORD: ${MONGO_DB_PASSWORD}
+      MINIO_HOST: minio
+      MINIO_ACCESS_KEY: user123
+      MINIO_SECRET_KEY: pass1234
     ports:
       - "${SOCIAL_MAPPED_PORT}:8080"
     depends_on:

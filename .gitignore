@@ -14,6 +14,7 @@ node_modules
 .DS_STORE
 backend/services/postgres/data
 backend/services/mongo/data
+backend/services/minio/data
 
 /dist/
 /bazel-out
