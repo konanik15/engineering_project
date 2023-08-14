@@ -1,60 +1,93 @@
-import Lobby from "../common/lobby.js";
 import Lock from "async-lock";
 const lock = new Lock();
 
-let connections = [];
+let connections = {};
 
 function isOnline(username) {
-    return !!connections.find(c => c.username === username);
+    return !!connections[username];
 }
 
 async function connect(username, connection) {
-    lock.acquire("connections", (done) => {
-        connections.push({
-            username,
-            connection
-        });
+    let reconnected = false;
+    lock.acquire(`connections:${username}`, (done) => {
+        if (connections[username]) {
+            connections[username].close(1001, "Established another connection");
+            reconnected = true;
+        }
+        connections[username] = connection;
         done();
     });
+    return reconnected;
 }
 
 async function disconnect(connection) {
-    lock.acquire("connections", (done) => {
-        connections = connections.filter(c => c.connection === connection);
+    lock.acquire(`connections:${username}`, (done) => {
+        delete connections[username];
         done();
     });
 }
 
 function handleFriendRequestSent(request) {
-    lock.acquire("connections", (done) => {
-        connections.filter(c => c.username === request.to).forEach(c => 
-            c.connection.send(JSON.stringify({
-                event: "newFriendRequest",
+    lock.acquire(`connections:${username}`, (done) => {
+        let connection = connections[request.to];
+        if (connection)
+            connection.send(JSON.stringify({
+                event: "friendRequestReceived",
                 data: { request }
-            })));
+            }));
         done();
     });
 }
 
 function handleFriendRequestResponded(request, response) {
-    lock.acquire("connections", (done) => {
-        connections.filter(c => c.username === request.from).forEach(c => 
-            c.connection.send(JSON.stringify({
-                event: "friendRequestResponse",
+    lock.acquire(`connections:${username}`, (done) => {
+        let connection = connections[request.from];
+        if (connection)
+            connection.send(JSON.stringify({
+                event: "friendRequestResponded",
                 data: { request, response }
-            })));
+            }));
         done();
     });
 }
 
 function handleUnfriended(initiator, target) {
-    lock.acquire("connections", (done) => {
-        connections.filter(c => c.username === target).forEach(c => 
-            c.connection.send(JSON.stringify({
-                event: "unfriend",
-                data: { by: initiator }
-            })));
+    lock.acquire(`connections:${username}`, (done) => {
+        let connection = connections[target];
+        if (connection)
+            connection.send(JSON.stringify({
+                event: "unfriended",
+                data: { username: initiator }
+            }));
         done();
+    });
+}
+
+function handleConnected(username, friends) {
+    friends.map(friend => {
+        lock.acquire(`connections:${friend}`, (done) => {
+            let connection = connections[friend];
+            if (connection)
+                connection.send(JSON.stringify({
+                    event: "friendCameOnline",
+                    data: { username }
+                }));
+            done();
+        });
+    });
+}
+
+function handleDisconnected(username, friends) {
+    friends.map(friend => {
+        lock.acquire(`connections:${friend}`, (done) => {
+            let connection = connections[friend];
+            if (connection)
+                connection.send(JSON.stringify({
+                    event: "friendCameOnline",
+                    data: { username }
+                }));
+            done();
+        });
     });
 }
 
@@ -64,5 +97,7 @@ export default {
     handleFriendRequestSent,
     handleFriendRequestResponded,
     handleUnfriended,
-    isOnline
+    isOnline,
+    handleConnected,
+    handleDisconnected
 };

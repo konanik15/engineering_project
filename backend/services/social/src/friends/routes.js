@@ -17,14 +17,20 @@ const closeOnError = (connection) => { connection.close(1011, "Oops, something w
 
 router.ws("/", keycloak.protectWS(), async (connection, req, next) => {
     try {
-        await handler.connect(req.username, connection);
+        let reconnected = await handler.connect(req.username, connection);
+        if (!reconnected) {
+            let user = await User.retrieve(req.username);
+            handler.handleConnected(user.username, user.friendsWith);
+        }
     } catch (e) {
         closeOnError(connection);
         return next(e);
     }
 
-    connection.on("close", () => {
+    connection.on("close", async () => {
         handler.disconnect(connection);
+        let user = await User.retrieve(req.username);
+        handler.handleDisconnected(user.username, user.friendsWith);
     });
 });
 
