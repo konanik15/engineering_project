@@ -91,6 +91,18 @@ function handleDisconnected(username, friends) {
     });
 }
 
+function handleInvite(invite) {
+    lock.acquire(`connections:${invite.to}`, (done) => {
+        let connection = connections[invite.to];
+        if (connection)
+            connection.send(JSON.stringify({
+                event: "invite",
+                data: { invite }
+            }));
+        done();
+    });
+}
+
 export default { 
     connect,
     disconnect,
@@ -99,5 +111,6 @@ export default {
     handleUnfriended,
     isOnline,
     handleConnected,
-    handleDisconnected
+    handleDisconnected,
+    handleInvite
 };

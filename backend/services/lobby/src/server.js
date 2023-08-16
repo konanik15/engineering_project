@@ -9,7 +9,7 @@ const mongo = require("./common/mongo.js");
 const Lobby = require("./models/Lobby");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
-const { startGame, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo } = require("./lobby/helper.js");
+const { startGame, pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, getInviteCode } = require("./lobby/helper.js");
 
 
 async function setup() {
@@ -75,15 +75,23 @@ async function setup() {
     });
   });
 
-  app.ws("/lobby/:lobbyId", keycloak.protectWS(), async (ws, req) => {
+  app.ws("/lobby/:idOrCode", keycloak.protectWS(), async (ws, req) => {
 
-    const lobbyId = req.params.lobbyId;
-    let lobby = null;
-    lobby = await Lobby.findById(lobbyId);
+    const idOrCode = req.params.idOrCode;
+    let lobby, foundBy;
+
+    try { lobby = await Lobby.findById(idOrCode); } catch (e) {}
+    if (lobby)
+      foundBy = "id";
+    else {
+      lobby = await Lobby.findOne({ inviteCode: idOrCode });
+      if (lobby)
+        foundBy = "code";
+    }
     
     if (!lobby) {
       console.error("Lobby not found");
-      ws.close(1008, `No lobby found with id ${lobbyId}`);
+      ws.close(1008, `No lobby found by id or invite code: ${idOrCode}`);
       return;
     } 
 
@@ -93,7 +101,7 @@ async function setup() {
       return;
     }
 
-    if (lobby.passwordProtected) {
+    if (foundBy === "id" && lobby.passwordProtected) {
       const password = req.headers.password;
       if (!password) {
         console.error("Password is required");
@@ -109,8 +117,10 @@ async function setup() {
       }
     }
 
+    const lobbyId = lobby.id;
+
     ws.id = uuidv4();
-    console.log("New client:", ws.id, "connected to lobby:", req.params.lobbyId);
+    console.log("New client:", ws.id, "connected to lobby:", lobbyId);
     //setting up the client in the lobby
     let player = {
       wsId: ws.id,
@@ -138,7 +148,7 @@ async function setup() {
     ws.send(JSON.stringify({ type: "joinResult", data: { success: true } }));
     
     ws.on("close", async () => {
-      console.log("Client:", ws.id, "disconnected from lobby:", req.params.lobbyId);
+      console.log("Client:", ws.id, "disconnected from lobby:", lobbyId);
       tempClients = lobbyClients.get(lobbyId);
       tempClients.delete(ws);
       lobbyClients.set(lobbyId, tempClients);
@@ -351,6 +361,18 @@ async function setup() {
     }
     
     res.status(200).send(lobby);
+  });
+
+  // For use by Social:
+  app.get("/lobby/:id/invite-code", async (req, res) => {
+    try {
+      return res.status(200).send(await getInviteCode(req.params.id));
+    } catch (e) {
+      if (e.message === "notFound")
+        return res.status(404).send("Lobby not found");
+      console.error(e);
+      return res.status(500);
+    }
   });
 
   // Commented out for now 

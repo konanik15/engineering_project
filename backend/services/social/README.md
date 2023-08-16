@@ -147,6 +147,7 @@ Events that can be sent by the server:
 - friendRequestReceived - notifies that you received a new friend request from someone
 - friendRequestResponded - notifies that someone responded to a friend request you sent to them
 - unfriended - notifies that a (now former) friend unfriended you
+- invite - notifies that you received an invite from your friend
 
 #### Examples: 
 Your friend foo came online:
@@ -217,7 +218,43 @@ You sent a friend request to xyz earlier but now they rejected it:
     }
 }
 ```
+You recevied an invite from your friend bar:
+```json
+{
+    "event": "invite",
+    "data": {
+        "invite": {
+            "type": "lobby",
+            "from": "bar",
+            "to": "foo",
+            "data": {
+                "name": "lobby4",
+                "game": "durak",
+                "inviteCode": "e9dcc514-c7cc-4001-8a75-b3dc48a4e249"
+            }
+        }
+    }
+}
+```
+On how to join a lobby after receiving an invite, see <a href="../lobby#connecting-to-lobby">here</a>
 
+# Invites
+### Endpoints
+- POST /invite/\<useraname\>/lobby/\<lobbyId\>
+
+### Invite a friend to lobby
+In order to invite another user to a lobby, there is a number of conditions that must be met:
+- you yourself must be connected to that lobby
+- the lobby must not be full yet
+- you must be friends with invitee
+- the invitee must be online
+
+If the conditions are met, request:<br>
+POST http://host:1234/invite/foo/lobby/64cd492d0db6672d8bc2cfeb<br>
+will end with success and the invitee will get an invite message from the server (see <a href=#follow-updates-from-your-friends>ws /friends</a>).<br>
+Otherwise you'll get one of 4** errors depending on what's wrong.
+
+On how to join a lobby after receiving an invite, see <a href="../lobby#connecting-to-lobby">here</a>
 
 # Chat
 ## Private

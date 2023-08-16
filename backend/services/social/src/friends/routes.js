@@ -7,7 +7,8 @@ import bodyParser from 'body-parser';
 
 import User from "../profile/service/user.js";
 import Request from "./service/request.js";
-import { AlreadyFriendsError, FriendRequestAlreadyReceived, FriendRequestAlreadySent, FriendRequestNotFound, NotFriendsError, UserDoesNotExistError } from '../common/errors.js';
+import Invite from "./service/invite.js"
+import { AlreadyFriendsError, FriendNotOnlineError, FriendRequestAlreadyReceived, FriendRequestAlreadySent, FriendRequestNotFound, LobbyDoesNotExistError, LobbyFullError, LobbyNotAParticipantError, NotFriendsError, UserDoesNotExistError } from '../common/errors.js';
 import handler from "./connection-handler.js";
 
 //error handling really sucks in express-ws, you don't have the tools to make a proper
@@ -134,5 +135,31 @@ async function respondToFriendRequest(req, res, next, response) {
         return code ? res.status(code).send(e.message) : next(e);
     }
 }
+
+router.post("/invite/:username/lobby/:id", keycloak.protectHTTP(), async (req, res, next) => {
+    try {
+        if (!(await keycloak.userExists(req.params.username, req.token)))
+            throw new UserDoesNotExistError(`User ${req.params.username} does not exist`);
+        if (!handler.isOnline(req.params.username))
+            throw new FriendNotOnlineError(`User ${req.params.username} is not online`);
+        handler.handleInvite(await Invite.inviteToLobby(req.username, req.params.username, req.params.id));
+        return res.status(201).send();
+    } catch (e) {
+        let code;
+        if (e instanceof LobbyDoesNotExistError||
+            e instanceof UserDoesNotExistError)
+            code = 404;
+        else if (e instanceof LobbyNotAParticipantError ||
+            e instanceof NotFriendsError)
+            code = 403;
+        else if (e instanceof LobbyFullError ||
+            e instanceof LobbyInProgessError ||
+            e instanceof FriendNotOnlineError)
+            code = 409;
+        if (code)
+            return res.status(code).send(e.message);
+        next(e);
+    }
+});
 
 export default router;

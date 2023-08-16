@@ -12,6 +12,20 @@ class LobbyNotAParticipantError extends Error {
     }
 }
 
+class LobbyFullError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'LobbyFullError';
+    }
+}
+
+class LobbyInProgessError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'LobbyInProgessError';
+    }
+}
+
 class MessageDoesNotExistError extends Error {
     constructor(message) {
         super(message);
@@ -54,6 +68,13 @@ class NotFriendsError extends Error {
     }
 }
 
+class FriendNotOnlineError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FriendNotOnlineError';
+    }
+}
+
 class FriendRequestAlreadySent extends Error {
     constructor(message) {
         super(message);
@@ -85,12 +106,15 @@ class UserInvalidData extends Error {
 export {
     LobbyDoesNotExistError,
     LobbyNotAParticipantError,
+    LobbyFullError,
+    LobbyInProgessError,
     MessageDoesNotExistError,
     MessageNotReceiverError,
     UserDoesNotExistError,
     InvalidParameters,
     NotFriendsError,
     AlreadyFriendsError,
+    FriendNotOnlineError,
     FriendRequestAlreadySent,
     FriendRequestAlreadyReceived,
     FriendRequestNotFound,
