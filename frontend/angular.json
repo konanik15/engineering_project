@@ -70,10 +70,12 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "sso-app:build:production"
+              "browserTarget": "sso-app:build:production",
+              "proxyConfig": "proxy-config.json"
             },
             "development": {
-              "browserTarget": "sso-app:build:development"
+              "browserTarget": "sso-app:build:development",
+              "proxyConfig": "proxy-config.json"
             }
           },
           "defaultConfiguration": "development",
@@ -97,7 +99,8 @@
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/assets/images"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/indigo-pink.css",

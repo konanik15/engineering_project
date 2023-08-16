@@ -1,82 +1,9 @@
-<div class="game-card-grid">
-  <button
-    *ngFor="let game of games"
-    (click)="toggleSelect(game.name)"
-    class="card game-card"
-    [ngClass]="{ 'game-card--active': activeGames.has(game.name) }"
-  >
-    <div class="card-body">
-      <h5 class="card-title">{{ game.name }}</h5>
-      <p class="card-text game-description">
-        {{ game.description }}
-      </p>
-    </div>
-  </button>
-</div>
-
-<div class="lobby-table-grid">
-  <table mat-table [dataSource]="lobbies" matSort (matSortChange)="announceSortChange($event)"
-         class="mat-elevation-z8">
-
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by number">
-        Lobby name
-      </th>
-      <td mat-cell *matCellDef="let element"> {{element.name}} </td>
-    </ng-container>
-
-    <ng-container matColumnDef="game">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name">
-        Game
-      </th>
-      <td mat-cell *matCellDef="let element"> {{element.game}} </td>
-    </ng-container>
-
-    <ng-container matColumnDef="players/maxPlayers">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by weight">
-        Players / Max Players
-      </th>
-      <td mat-cell *matCellDef="let element"> {{element.players.length}} / {{element.maxPlayers}} </td>
-    </ng-container>
-
-    <ng-container matColumnDef="join">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by weight">
-      </th>
-      <td mat-cell *matCellDef="let element">
-        <button type="button" class="btn btn-primary"
-                data-bs-toggle="modal" data-bs-target="#exampleModal"
-                data-lobby-id="element.id"
-                (click)="viewModal(element.id)">Join Lobby
-        </button>
-      </td>
-    </ng-container>
-
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-
+<div *ngIf="lobby">
+  <h1 class="display-1">Lobby : {{lobby.name}}</h1>
 
 </div>
 
 
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Joining Lobby</h5>
-        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>
+<button type="button" class="btn btn-success" (click)="revertReady()"
+        [ngClass]="{'green' : ready, 'red': !ready}">Ready
+</button>

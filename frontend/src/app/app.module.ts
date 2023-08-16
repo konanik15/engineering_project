@@ -4,25 +4,31 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {NavbarComponent} from './components/navbar/navbar.component';
-import {LobbyComponent} from './components/lobby/lobby.component';
+import {LobbiesComponent} from './components/lobbies/lobbies.component';
 import {WelcomeComponent} from './components/welcome/welcome.component';
 import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import {OAuthModule} from "angular-oauth2-oidc";
 import {AuthInterceptor} from "./AuthInterceptor";
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatTableModule} from "@angular/material/table";
-import {ReactiveFormsModule} from "@angular/forms";
+import {MdbModalService} from "mdb-angular-ui-kit/modal";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatSortModule} from "@angular/material/sort";
-import {JoinLobbyModalComponent} from "./components/lobby/join-lobby-modal/join-lobby-modal.component";
-import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {JoinLobbyModalComponent} from "./components/lobbies/join-lobby-modal/join-lobby-modal.component";
+import {MatTableModule} from "@angular/material/table";
+import {LobbyComponent} from './components/lobby/lobby.component';
+import {AvailableGamesComponent} from './components/available-games/available-games.component';
+import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal/create-lobby-modal.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    LobbyComponent,
+    LobbiesComponent,
     WelcomeComponent,
-    JoinLobbyModalComponent
+    JoinLobbyModalComponent,
+    LobbyComponent,
+    AvailableGamesComponent,
+    CreateLobbyModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -30,10 +36,10 @@ import {MatDialog, MatDialogRef} from "@angular/material/dialog";
     OAuthModule.forRoot(),
     AppRoutingModule,
     BrowserAnimationsModule,
-    MatTableModule,
     ReactiveFormsModule,
     MatSortModule,
-
+    MatTableModule,
+    FormsModule,
   ],
   providers: [
     {
@@ -42,13 +48,8 @@ import {MatDialog, MatDialogRef} from "@angular/material/dialog";
       multi: true
     },
     {
-      provide: MatDialogRef,
-      useValue: {}
-    },
-    {
-      provide: MatDialog,
-      useValue: {}
-    },
+      provide: MdbModalService,
+    }
   ],
 
   bootstrap: [AppComponent]

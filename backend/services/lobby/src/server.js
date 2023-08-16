@@ -268,7 +268,7 @@ async function setup() {
             break;
           }
           try {
-            const gameInfo = await startGame(lobby.game, lobby.players);
+            const gameInfo = await startGame(lobby.game, lobby.players, lobby._id);
             tempClients = lobbyClients.get(lobbyId);
             broadcastToClients(tempClients, JSON.stringify({ type: "gameStarted", data: { gameId: gameInfo._id } }));
             console.log("game created: " + gameInfo._id);
@@ -363,6 +363,26 @@ async function setup() {
     res.status(200).send(lobby);
   });
 
+  app.patch("/lobby/reset/:id", async (req, res) => {
+    try {
+      let lobby = await Lobby.findById(req.params.id);
+      if (!lobby)
+        return res.status(400).send(`No lobby found with id ${req.params.id}`);
+      lobby.inProgress = false;
+      lobby.players.forEach(p => p.ready = false);
+      await lobby.save();
+      
+      let clients = lobbyClients.get(lobby.id);
+      broadcastToClients(clients, JSON.stringify({ type: "gameEnded" }));
+      broadcastToClients(mainMenuClients, JSON.stringify({ type: "lobbyPending", data: { lobbyId: lobby._id }}));
+      lobby.players.forEach(p => broadcastToClients(clients, JSON.stringify({ type: "playerUnready", data: { username: p.name }})));
+    } catch (e) {
+      console.error("Could not reset lobby", e);
+      return res.status(500).send();
+    };
+    return res.status(200).send();
+  });
+  
   // For use by Social:
   app.get("/lobby/:id/invite-code", async (req, res) => {
     try {

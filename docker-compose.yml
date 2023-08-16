@@ -133,6 +133,8 @@ services:
       MONGO_DB: ${MONGO_DB}
       MONGO_USERNAME: ${MONGO_DB_USER}
       MONGO_PASSWORD: ${MONGO_DB_PASSWORD}
+      LOBBY_HOST: lobby
+      LOBBY_PORT: 8080
     ports:
       - "${GAME_CORE_MAPPED_PORT}:8080"
     depends_on:

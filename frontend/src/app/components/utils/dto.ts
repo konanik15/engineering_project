@@ -1,16 +1,15 @@
 export interface LobbyDTO {
   id: string,
   name: string,
-  players: PlayerDTO[],
-  chat: ChatHistoryDTO[],
-  inProgress: boolean,
-  isFull: boolean,
+  players?: PlayerDTO[],
+  chat?: ChatHistoryDTO[],
+  inProgress?: boolean,
+  isFull?: boolean,
   game: string,
-  minPlayers: number,
-  maxPlayers: number,
-  hasLeader: boolean,
-  passwordProtected: boolean,
-  password: string
+  minPlayers?: number,
+  maxPlayers?: number,
+  hasLeader?: boolean,
+  passwordProtected?: boolean,
 }
 
 export interface PlayerDTO {
@@ -26,4 +25,9 @@ export interface ChatHistoryDTO {
   sender: string
   message: string
   timestamp: Date
+}
+
+export interface GameLiteDTO {
+  type: string,
+  description: string
 }

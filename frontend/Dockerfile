@@ -5,7 +5,7 @@ FROM node:latest
 WORKDIR /app
 # install and cache app dependencies
 COPY package.json /app/package.json
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm install -g @angular/cli@7.3.10
 
 # add app

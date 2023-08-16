@@ -1,0 +1,15 @@
+<div class="game-card-grid">
+  <button
+    *ngFor="let game of games"
+    (click)="toggleSelect(game.type)"
+    class="card game-card"
+    [ngClass]="{ 'game-card--active': activeGames.has(game.type) }"
+  >
+    <div class="card-body">
+      <h5 class="card-title">{{ game.type }}</h5>
+      <p class="card-text game-description">
+        {{ game.description }}
+      </p>
+    </div>
+  </button>
+</div>

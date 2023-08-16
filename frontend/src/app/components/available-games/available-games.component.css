@@ -1,9 +1,5 @@
-.welcome-hero {
-  max-width: 100%;
-}
-
-
 .game-card-grid {
+  margin-top: 3%;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
@@ -20,11 +16,15 @@
   border: 1px solid #256f97;
 }
 
+.game-card--active {
+  border: 1px solid #0a58ca;
+}
+
 .game-description {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   /* number of lines to show */
-  /*line-clamp: 2;*/
+  line-clamp: 2;
   -webkit-box-orient: vertical;
 }
