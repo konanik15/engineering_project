@@ -93,6 +93,13 @@ async function setup() {
       return;
     }
 
+    const isUserAlreadyConnected = lobby.players.some((player) => player.name === req.decoded_token.preferred_username);
+    if(isUserAlreadyConnected){
+      console.error("This user is already connected to the lobby. Please close the other connection.")
+      ws.close(1008, "This user is already connected to the lobby. Please close the other connection.")
+      return;
+    }
+
     if (lobby.passwordProtected) {
       const password = req.headers.password;
       if (!password) {
@@ -117,7 +124,7 @@ async function setup() {
       name: req.decoded_token.preferred_username,
       joinTime: Date.now(),
     };
-
+   
     tempClients = lobbyClients.get(lobbyId) || lobbyClients.set(lobbyId, new Set()).get(lobbyId);
     tempClients.add(ws);
     lobbyClients.set(lobbyId, tempClients);
@@ -276,10 +283,7 @@ async function setup() {
 
           break;
     
-        case "gameEnded":
-
-          break;
-
+        
         default:
           console.log("Invalid message type:", type);
           break;
