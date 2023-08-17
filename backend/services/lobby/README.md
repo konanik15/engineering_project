@@ -107,9 +107,15 @@ There is also a message you can send to clients connected to this endpoint. This
   }
 }
 ```
-### lobby ("/lobby/:lobbyId")
 
-This websocket connects the client to the lobby he joins. First it checks if the lobby exists by the :id provided in query, then it checks if the lobby is full (isFull?), then it checks if the lobby is password protected (if yes you need to provide the password in `password` header, then it checks if the lobby has a leader. If not then the new client is the leader. All of this is then saved to the db. 
+### Connecting to lobby
+- WS /lobby/:lobbyId
+- WS /lobby/:inviteCode
+
+This websocket connects the client to the lobby. There are 2 ways one can join a lobby: by its id or by an invite code.
+
+When connecting to a password protected lobby by id, a client is required to provide a password to the lobby as a `password` header.<br>
+If you have an invite code, you can join a lobby regardless if it's password protected or not (as long as it's not full yet).
 
 Message to all clients in the lobby, that a new client joined
 ```json
