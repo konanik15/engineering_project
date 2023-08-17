@@ -2,9 +2,11 @@
   <div class="p-5 text-center bg-light" style="margin-top: 58px;">
     <h1 class="mb-3">Lobby : {{lobby.name | titlecase}}</h1>
     <h4 class="mb-3">{{lobby.game | titlecase}}</h4>
-
-    <button type="button" class="btn btn-success" (click)="revertReady()"
+    <button type="button" class="btn btn-success  col-12 mb-3" (click)="revertReady()"
             [ngClass]="{'green' : ready, 'red': !ready}">Ready
+    </button>
+    <button type="button" class="btn btn-success col-12 mb-2" (click)="startGame()"
+            [disabled]="!(allReady && requiredAmountOfPlayers)">StartGame
     </button>
   </div>
   <div class="table-responsive table-div .bg-primary border-light">
@@ -27,7 +29,7 @@
       </tbody>
     </table>
   </div>
-  <div class="container-fluid">
+  <div class="container-fluid mt-5">
     <table class="table table-striped .bg-primary lobby-table-grid ">
       <thead>
       <tr>
@@ -36,7 +38,7 @@
       </thead>
       <tbody>
       <tr>
-        <app-chat></app-chat>
+        <app-chat [socket]="socket" [lobby]="lobby"></app-chat>
       </tr>
       </tbody>
     </table>

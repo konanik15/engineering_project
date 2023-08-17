@@ -1,10 +1,23 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {WebSocketSubject} from 'rxjs/webSocket';
-import {LobbiesService} from "../utils/lobbies-service";
+import {LobbyDTO} from "../utils/dto";
 
 interface ChatMessage {
-  sender: string;
-  content: string;
+  "type": "chatMessage"
+  "data": {
+    "message": string;
+  };
+}
+
+interface ChatMessageResponse {
+  "type": "newMessage",
+  "data": {
+    "message": {
+      "sender": string,
+      "message": string,
+      "timestamp": Date
+    }
+  }
 }
 
 @Component({
@@ -13,19 +26,23 @@ interface ChatMessage {
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit {
-  chatMessages: ChatMessage[] = [];
+  chatMessages: ChatMessageResponse[] = [];
   newMessage: string = '';
 
-  private socket$: WebSocketSubject<any> | undefined;
+
+  @Input() socket: WebSocketSubject<any> | undefined;
+  @Input() lobby!: LobbyDTO;
 
 
-  constructor(private lobbiesService: LobbiesService) {
-  }
+  // constructor(private lobbiesService: LobbiesService) {
+  // }
 
   ngOnInit() {
-    this.socket$ = this.lobbiesService.socket;
 
-    this.socket$?.subscribe(
+    this.loadChatHistory()
+
+
+    this.socket?.subscribe(
       (message) => {
         this.handleIncomingMessage(message);
       },
@@ -35,11 +52,17 @@ export class ChatComponent implements OnInit {
     );
   }
 
-  private handleIncomingMessage(message: any) {
-    if (message.sender && message.content) {
-      const newChatMessage: ChatMessage = {
-        sender: message.sender,
-        content: message.content
+  private handleIncomingMessage(chatMessageResponse: any) {
+    if (chatMessageResponse.type && chatMessageResponse.data.message && chatMessageResponse.type === "newMessage") {
+      const newChatMessage: ChatMessageResponse = {
+        type: chatMessageResponse.type,
+        data: {
+          message: {
+            sender: chatMessageResponse.data.message.sender,
+            message: chatMessageResponse.data.message.message,
+            timestamp: chatMessageResponse.data.message.timestamp
+          }
+        }
       };
       this.chatMessages.push(newChatMessage);
     }
@@ -48,13 +71,32 @@ export class ChatComponent implements OnInit {
   sendMessage() {
     if (this.newMessage.trim() !== '') {
       const newChatMessage: ChatMessage = {
-        sender: 'Ty',
-        content: this.newMessage
+        type: "chatMessage",
+        data: {
+          message: this.newMessage
+        }
       };
+      console.log("sending msg..")
 
-      this.socket$?.next(newChatMessage);
-      this.chatMessages.push(newChatMessage);
+      this.socket?.next(newChatMessage);
       this.newMessage = '';
     }
   }
+
+  private loadChatHistory() {
+    this.lobby.chatHistory?.forEach(message => {
+      this.chatMessages.push({
+        "type": "newMessage",
+        "data": {
+          "message": {
+            "sender": message.sender,
+            "message": message.message,
+            "timestamp": message.timestamp
+          }
+        }
+      })
+    })
+  }
+
+
 }

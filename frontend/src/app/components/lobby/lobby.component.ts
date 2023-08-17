@@ -14,16 +14,28 @@ import {webSocket} from "rxjs/webSocket";
   styleUrls: ['./lobby.component.css']
 })
 export class LobbyComponent implements OnInit, OnDestroy {
+  get requiredAmountOfPlayers(): boolean {
+    if (this.lobby.players) {
+      return this.lobby.players.length >= this.lobby.minPlayers!
+    }
+    return false;
+  }
+
+  set requiredAmountOfPlayers(value: boolean) {
+    this._requiredAmountOfPlayers = value;
+  }
 
   private routeSub!: Subscription;
 
-  private socket: any;
+  socket: any;
 
   ready: boolean = false;
 
   lobby!: LobbyDTO;
 
-  title = 'angular8-springboot-websocket';
+  allReady: boolean = false;
+
+  private _requiredAmountOfPlayers: boolean = false;
 
   constructor(private lobbiesService: LobbiesService,
               private route: ActivatedRoute,
@@ -34,12 +46,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     let lobbyId = '';
     this.routeSub = this.route.params.subscribe(params => {
-      lobbyId = params['id']//log the value of id
+      lobbyId = params['id']
     });
 
     this.lobbiesService.getLobby(lobbyId).subscribe({
-      next: (value) => {
-        this.lobby = value
+      next: (lobby) => {
+        this.lobby = lobby
         this.establishWebSocketConnection()
       },
       error: () => {
@@ -48,11 +60,15 @@ export class LobbyComponent implements OnInit, OnDestroy {
     })
   }
 
-  playerIsReady(player: any) {
-    let foundPlayer = this.lobby.players?.find(player => player.wsId === player.wsId)
-    console.log("checking player", player)
-    return foundPlayer ? foundPlayer.ready : false
-
+  private determineIfPlayerIsReady() {
+    if (this.lobby?.players) {
+      let userClaims: any = this.oAuthService.getIdentityClaims()
+      this.lobby.players.forEach(player => {
+        console.log(player.name)
+      })
+      return this.lobby.players.find(player => player.name === userClaims.family_name)!.ready;
+    }
+    return false
   }
 
   private establishWebSocketConnection() {
@@ -85,6 +101,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
         console.log("Handling ws message from LobbyService", (message.type))
         break;
 
+      case "messageResult":
+        console.log("Message type:", message.type, "handled by other listeners")
+        break;
+
       default: {
         console.log("Wrong message type:", message.type)
         break;
@@ -113,12 +133,27 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   private refreshLobby() {
     this.lobbiesService.getLobby(<string>this.lobby._id).subscribe({
-      next: (value) => {
-        this.lobby = value
+      next: (lobby) => {
+        this.lobby = lobby
+        this.checkIfAllPlayersAreReady()
       },
       error: () => {
-        console.log('Smth went wrong with getting lobby by Id ', this.lobby.id)
+        console.log('Smth went wrong with getting lobby by Id ', this.lobby._id)
       }
     })
   }
+
+  private checkIfAllPlayersAreReady() {
+    if (this.lobby.players) {
+      this.allReady = this.lobby.players.every(player => {
+        player.ready
+      })
+    }
+    console.log("checking if all ready: status : ", this.allReady)
+  }
+
+  startGame() {
+    console.log("Starting game!")
+  }
+
 }

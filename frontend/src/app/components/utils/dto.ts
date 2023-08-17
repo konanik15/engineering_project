@@ -3,7 +3,7 @@ export interface LobbyDTO {
   _id?: string,
   name: string,
   players?: PlayerDTO[],
-  chat?: ChatHistoryDTO[],
+  chatHistory?: ChatHistoryDTO[],
   inProgress?: boolean,
   isFull?: boolean,
   game: string,
