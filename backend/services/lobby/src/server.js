@@ -108,13 +108,6 @@ async function setup() {
       return;
     }
 
-    const isUserAlreadyConnected = lobby.players.some((player) => player.name === req.decoded_token.preferred_username);
-    if(isUserAlreadyConnected){
-      console.error("This user is already connected to the lobby. Please close the other connection.")
-      ws.close(1008, "This user is already connected to the lobby. Please close the other connection.")
-      return;
-    }
-
     if (foundBy === "id" && lobby.passwordProtected) {
       const password = req.headers.password;
       if (!password) {
