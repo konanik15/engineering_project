@@ -1,5 +1,6 @@
 const Lobby = require("../models/Lobby");
 const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 
 async function pickNewLeader(lobbyId) {
   let lobby = null;
@@ -74,4 +75,15 @@ async function startGame(gameType, players, lobbyId) {
   return gameInfo;
 }
 
-module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, startGame };
+async function getInviteCode(lobbyId) {
+  let lobby = await Lobby.findById(lobbyId);
+  if (!lobby)
+    throw new Error("notFound");
+  if (!lobby.inviteCode) {
+    lobby.inviteCode = uuidv4();
+    await lobby.save();
+  }
+  return lobby.inviteCode;
+}
+
+module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, startGame, getInviteCode };
