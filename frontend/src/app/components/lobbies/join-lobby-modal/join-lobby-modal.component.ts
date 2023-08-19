@@ -34,7 +34,8 @@ export class JoinLobbyModalComponent implements OnInit {
 
   validatePassword() {
     let password: string = this.joinLobbyForm.get('password')?.value
-    console.log(this.lobbyId)
+    localStorage.setItem('password', password)
+
     this.lobbiesService.socket.next({
       "type": 'validatePassword',
       "data": {

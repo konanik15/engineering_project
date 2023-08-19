@@ -32,7 +32,6 @@ export class LobbiesService {
   }
 
   joinLobby(id: string) {
-    console.log("Joining Lobby", id)
     let url: string;
     url = this.router.serializeUrl(
       this.router.createUrlTree([`/lobby/${id}`])

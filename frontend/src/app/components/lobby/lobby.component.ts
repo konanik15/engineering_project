@@ -53,6 +53,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
       next: (lobby) => {
         this.lobby = lobby
         this.establishWebSocketConnection()
+        if (this.lobby && this.socket) {
+          this.refreshLobby()
+        }
       },
       error: () => {
         console.log('Smth went wrong with getting lobby by Id ', lobbyId)
@@ -63,10 +66,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
   private determineIfPlayerIsReady() {
     if (this.lobby?.players) {
       let userClaims: any = this.oAuthService.getIdentityClaims()
-      this.lobby.players.forEach(player => {
-        console.log(player.name)
-      })
-      return this.lobby.players.find(player => player.name === userClaims.family_name)!.ready;
+
+      return this.lobby.players.find(player => player.name === userClaims.family_name)?.ready;
     }
     return false
   }
@@ -75,14 +76,15 @@ export class LobbyComponent implements OnInit, OnDestroy {
     console.log('Connecting to lobbyService via WS')
 
     let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
-    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}`)
+    let passwordQuery = `&password=${localStorage.getItem('password')}`;
+    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}${passwordQuery}`)
 
     this.socket = webSocket(url);
 
     this.socket.subscribe(
       // @ts-ignore
       msg => this.handleMessage(msg),
-      // @ts-ignore
+      // @ts-ignore // TODO Better error hanlding ;)
       err => console.log(err),
       () => console.log('Closing WS connection to Lobby')
     );
@@ -96,13 +98,20 @@ export class LobbyComponent implements OnInit, OnDestroy {
       case "newMessage":
       case "playerReady":
       case "playerUnready":
+      case "joinResult":
       case "gameEnded":
+      case "startGameResult":
+      case "readyResult":
         this.refreshLobby()
         console.log("Handling ws message from LobbyService", (message.type))
         break;
 
       case "messageResult":
         console.log("Message type:", message.type, "handled by other listeners")
+        break;
+
+      case "gameStarted":
+        console.log("gameStarted for lobby ", message.data.gameId)
         break;
 
       default: {
@@ -125,7 +134,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } else {
       status = 'unready'
     }
-    console.log('Im :', status)
     this.socket.next({
       "type": status
     })
@@ -135,6 +143,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.lobbiesService.getLobby(<string>this.lobby._id).subscribe({
       next: (lobby) => {
         this.lobby = lobby
+        if (this.lobby.players?.length! > 0) {
+          this.determineIfPlayerIsReady()
+        }
         this.checkIfAllPlayersAreReady()
       },
       error: () => {
@@ -146,14 +157,16 @@ export class LobbyComponent implements OnInit, OnDestroy {
   private checkIfAllPlayersAreReady() {
     if (this.lobby.players) {
       this.allReady = this.lobby.players.every(player => {
-        player.ready
+        return player.ready
       })
     }
-    console.log("checking if all ready: status : ", this.allReady)
   }
 
   startGame() {
     console.log("Starting game!")
+    this.socket.next({
+      "type": "startGame"
+    })
   }
 
 }
