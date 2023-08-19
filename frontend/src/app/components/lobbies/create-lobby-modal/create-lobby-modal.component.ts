@@ -3,7 +3,7 @@ import {MdbModalRef} from "mdb-angular-ui-kit/modal";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {LobbiesService} from "../../utils/lobbies-service";
 import {GameLiteDTO, LobbyDTO} from '../../utils/dto';
-import {GamesService} from "../../utils/games.service";
+import {GamesService} from "../../utils/games-service";
 import {Router} from "@angular/router";
 
 @Component({

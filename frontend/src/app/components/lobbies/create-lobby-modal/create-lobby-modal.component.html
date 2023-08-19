@@ -7,13 +7,13 @@
     (click)="modalRef.close()"
   ></button>
 </div>
-<form class="form-horizontal" [formGroup]="lobbyForm">
+<form class="form-horizontal custom-modal" [formGroup]="lobbyForm">
 
-  <div class="form-group">
+  <div class="form-group mb-3">
     <input formControlName="lobbyName" type="text" class="form-control" id="lobbyName" placeholder="Lobby name">
   </div>
 
-  <div class="form-group" *ngIf="games.length >= 0">
+  <div class="form-group mb-3" *ngIf="games.length >= 0">
     <select #game formControlName="game" class="form-control" id="game">
       <option *ngFor="let game of games" value="{{game.type}}">{{game.type}}</option>
     </select>
@@ -31,7 +31,7 @@
   </div>
 
 </form>
-<div class="modal-footer">
+<div class="modal-footer modal-footer-custom">
 
   <button type="button" class="btn btn-primary" (click)="submit()" [disabled]=!lobbyForm.valid>Create Lobby
   </button>

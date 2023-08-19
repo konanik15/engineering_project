@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {GamesService} from "../utils/games.service";
+import {GamesService} from "../utils/games-service";
 import {GameLiteDTO} from "../utils/dto";
 
 @Component({

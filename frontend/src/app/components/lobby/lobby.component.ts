@@ -73,7 +73,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   private establishWebSocketConnection() {
-    console.log('Connecting to lobbyService via WS')
+    console.log('Connecting to lobby via WS')
 
     let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
     let passwordQuery = `&password=${localStorage.getItem('password')}`;

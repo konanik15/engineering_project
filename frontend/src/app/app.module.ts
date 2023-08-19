@@ -19,6 +19,7 @@ import {LobbyComponent} from './components/lobby/lobby.component';
 import {AvailableGamesComponent} from './components/available-games/available-games.component';
 import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal/create-lobby-modal.component';
 import {ChatComponent} from './components/chat/chat.component';
+import {GameComponent} from './components/games/game/game.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import {ChatComponent} from './components/chat/chat.component';
     AvailableGamesComponent,
     CreateLobbyModalComponent,
     ChatComponent,
+    GameComponent,
   ],
   imports: [
     BrowserModule,

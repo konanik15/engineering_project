@@ -34,7 +34,22 @@ export interface ChatHistoryDTO {
   timestamp: Date
 }
 
+
+export interface GameDTO {
+
+  "description": string,
+  "pack": PackDTO,
+  "minPlayers": number,
+  "maxPlayers": number,
+  "type": string
+
+}
+
+export interface PackDTO {
+}
+
 export interface GameLiteDTO {
   type: string,
   description: string
 }
+
