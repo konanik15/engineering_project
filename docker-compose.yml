@@ -128,6 +128,9 @@ services:
   game-durak:
     build: ./backend/services/games/durak
 
+  game-uno:
+    build: ./backend/services/games/uno
+
   frontend-service:
     container_name: frontend
     build:
