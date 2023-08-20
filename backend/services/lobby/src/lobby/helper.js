@@ -1,5 +1,6 @@
 const Lobby = require("../models/Lobby");
 const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 
 async function pickNewLeader(lobbyId) {
   let lobby = null;
@@ -59,10 +60,10 @@ async function getGameTypeInfo(gameType) {
   return gameInfo;
 }
 
-async function startGame(gameType, players) {
+async function startGame(gameType, players, lobbyId) {
   const url = `http://game-core:8080/${gameType}`;
   const participants = players.map((player) => ({ username: player.name }));
-  const data = { participants };
+  const data = { participants, lobbyId };
   let gameInfo = null;
   try{
     const response = await axios.post(url, data);
@@ -74,4 +75,15 @@ async function startGame(gameType, players) {
   return gameInfo;
 }
 
-module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, startGame };
+async function getInviteCode(lobbyId) {
+  let lobby = await Lobby.findById(lobbyId);
+  if (!lobby)
+    throw new Error("notFound");
+  if (!lobby.inviteCode) {
+    lobby.inviteCode = uuidv4();
+    await lobby.save();
+  }
+  return lobby.inviteCode;
+}
+
+module.exports = { pickNewLeader, areAllPlayersReady, broadcastToClients, getGameTypeInfo, startGame, getInviteCode };

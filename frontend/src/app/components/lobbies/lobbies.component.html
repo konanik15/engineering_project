@@ -1,18 +1,4 @@
-<div class="game-card-grid">
-  <button
-    *ngFor="let game of games"
-    (click)="toggleSelect(game.name)"
-    class="card game-card"
-    [ngClass]="{ 'game-card--active': activeGames.has(game.name) }"
-  >
-    <div class="card-body">
-      <h5 class="card-title">{{ game.name }}</h5>
-      <p class="card-text game-description">
-        {{ game.description }}
-      </p>
-    </div>
-  </button>
-</div>
+<app-available-games></app-available-games>
 
 <div class="lobby-table-grid">
   <table mat-table [dataSource]="lobbies" matSort (matSortChange)="announceSortChange($event)"

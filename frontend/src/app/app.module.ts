@@ -17,6 +17,9 @@ import {JoinLobbyModalComponent} from "./components/lobbies/join-lobby-modal/joi
 import {MatTableModule} from "@angular/material/table";
 import {LobbyComponent} from './components/lobby/lobby.component';
 import {AvailableGamesComponent} from './components/available-games/available-games.component';
+import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal/create-lobby-modal.component';
+import {ChatComponent} from './components/chat/chat.component';
+import {GameComponent} from './components/games/game/game.component';
 
 @NgModule({
   declarations: [
@@ -27,6 +30,9 @@ import {AvailableGamesComponent} from './components/available-games/available-ga
     JoinLobbyModalComponent,
     LobbyComponent,
     AvailableGamesComponent,
+    CreateLobbyModalComponent,
+    ChatComponent,
+    GameComponent,
   ],
   imports: [
     BrowserModule,
