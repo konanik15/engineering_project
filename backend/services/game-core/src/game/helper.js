@@ -8,6 +8,8 @@ function perform(state, action, user) {
     if (!_.isPlainObject(action))
         throw new ActionInvalidError("Action is not an object");
 
+    if (!action.type)
+        throw new ActionInvalidError("Action must have a type");
     switch (action.type) {
         case "transfer":
             transfer(state, action.source, action.destination, action.cards, action.amount, user);
@@ -22,7 +24,7 @@ function perform(state, action, user) {
             createPile(state, action.name, action.facing);
             break;
         default:
-            throw new ActionInvalidError(`Unsopported action type ${action.type}`)
+            //ignore the action and let the game deal with it 
     }
 }
 
