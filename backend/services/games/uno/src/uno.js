@@ -86,7 +86,7 @@ class Uno {
         this.meta.direction = this.meta.direction == "clockwise" ? "counterclockwise" : "clockwise";
     }
 
-    processMove(card) {
+    processPlay(card) {
         let turn = this.meta.turn;
         switch (card.type) {
             case "reverse":
@@ -161,7 +161,7 @@ class Uno {
             if (action.cards.length != 1)
                 return {
                     valid: false,
-                    message: "A move can only be performed with 1 card"
+                    message: "A play can only be performed with 1 card"
                 }
 
             let card = action.cards[0];
@@ -179,11 +179,12 @@ class Uno {
             if (!this.canBePlacedOnTopOf(card, this.lastPlayedCard()))
                 return {
                     valid: false,
-                    message: "You may not make a move with this card"
+                    message: "You may not play this card"
                 }
 
             this.trackUno(action, initiator);
-            this.processMove(card);
+            this.processPlay(card);
+            this.checkWinCondition(action, initiator);
             return { valid: true };
         }
 
