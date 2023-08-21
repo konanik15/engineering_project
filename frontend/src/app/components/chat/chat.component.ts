@@ -30,16 +30,15 @@ export class ChatComponent implements OnInit {
   newMessage: string = '';
 
 
-  @Input() socket: WebSocketSubject<any> | undefined;
+  @Input() socket?: WebSocketSubject<any>;
   @Input() lobby!: LobbyDTO;
 
 
-  // constructor(private lobbiesService: LobbiesService) {
-  // }
 
   ngOnInit() {
-
-    this.loadChatHistory()
+    if (this.lobby) {
+      this.loadChatHistory()
+    }
 
 
     this.socket?.subscribe(
@@ -76,7 +75,7 @@ export class ChatComponent implements OnInit {
           message: this.newMessage
         }
       };
-      console.log("sending msg..")
+      console.log("sending msg.. via socket", this.socket)
 
       this.socket?.next(newChatMessage);
       this.newMessage = '';

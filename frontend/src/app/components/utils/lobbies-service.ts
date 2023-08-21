@@ -11,12 +11,22 @@ import {OAuthService} from "angular-oauth2-oidc";
   providedIn: 'root',
 })
 export class LobbiesService {
+  static get lobbySocket(): any {
+    return this._lobbySocket;
+  }
 
-  socket: any;
+  static set lobbySocket(value: any) {
+    this._lobbySocket = value;
+  }
+
+  public mainMenuSocket: any;
+
+  private static _lobbySocket: any;
 
   constructor(private http: HttpClient,
               private router: Router,
               private oAuthService: OAuthService) {
+    console.log("IM CONSTRUCTEDF!!!")
   }
 
   getLobbies(): Observable<Array<LobbyDTO>> {
@@ -47,8 +57,17 @@ export class LobbiesService {
     let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
     let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBIES}/${tokenQuery}`)
 
-    this.socket = webSocket(url);
-
+    this.mainMenuSocket = webSocket(url);
   }
 
+  establishWebSocketConnectionToLobby(lobbyId: string) {
+    console.log('Connecting to lobby via WS')
+
+    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
+    let passwordQuery = `&password=${localStorage.getItem('password')}`;
+    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${lobbyId}${tokenQuery}${passwordQuery}`)
+
+
+    LobbiesService._lobbySocket = webSocket(url);
+  }
 }

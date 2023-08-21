@@ -27,6 +27,10 @@ export interface PlayerDTO {
   joinTime: Date,
 }
 
+export interface PlayerLiteDTO {
+  username: string
+}
+
 export interface ChatHistoryDTO {
 
   sender: string
@@ -36,20 +40,28 @@ export interface ChatHistoryDTO {
 
 
 export interface GameDTO {
-
-  "description": string,
-  "pack": PackDTO,
-  "minPlayers": number,
-  "maxPlayers": number,
-  "type": string
+  meta?: any,
+  participants: PlayerLiteDTO[],
+  state?: StateDTO,
+  status: string,
+  type: string,
 
 }
 
-export interface PackDTO {
+export interface StateDTO {
+
 }
 
 export interface GameLiteDTO {
   type: string,
   description: string
+}
+
+export interface DurakGameDTO {
+
+}
+
+export interface UnoGameDTO {
+
 }
 
