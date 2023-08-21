@@ -10,8 +10,6 @@ import {JwksValidationHandler} from "angular-oauth2-oidc-jwks";
 })
 export class WelcomeComponent implements OnInit {
 
-  // games: Game[] = [];
-
   name: string = "";
 
   constructor(

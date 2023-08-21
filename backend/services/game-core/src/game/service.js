@@ -11,7 +11,7 @@ import {
 
 const gamesConfig = JSON.parse(fs.readFileSync("./config/games.json"));
 
-async function create(type, participants) {
+async function create(type, participants, lobbyId) {
     let game = gamesConfig.find(item => item.type === type);
     if (!game)
         throw new GameTypeUnsupportedError(`Unsupported game type ${type}`);
@@ -20,7 +20,7 @@ async function create(type, participants) {
         throw new GameDataInvalidError(`Participants must not be empty. Received: ${JSON.stringify(participants)}`);
 
     try {
-        game = new Game({ type, participants });
+        game = new Game({ type, participants, lobbyId });
         await game.save();
     } catch (e) {
         throw new GameDataInvalidError(e.message, { cause: e });

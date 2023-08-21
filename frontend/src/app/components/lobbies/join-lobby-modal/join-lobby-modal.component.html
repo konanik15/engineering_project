@@ -1,5 +1,5 @@
-<div class="modal-header">
-  <h3 class="modal-title" id="exampleModalLabel">Lobby {{ name }}</h3>
+<div class="modal-header mb-3">
+  <h3 class="modal-title" id="exampleModalLabel">Lobby</h3>
   <button
     type="button"
     class="btn-close"
@@ -7,9 +7,9 @@
     (click)="modalRef.close()"
   ></button>
 </div>
-<form class="form-horizontal" [formGroup]="joinLobbyForm">
+<form class="form-horizontal custom-modal" [formGroup]="joinLobbyForm">
 
-  <div class="form-group">
+  <div class="form-group mb-3">
     <div class="col-sm-12">
       <label for="password" class="control-label">Password</label>
       <input type="password" id="password" class="form-control" formControlName="password">
@@ -18,11 +18,11 @@
 
 
 </form>
-<div class="modal-footer">
+<div class="modal-footer modal-footer-custom">
 
   <div *ngIf="wrongPassword" class="alert alert-danger" role="alert">
     Wrong password! Try again
   </div>
-  <button type="button" class="btn btn-primary" (click)="validatePassword()" [disabled]=!joinLobbyForm.valid>Join Game
+  <button type="button" class="btn btn-primary" (click)="validatePassword()" [disabled]=!joinLobbyForm.valid>Join Lobby
   </button>
 </div>

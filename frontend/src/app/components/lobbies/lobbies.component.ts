@@ -4,11 +4,8 @@ import {MdbModalRef, MdbModalService} from 'mdb-angular-ui-kit/modal';
 import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.component";
 import {Router} from "@angular/router";
 import {LobbiesService} from "../utils/lobbies-service";
-
-type Game = {
-  name: string;
-  description: string;
-};
+import {CreateLobbyModalComponent} from "./create-lobby-modal/create-lobby-modal.component";
+import {OAuthService} from "angular-oauth2-oidc";
 
 @Component({
   selector: 'app-home',
@@ -17,73 +14,72 @@ type Game = {
 })
 export class LobbiesComponent implements OnInit {
 
-  constructor(public lobbiesService: LobbiesService, private modalService: MdbModalService, private router: Router) {
+  constructor(public lobbiesService: LobbiesService,
+              private modalService: MdbModalService,
+              private router: Router,
+              private oAuthService: OAuthService) {
   }
 
-  modalRef: MdbModalRef<JoinLobbyModalComponent> | null = null;
+  joinLobbyModalRef: MdbModalRef<JoinLobbyModalComponent> | null = null;
+
+  createLobbyModalRef: MdbModalRef<CreateLobbyModalComponent> | null = null;
 
   displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
 
   lobbies: LobbyDTO[] = []
+  tempLobbyId: string = '';
+
+  private socket: any;
 
   ngOnInit(): void {
     this.loadLobbies()
-
+    this.lobbiesService.establishWebSocketConnectionToMainMenu()
+    this.lobbiesService.socket.subscribe(
+      // @ts-ignore // TODO mby some type handling
+      message => this.handleMessage(message),
+      // @ts-ignore
+      err => console.log(err),
+      () => console.log('Connection with lobbyService is closed')
+    );
   };
 
-  games: Readonly<Game[]> = [
-    {name: 'Poker', description: 'Loose all your money'},
-    {name: 'Durak', description: 'How do you even play this sh*t'},
-    {name: 'Factorio', description: 'Launch the rocket get bitches'},
-    {name: 'Dark Souls', description: 'DEX >>> SEX'},
-    {name: 'Chess', description: 'Szacher matter'},
-    {
-      name: 'Star Realms',
-      description:
-        'Actually you need to have an IQ of over 200 to even understand how to play this game at the lowest possible level.',
-    },
-  ] as const;
-
-  activeGames: Set<string> = new Set();
-
-  toggleSelect(name: string) {
-    if (this.activeGames.has(name)) {
-      this.activeGames.delete(name);
-    } else {
-      this.activeGames.add(name);
-    }
-  }
-
+  // TODO lobby filtering and sorting
   announceSortChange($event: any) {
     console.log("sort change")
   }
 
   joinLobby(lobby: LobbyDTO) {
+    console.log('lobby: ', lobby)
     if (lobby.passwordProtected) {
-      this.openModal(lobby)
+      this.openPasswordModal(lobby)
     } else {
-      //this.router.navigate(['/lobby'])
-      const url = this.router.serializeUrl(
-        this.router.createUrlTree([`/lobby/${lobby.id}`])
-      );
-      window.open(url, '_blank');
+      this.lobbiesService.joinLobby(<string>lobby._id)
     }
   }
 
-  openModal(lobby: LobbyDTO) {
-    this.modalRef = this.modalService.open(JoinLobbyModalComponent, {
+  openPasswordModal(lobby: LobbyDTO) {
+    this.joinLobbyModalRef = this.modalService.open(JoinLobbyModalComponent, {
       data: {
-        name: `${lobby.name} `,
-        game: `${lobby.game}`,
-        lobby: lobby
+        lobbyId: `${lobby._id}`,
       },
+      modalClass: 'modal-dialog-centered'
+    });
+    this.tempLobbyId = <string>lobby._id
+
+    this.joinLobbyModalRef.component.socket = this.socket;
+  }
+
+  createLobby() {
+    this.openCreateLobbyModal()
+    console.log('creatingLobby')
+  }
+
+  openCreateLobbyModal() {
+    this.createLobbyModalRef = this.modalService.open(CreateLobbyModalComponent, {
       modalClass: 'modal-dialog-centered'
     });
   }
 
-  createLobby() {
-    console.log('creatingLobby')
-  }
 
   refreshLobbiesList() {
     this.loadLobbies()
@@ -91,9 +87,6 @@ export class LobbiesComponent implements OnInit {
 
   private loadLobbies() {
     this.lobbiesService.getLobbies().subscribe({
-      complete: () => {
-        console.log('Completed getting lobbies')
-      },
       next: (value) => {
         this.lobbies = value
       },
@@ -101,5 +94,36 @@ export class LobbiesComponent implements OnInit {
         console.log('Smth went wrong with getting lobbies')
       }
     })
+  }
+
+  private handleMessage(message: any) {
+    //TODO might use ws to update list, but just http refreshing is so much easier
+    switch (message.type) {
+      case "lobbyCreated":
+      case "lobbyDeleted":
+      case "playerJoined":
+      case "playerLeft":
+      case "startGameResult":
+      case "lobbyPending":
+
+        this.refreshLobbiesList()
+        console.log("Handling ws message from LobbyService", (message.type))
+        break;
+
+      case "passwordValidationResult":
+        if (message.data.isValid) {
+          console.log("goodPass", message)
+          this.lobbiesService.joinLobby(this.tempLobbyId)
+
+        } else {
+          console.log("badPass")
+        }
+        break;
+
+      default: {
+        console.log("Wrong message type")
+        break;
+      }
+    }
   }
 }

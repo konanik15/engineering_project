@@ -76,6 +76,9 @@ const lobbySchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  inviteCode: {
+    type: String
+  }
 });
 
 const Lobby = mongoose.model("Lobby", lobbySchema);

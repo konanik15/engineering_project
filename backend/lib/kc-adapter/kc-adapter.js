@@ -5,6 +5,9 @@ let publicKey;
 const kcRealm = process.env.KEYCLOAK_REALM;
 const kcHost = process.env.KEYCLOAK_HOST;
 const kcPort = process.env.KEYCLOAK_PORT || "8080";
+const kcUserAPIAccess = process.env.KEYCLOAK_REQUIRE_USER_API_ACCESS ? 
+    ["1", "true"].includes(process.env.KEYCLOAK_REQUIRE_USER_API_ACCESS.toLowerCase()) :
+    false;
 
 async function init() {
     if (!kcRealm || !kcHost)
@@ -45,9 +48,17 @@ function protectHTTP() {
         
         try {
             req.decoded_token = verifyToken(token);
+            req.token = token;
+            req.username = req.decoded_token.preferred_username;
         } catch (error) {
             return res.status(401).send(error.message);
         }
+
+        if (kcUserAPIAccess)
+            try { await userExists("dummy", req.token); }
+            catch (error) {
+                return res.status(401).send("Token does not have access to kc user api");
+            }
         
         return next();
     }
@@ -66,12 +77,41 @@ function protectWS() {
     
         try {
             req.decoded_token = verifyToken(token);
+            req.token = token;
+            req.username = req.decoded_token.preferred_username;
         } catch (error) {
             return connection.close(1008, error.message);
         }
+
+        if (kcUserAPIAccess)
+            try { await userExists("dummy", req.token); }
+            catch (error) {
+                return connection.close(1008, "Token does not have access to kc user api");
+            }
     
         return next();
     }
 }
 
-module.exports = { init, protectHTTP, protectWS };
+async function userExists(username, token) {
+    try {
+        let response = await axios.get(`http://${kcHost}:${kcPort}/auth/admin/realms/${kcRealm}/users`, {
+            params: {
+                username
+            },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Host: verifyToken(token).iss.match(/(?<=https?:\/\/)[^/]+/)[0] //this is an ugly kludge to solve kc 401 issue
+            }
+        });
+
+        if (response.status !== 200 || !Array.isArray(response.data))
+            throw new Error("Invalid response");
+        
+        return response.data.length !== 0;
+    } catch (e) {
+        throw new Error("Unable to verify user existence", { cause: e });
+    }
+}
+
+module.exports = { init, protectHTTP, protectWS, userExists };
