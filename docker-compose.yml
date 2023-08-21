@@ -171,13 +171,13 @@ services:
       minio:
         condition: service_healthy
 
-  frontend-service:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "4200:4200"
-    volumes:
-      - ./app:/usr/src/app/app-ui
-      - /usr/src/app/app/node_modules
+#  frontend-service:
+#    container_name: frontend
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    ports:
+#      - "4200:4200"
+#    volumes:
+#      - ./app:/usr/src/app/app-ui
+#      - /usr/src/app/app/node_modules

@@ -34,7 +34,7 @@ export class LobbiesComponent implements OnInit {
   ngOnInit(): void {
     this.loadLobbies()
     this.lobbiesService.establishWebSocketConnectionToMainMenu()
-    this.lobbiesService.socket.subscribe(
+    this.lobbiesService.mainMenuSocket.subscribe(
       // @ts-ignore // TODO mby some type handling
       message => this.handleMessage(message),
       // @ts-ignore
@@ -114,6 +114,7 @@ export class LobbiesComponent implements OnInit {
         if (message.data.isValid) {
           console.log("goodPass", message)
           this.lobbiesService.joinLobby(this.tempLobbyId)
+          this.joinLobbyModalRef?.close()
 
         } else {
           console.log("badPass")

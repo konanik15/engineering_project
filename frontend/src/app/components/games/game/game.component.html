@@ -1,1 +1,12 @@
-<p>game works!</p>
+<div class="container game-container">
+  <div class="row">
+    <div class="row custom-row">
+      <div class="col-md-9 col-12 p-0">
+        <app-game-table [game]="game"></app-game-table>
+      </div>
+      <div class="col-md-3 col-12 p-0">
+        <app-game-menu [gameSocket]="gameSocket" [game]="game"></app-game-menu>
+      </div>
+    </div>
+  </div>
+</div>

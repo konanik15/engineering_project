@@ -4,8 +4,7 @@ import {Subscription} from "rxjs";
 import {LobbyDTO} from "../utils/dto";
 import {LobbiesService} from "../utils/lobbies-service";
 import {OAuthService} from "angular-oauth2-oidc";
-import {SharedUrls} from "../utils/shared-urls";
-import {webSocket} from "rxjs/webSocket";
+import {GamesService} from "../utils/games-service";
 
 
 @Component({
@@ -21,13 +20,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  set requiredAmountOfPlayers(value: boolean) {
-    this._requiredAmountOfPlayers = value;
-  }
-
   private routeSub!: Subscription;
 
-  socket: any;
+  // lobbySocket: any;
 
   ready: boolean = false;
 
@@ -35,9 +30,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   allReady: boolean = false;
 
-  private _requiredAmountOfPlayers: boolean = false;
-
-  constructor(private lobbiesService: LobbiesService,
+  constructor(public lobbiesService: LobbiesService,
+              private gameService: GamesService,
               private route: ActivatedRoute,
               private oAuthService: OAuthService) {
   }
@@ -52,8 +46,17 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.lobbiesService.getLobby(lobbyId).subscribe({
       next: (lobby) => {
         this.lobby = lobby
-        this.establishWebSocketConnection()
-        if (this.lobby && this.socket) {
+        this.lobbiesService.establishWebSocketConnectionToLobby(lobbyId)
+        LobbiesService.lobbySocket.subscribe(
+          // @ts-ignore
+          msg => this.handleMessage(msg),
+          // @ts-ignore // TODO Better error hanlding ;)
+          err => console.log(err),
+          () => console.log('Closing WS connection to Lobby')
+        );
+
+        //this.establishWebSocketConnectionToLobby()
+        if (this.lobby && LobbiesService.lobbySocket) {
           this.refreshLobby()
         }
       },
@@ -72,23 +75,17 @@ export class LobbyComponent implements OnInit, OnDestroy {
     return false
   }
 
-  private establishWebSocketConnection() {
-    console.log('Connecting to lobby via WS')
-
-    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
-    let passwordQuery = `&password=${localStorage.getItem('password')}`;
-    let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}${passwordQuery}`)
-
-    this.socket = webSocket(url);
-
-    this.socket.subscribe(
-      // @ts-ignore
-      msg => this.handleMessage(msg),
-      // @ts-ignore // TODO Better error hanlding ;)
-      err => console.log(err),
-      () => console.log('Closing WS connection to Lobby')
-    );
-  }
+  // private establishWebSocketConnectionToLobby() {
+  //   console.log('Connecting to lobby via WS')
+  //   //
+  //   // let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
+  //   // let passwordQuery = `&password=${localStorage.getItem('password')}`;
+  //   // let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}${passwordQuery}`)
+  //
+  //   //this.lobbiesService. = webSocket(url);
+  //
+  //
+  // }
 
   private handleMessage(message: any) {
     //TODO might use ws to update list, but just http refreshing is so much easier
@@ -112,6 +109,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
       case "gameStarted":
         console.log("gameStarted for lobby ", message.data.gameId)
+        localStorage.setItem("lobbyID", <string>this.lobby._id)
+        this.gameService.openGameComponent(message.data.gameId)
         break;
 
       default: {
@@ -122,7 +121,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.socket.complete();
+    LobbiesService.lobbySocket.complete();
     this.routeSub.unsubscribe();
   }
 
@@ -134,7 +133,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } else {
       status = 'unready'
     }
-    this.socket.next({
+    LobbiesService.lobbySocket.next({
       "type": status
     })
   }
@@ -164,9 +163,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   startGame() {
     console.log("Starting game!")
-    this.socket.next({
+    LobbiesService.lobbySocket.next({
       "type": "startGame"
     })
   }
 
+  protected readonly LobbiesService = LobbiesService;
 }

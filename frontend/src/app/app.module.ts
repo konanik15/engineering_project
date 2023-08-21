@@ -20,6 +20,10 @@ import {AvailableGamesComponent} from './components/available-games/available-ga
 import {CreateLobbyModalComponent} from './components/lobbies/create-lobby-modal/create-lobby-modal.component';
 import {ChatComponent} from './components/chat/chat.component';
 import {GameComponent} from './components/games/game/game.component';
+import {GameTableComponent} from './components/games/table/game-table.component';
+import {GameMenuComponent} from './components/games/game-menu/game-menu.component';
+import {GameInfoComponent} from './components/games/game-menu/game-info/game-info.component';
+import {PlayerListComponent} from './components/games/game-menu/player-list/player-list.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +37,10 @@ import {GameComponent} from './components/games/game/game.component';
     CreateLobbyModalComponent,
     ChatComponent,
     GameComponent,
+    GameTableComponent,
+    GameMenuComponent,
+    GameInfoComponent,
+    PlayerListComponent,
   ],
   imports: [
     BrowserModule,
