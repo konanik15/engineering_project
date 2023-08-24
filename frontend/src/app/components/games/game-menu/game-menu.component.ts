@@ -11,13 +11,14 @@ export class GameMenuComponent implements OnInit {
   @Input() gameSocket: any;
   @Input() game?: GameDTO;
 
-  constructor(public lobbiesService: LobbiesService) {
+  constructor(private lobbiesService: LobbiesService) {
 
   }
 
   ngOnInit(): void {
     console.log(LobbiesService.lobbySocket)
   }
+
 
   protected readonly LobbiesService = LobbiesService;
 }

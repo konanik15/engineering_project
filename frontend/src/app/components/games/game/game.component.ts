@@ -23,7 +23,7 @@ export class GameComponent implements OnInit {
 
   game!: GameDTO
 
-  constructor(public lobbiesService: LobbiesService,
+  constructor(private lobbiesService: LobbiesService,
               private gamesService: GamesService,
               private route: ActivatedRoute,
               private oAuthService: OAuthService) {

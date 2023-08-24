@@ -30,7 +30,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   allReady: boolean = false;
 
-  constructor(public lobbiesService: LobbiesService,
+  constructor(private lobbiesService: LobbiesService,
               private gameService: GamesService,
               private route: ActivatedRoute,
               private oAuthService: OAuthService) {
@@ -121,8 +121,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    LobbiesService.lobbySocket.complete();
-    this.routeSub.unsubscribe();
+    console.log("Destroying but not unsubcribing yet")
+    // LobbiesService.lobbySocket.complete();
+    // this.routeSub.unsubscribe();
   }
 
   revertReady() {

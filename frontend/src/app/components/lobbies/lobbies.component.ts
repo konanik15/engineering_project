@@ -14,7 +14,7 @@ import {OAuthService} from "angular-oauth2-oidc";
 })
 export class LobbiesComponent implements OnInit {
 
-  constructor(public lobbiesService: LobbiesService,
+  constructor(private lobbiesService: LobbiesService,
               private modalService: MdbModalService,
               private router: Router,
               private oAuthService: OAuthService) {
