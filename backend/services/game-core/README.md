@@ -343,7 +343,7 @@ Messages from the server:
 }
 ```
 
-### Note
+### Concealing game info
 Certain parts of information about the game is concealed from the clients depending on who is connected. For instance, a participant <i>foo</i> cannot see the contents of the <i>bar's</i> hand. Instead in the corresponding field 'cards' of the game received from the ws events <i>foo</i> will get the same array but filled with empty objects.
 
 What <i>foo</i> sees:
@@ -446,6 +446,43 @@ What <i>bar</i> sees:
 What is concealed:
 - other player's hands
 - contents of stacks (if a stack is facing up, the first card is shown)
+
+## More on performing actions
+The game engine allows the client to perform multiple actions at once (sending mutiple actions in one request). E.g.:
+```json
+[{
+    "type": "transfer",
+    "source": {
+        "type": "hand"
+    },
+    "destination": {
+        "type": "pile",
+        "name": "example1"
+    },
+    "cards": [{
+        "suit": "clubs",
+        "rank": "ace"
+    }]
+}, {
+    "type": "transfer",
+    "source": {
+        "type": "hand"
+    },
+    "destination": {
+        "type": "pile",
+        "name": "example2"
+    },
+    "cards": [{
+        "suit": "clubs",
+        "rank": "king"
+    }]
+}]
+```
+Despite there are 2 transfers in the example above, any combination of any type of actions can be performed in this way. 
+
+Actions in this case are validated in the same way as if they were sent separately, however, the key differences are:
+- the clients connected to the ws endpoint will only receive one gameUpdated event (in case the actions are successful);
+- if at least one of the actions in the chain fails, none persist, i.e. the game is not updated and clients receive no events even if some of the actions were successful.
 
 # Game developer manual
 TODO

@@ -1,4 +1,7 @@
 [{
     "type": "durak",
     "host": "game-durak"
+}, {
+    "type": "uno",
+    "host": "game-uno"
 }]

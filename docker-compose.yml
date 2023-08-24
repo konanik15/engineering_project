@@ -146,6 +146,9 @@ services:
   game-durak:
     build: ./backend/services/games/durak
 
+  game-uno:
+    build: ./backend/services/games/uno
+
   social:
     build: ./backend/services/social
     environment:
