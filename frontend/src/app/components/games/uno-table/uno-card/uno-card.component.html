@@ -1,0 +1,13 @@
+
+<div *ngIf="facing === 'up'" class="card uno-card" [ngStyle]="{ 'background-color': cardColor }">
+  <div class="card-body">
+    <h5 class="card-type">{{ cardType }}</h5>
+    <p class="card-color">{{ cardColor }}</p>
+  </div>
+</div>
+
+<div *ngIf="facing === 'down'" class="card uno-card" [ngStyle]="{ 'background-color': cardColor }">
+  <div class="card-body d-flex align-items-center justify-content-center">
+    <div class="game-type text-primary">UNO</div>
+  </div>
+</div>

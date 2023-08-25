@@ -1,0 +1,22 @@
+.uno-card {
+  width: 100px;
+  height: 150px;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.card-type {
+  font-size: 24px;
+  font-weight: bolder;
+}
+
+.card-color {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.game-type {
+  font-size: 24px;
+  font-weight: bolder;
+}

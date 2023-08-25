@@ -1,0 +1,12 @@
+<div class="card-stack">
+  <div *ngFor="let card of hand?.cards" class="uno-card-container">
+    <app-uno-card
+      [cardType]="card.type"
+      [cardColor]="card.color"
+      [facing]="'up'"
+    ></app-uno-card>
+  </div>
+</div>
+
+
+

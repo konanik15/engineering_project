@@ -1,0 +1,9 @@
+.card-stack {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px; /* Odstęp między kartami */
+}
+
+.uno-card-container {
+  flex: 1;
+}

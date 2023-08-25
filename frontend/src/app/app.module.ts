@@ -24,6 +24,18 @@ import {GameTableComponent} from './components/games/table/game-table.component'
 import {GameMenuComponent} from './components/games/game-menu/game-menu.component';
 import {GameInfoComponent} from './components/games/game-menu/game-info/game-info.component';
 import {PlayerListComponent} from './components/games/game-menu/player-list/player-list.component';
+import {UnoTableComponent} from './components/games/uno-table/uno-table.component';
+import {UnoDrawStackComponent} from './components/games/uno-table/uno-draw-stack/uno-draw-stack.component';
+import {UnoDiscardPileComponent} from './components/games/uno-table/uno-discard-pile/uno-discard-pile.component';
+import {UnoCardComponent} from './components/games/uno-table/uno-card/uno-card.component';
+import {UnoPlayerHandComponent} from './components/games/uno-table/uno-player-hand/uno-player-hand.component';
+import {
+  UnoOtherPlayerHorizontalHandComponent
+} from './components/games/uno-table/uno-other-player-horizontal-hand/uno-other-player-horizontal-hand.component';
+import {
+  UnoOtherPlayerVerticalHandComponent
+} from './components/games/uno-table/uno-other-player-vertical-hand/uno-other-player-vertical-hand.component';
+import {PluralizePipe} from "./components/utils/pluralize.pipe";
 
 @NgModule({
   declarations: [
@@ -41,6 +53,14 @@ import {PlayerListComponent} from './components/games/game-menu/player-list/play
     GameMenuComponent,
     GameInfoComponent,
     PlayerListComponent,
+    UnoTableComponent,
+    UnoDrawStackComponent,
+    UnoDiscardPileComponent,
+    UnoCardComponent,
+    UnoPlayerHandComponent,
+    UnoOtherPlayerHorizontalHandComponent,
+    UnoOtherPlayerVerticalHandComponent,
+    PluralizePipe
   ],
   imports: [
     BrowserModule,

@@ -25,6 +25,7 @@
     "@types/sockjs-client": "^1.5.1",
     "angular-oauth2-oidc": "^15.0.1",
     "angular-oauth2-oidc-jwks": "^15.0.1",
+    "boostrap": "^2.0.0",
     "bootstrap": "^5.2.3",
     "mdb-angular-ui-kit": "^5.0.0",
     "ng-bootstrap": "^1.6.3",

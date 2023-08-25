@@ -1,8 +1,9 @@
 <div class="container game-container">
   <div class="row">
-    <div class="row custom-row">
+    <div *ngIf="game" class="row custom-row">
       <div class="col-md-9 col-12 p-0">
-        <app-game-table [game]="game"></app-game-table>
+        <app-game-table *ngIf="game.type===''" [game]="game"></app-game-table>
+        <app-uno-table *ngIf="game.type === 'uno'" [game]="game" [gameSocket]="gameSocket"></app-uno-table>
       </div>
       <div class="col-md-3 col-12 p-0">
         <app-game-menu [gameSocket]="gameSocket" [game]="game"></app-game-menu>

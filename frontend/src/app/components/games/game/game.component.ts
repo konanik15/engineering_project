@@ -86,8 +86,9 @@ export class GameComponent implements OnInit {
     console.log("Updating game ", game)
     this.game = {
       participants: game.participants,
+      state: game.state,
       status: game.status,
-      type: game.type
+      type: game.type,
     }
     console.log("game is : ", this.game)
 

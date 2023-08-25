@@ -1,13 +1,13 @@
 <div class=" container d-flex flex-column game-menu">
   <div class="row custom-row">
-    <div class="col-12 flex-grow-1">
+    <div class="col-12 flex-grow-1 custom-border-bottom">
       <app-game-info *ngIf="game" [status]="game.status" [type]="game.type"></app-game-info>
     </div>
-    <div class="col-12 p-0 flex-grow-1">
+    <div class="col-12 p-0 flex-grow-1 custom-border-bottom">
       <app-chat [socket]="LobbiesService.lobbySocket"></app-chat>
     </div>
-    <div class="col-12 p-0 flex-grow-1">
-      <app-player-list></app-player-list>
+    <div class="col-12 p-0 flex-grow-1 custom-border-bottom">
+      <app-player-list *ngIf="game" [players]="game.participants"></app-player-list>
     </div>
   </div>
 </div>

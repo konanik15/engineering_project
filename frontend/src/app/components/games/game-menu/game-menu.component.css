@@ -1,7 +1,19 @@
 .game-menu {
   height: 100vh;
   border-left: thick double #212529;
-  background-color: #F5E3C4;
+  background: linear-gradient(to bottom, #9cdc65, #1f720b);
+  /* Dodatkowe style, np. szerokość i wysokość */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+}
+
+.custom-row {
+  flex-grow: 1;
+  height: 33%;
 }
 
 
+.custom-border-bottom {
+  border-bottom: thick double #212529;
+  padding-bottom: 10px; /* Dodatkowy odstęp na dole */
+}

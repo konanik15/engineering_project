@@ -45,11 +45,37 @@ export interface GameDTO {
   state?: StateDTO,
   status: string,
   type: string,
-
 }
 
 export interface StateDTO {
+  hands: HandDTO[],
+  stacks: StackDTO[],
+  piles: PileDTO[]
 
+}
+
+export interface HandDTO {
+  open: boolean,
+  owner: string,
+  cards: CardDTO[]
+}
+
+
+export interface StackDTO {
+  name: string,
+  facing: string,
+  cards: CardDTO[]
+}
+
+export interface PileDTO {
+  name: string,
+  facing: string,
+  cards: CardDTO[]
+}
+
+export interface CardDTO {
+  color: "",
+  type: ""
 }
 
 export interface GameLiteDTO {

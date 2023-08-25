@@ -1,6 +1,7 @@
 /* Stylowanie głównego kontenera */
 .container-fluid {
   padding: 20px;
+  height: 33%;
 }
 
 /* Stylowanie okna czatu */
@@ -10,7 +11,7 @@
   border-radius: 5px;
   margin-bottom: 20px;
   overflow-y: auto;
-  max-height: 400px;
+  max-height: 33%;
 }
 
 /* Ustawienie paska przewijania na dole */

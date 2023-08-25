@@ -1,0 +1,47 @@
+<div class=" game-table">
+  <div class="row upper-row">
+    <div class="col-md-3">
+
+    </div>
+    <div class="col-md-6 ">
+      <app-uno-other-player-horizontal-hand *ngIf="enemiesHands.length===1" [hand]=enemiesHands[0] ></app-uno-other-player-horizontal-hand>
+      <app-uno-other-player-horizontal-hand *ngIf="enemiesHands.length >1" [hand]=enemiesHands[1] ></app-uno-other-player-horizontal-hand>
+    </div>
+    <div class="col-md-3">
+
+    </div>
+  </div>
+  <div class="row middle-row">
+
+      <div class="col-md-3">
+        <app-uno-other-player-vertical-hand *ngIf="enemiesHands.length===2" [hand]=enemiesHands[1]></app-uno-other-player-vertical-hand>
+      </div>
+      <div class="row col-md-6 rounded-3 table-background text-white">
+        <div class="col-3 full-height d-flex align-items-stretch"></div>
+        <div class="col-3 full-height d-flex align-items-stretch">
+          <app-uno-draw-stack [stacks] = game!.state!.stacks></app-uno-draw-stack>
+        </div>
+        <div class="col-3 full-height d-flex align-items-stretch">
+          <app-uno-discard-pile [piles] = game!.state!.piles></app-uno-discard-pile>
+        </div>
+
+        <div class="col-3 full-height d-flex align-items-stretch"></div>
+
+      </div>
+      <div class="col-md-3">
+        <app-uno-other-player-vertical-hand *ngIf="enemiesHands.length===3" [hand]=enemiesHands[2]></app-uno-other-player-vertical-hand>
+      </div>
+
+  </div>
+  <div class="row lower-row">
+    <div class="col-md-3">
+
+    </div>
+    <div class="col-md-6 ">
+      <app-uno-player-hand [hand]="this.playerHand"></app-uno-player-hand>
+    </div>
+    <div class="col-md-3">
+
+    </div>
+  </div>
+</div>
