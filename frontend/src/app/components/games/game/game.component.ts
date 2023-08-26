@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, Output} from '@angular/core';
 import {LobbiesService} from "../../utils/lobbies-service";
 import {ActivatedRoute} from "@angular/router";
 import {OAuthService} from "angular-oauth2-oidc";
@@ -19,9 +19,9 @@ export class GameComponent implements OnInit {
 
   gameSocket!: WebSocketSubject<any>;
 
-  lobbySocket?: WebSocketSubject<any>
+  @Output() game!: GameDTO;
 
-  game!: GameDTO
+  gameId!: string;
 
   constructor(private lobbiesService: LobbiesService,
               private gamesService: GamesService,
@@ -31,21 +31,17 @@ export class GameComponent implements OnInit {
 
 
   ngOnInit(): void {
-    console.log('lobbies service socket: ', this.lobbiesService)
-    let gameId = '';
     this.routeSub = this.route.params.subscribe(params => {
-      gameId = params['id']
+      this.gameId = params['id']
     });
 
     // this.lobbiesService.establishWebSocketConnectionToLobby(<string>localStorage.getItem('lobbyID'))
 
-    this.establishWebSocketConnectionToGame(gameId)
+    this.establishWebSocketConnectionToGame(this.gameId)
 
   }
 
   establishWebSocketConnectionToGame(gameId: string) {
-    console.log('Connecting to gameCo via WS for Main menu')
-
     let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
     let url = (`ws://${SharedUrls.GAME_CORE_SERVER}/${gameId}/${tokenQuery}`)
 
@@ -72,7 +68,7 @@ export class GameComponent implements OnInit {
       case "lateJoined":
         this.updateGame(message.data.game)
 
-        console.log("handling event for Game ", message.event, message.data)
+        console.log("handling event for Game ", message.event, message)
         break;
 
       default: {
@@ -89,8 +85,7 @@ export class GameComponent implements OnInit {
       state: game.state,
       status: game.status,
       type: game.type,
+      meta: game.meta
     }
-    console.log("game is : ", this.game)
-
   }
 }

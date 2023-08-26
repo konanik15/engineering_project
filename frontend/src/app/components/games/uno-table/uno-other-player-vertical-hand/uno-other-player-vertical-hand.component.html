@@ -1,1 +1,8 @@
-<p>uno-other-player-vertical-hand works!</p>
+<div class="card-stack">
+  <div *ngFor="let card of hand?.cards" class="uno-card-container">
+    <app-uno-card
+      [cardColor]='"black"' [cardType]='"UNO"' [facing]='"down"'
+    ></app-uno-card>
+  </div>
+</div>
+

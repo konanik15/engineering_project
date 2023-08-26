@@ -1,8 +1,18 @@
 
-<div *ngIf="facing === 'up'" class="card uno-card" [ngStyle]="{ 'background-color': cardColor }">
-  <div class="card-body">
-    <h5 class="card-type">{{ cardType }}</h5>
-    <p class="card-color">{{ cardColor }}</p>
+<div *ngIf="facing === 'up'" class="card uno-card custom-border-text-primary"
+     [ngStyle]="{ 'background-color': cardColor }">
+  <div class="card-body d-flex align-items-center justify-content-center">
+    <svg *ngIf="cardType === 'skip'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+         class="bi bi-skip-forward icon-svg" viewBox="0 0 16 16">
+      <path
+        d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5zM1 4.633v6.734L6.804 8 1 4.633zm7.5 0v6.734L14.304 8 8.5 4.633z"/>
+    </svg>
+    <svg *ngIf="cardType === 'draw'" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+         class="bi bi-easel3 icon-svg" viewBox="0 0 16 16">
+      <path fill-rule="evenodd"
+            d="M8.5 13.134V12h5a1.5 1.5 0 0 0 1.5-1.5V2h.5a.5.5 0 0 0 0-1H.5a.5.5 0 0 0 0 1H1v8.5A1.5 1.5 0 0 0 2.5 12h5v1.134a1 1 0 1 0 1 0ZM2 2v8.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V2H2Z"/>
+    </svg>
+    <h5 *ngIf="cardType !== 'skip' && cardType !== 'draw'" class="card-type">{{ cardType }}</h5>
   </div>
 </div>
 

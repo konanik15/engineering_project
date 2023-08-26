@@ -8,6 +8,7 @@ import {Component, Input} from '@angular/core';
 export class GameInfoComponent {
   @Input() status?: string;
   @Input() type?: string;
+  @Input() usernameTurn?: string;
 
 
 }

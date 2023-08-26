@@ -16,13 +16,13 @@
       <div class="col-md-3">
         <app-uno-other-player-vertical-hand *ngIf="enemiesHands.length===2" [hand]=enemiesHands[1]></app-uno-other-player-vertical-hand>
       </div>
-      <div class="row col-md-6 rounded-3 table-background text-white">
+      <div class="row col-md-6 rounded-3 card ">
         <div class="col-3 full-height d-flex align-items-stretch"></div>
         <div class="col-3 full-height d-flex align-items-stretch">
-          <app-uno-draw-stack [stacks] = game!.state!.stacks></app-uno-draw-stack>
+          <app-uno-draw-stack [stacks]=game!.state!.stacks></app-uno-draw-stack>
         </div>
         <div class="col-3 full-height d-flex align-items-stretch">
-          <app-uno-discard-pile [piles] = game!.state!.piles></app-uno-discard-pile>
+          <app-uno-discard-pile [piles]=game!.state!.piles></app-uno-discard-pile>
         </div>
 
         <div class="col-3 full-height d-flex align-items-stretch"></div>
@@ -37,10 +37,35 @@
     <div class="col-md-3">
 
     </div>
-    <div class="col-md-6 ">
-      <app-uno-player-hand [hand]="this.playerHand"></app-uno-player-hand>
+    <div class="col-md-6">
+      <app-uno-player-hand (activeCardsEmitter)="readValueFromHand($event)"
+                           [hand]="this.playerHand"></app-uno-player-hand>
     </div>
     <div class="col-md-3">
+      <div class="card bg-info" style="width: 18rem; margin-top: 10px;">
+        <ul class="list-group list-group-light bg-danger-subtle ">
+          <li class="list-group-item px-3 ">
+            <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="drewCard()"> Drew Card
+            </button>
+            <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="playCard()"> Play Card
+            </button>
+          </li>
+          <li class="px-3">
+            <select class="form-select d-inline w-50 me-1 " aria-label="Default select example">
+              <option selected>Choose</option>
+              <div *ngFor="let player of game?.participants">
+                <option value="{{player.username}}">player.username</option>
+              </div>
+            </select>
+            <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="accuse()">Accuse</button>
+          </li>
+          <li class="list-group-item px-3 ">
+            <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="skipTurn()">Skip Turn
+            </button>
+            <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="sayUno()">Uno !</button>
+          </li>
+        </ul>
+      </div>
 
     </div>
   </div>

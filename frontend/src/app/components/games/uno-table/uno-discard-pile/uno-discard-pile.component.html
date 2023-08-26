@@ -1,11 +1,9 @@
-<div class="card">
-  <div *ngFor="let card of cards" class="uno-card">
-    <app-uno-card
-      [cardType]="card.type"
-      [cardColor]="card.color"
-      [facing]="facing"
-    ></app-uno-card>
-  </div>
-  <div class="number">{{pilesSize | pluralize:'Card'}} </div>
+<div class="uno-card-container">
+  <app-uno-card
+    [cardType]="piles?.[0]?.cards?.[0]?.type"
+    [cardColor]="piles?.[0]?.cards?.[0]?.color"
+    [facing]="facing"
+  ></app-uno-card>
+  <div class="number">{{this.piles?.[0]?.cards?.length | pluralize:'Card'}} </div>
   <div class="action">Discard Stack</div>
 </div>

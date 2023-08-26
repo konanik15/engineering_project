@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, Output} from '@angular/core';
 import {GameDTO} from "../../utils/dto";
 import {LobbiesService} from "../../utils/lobbies-service";
 
@@ -7,16 +7,12 @@ import {LobbiesService} from "../../utils/lobbies-service";
   templateUrl: './game-menu.component.html',
   styleUrls: ['./game-menu.component.css']
 })
-export class GameMenuComponent implements OnInit {
+export class GameMenuComponent {
   @Input() gameSocket: any;
-  @Input() game?: GameDTO;
+  @Input() @Output() game?: GameDTO;
 
   constructor(private lobbiesService: LobbiesService) {
 
-  }
-
-  ngOnInit(): void {
-    console.log(LobbiesService.lobbySocket)
   }
 
 

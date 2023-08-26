@@ -6,7 +6,7 @@ import {Component, Input} from '@angular/core';
   styleUrls: ['./uno-card.component.css']
 })
 export class UnoCardComponent {
-  @Input() cardType: string | null = null;
-  @Input() cardColor: string | null = null;
+  @Input() cardType: string | undefined = "";
+  @Input() cardColor: string | undefined = "";
   @Input() facing: string = 'down';
 }

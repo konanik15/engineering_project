@@ -40,7 +40,7 @@ export interface ChatHistoryDTO {
 
 
 export interface GameDTO {
-  meta?: any,
+  meta?: UnoMetaDTO | DurakMetaDTO,
   participants: PlayerLiteDTO[],
   state?: StateDTO,
   status: string,
@@ -74,8 +74,8 @@ export interface PileDTO {
 }
 
 export interface CardDTO {
-  color: "",
-  type: ""
+  color: string,
+  type: string
 }
 
 export interface GameLiteDTO {
@@ -83,11 +83,35 @@ export interface GameLiteDTO {
   description: string
 }
 
-export interface DurakGameDTO {
-
+export interface DurakMetaDTO {
+  declarations: any[],
+  direction: string,
+  obligations: any[],
+  turn: PlayerLiteDTO,
 }
 
-export interface UnoGameDTO {
+export interface UnoMetaDTO {
+  declarations: any[],
+  direction: string,
+  obligations: any[],
+  turn: PlayerLiteDTO,
+}
 
+export interface TransferDTO {
+  type: string,
+  source: {
+    type: string,
+    name?: string
+  }
+  destination: {
+    type: string,
+    name?: string
+  },
+  amount?: number
+  cards?: CardDTO[]
+}
+
+export interface UnoMessageDTO {
+  type: string,
 }
 
