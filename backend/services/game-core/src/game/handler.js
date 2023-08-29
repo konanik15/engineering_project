@@ -12,6 +12,9 @@ import {
     GameNotInProgressError
 } from "../common/errors.js";
 
+import Lock from "async-lock";
+const lock = new Lock();
+
 const lobbyHost = process.env.LOBBY_HOST || "lobby";
 const lobbyPort = process.env.LOBBY_PORT || "80";
 
@@ -37,38 +40,44 @@ async function connect(gameId, user, connection) {
     if (game.participants.every(p => p.username !== user.username))
         throw new GameNotAParticipantError(`You are not a participant of this game`);
 
-    connections[game.type] ??= {};
-    connections[game.type][gameId] ??= [];
-    connections[game.type][gameId].push({
-        username: user.username,
-        connection
-    });
+    await lock.acquire(gameId, async () => {
+        connections[game.type] ??= {};
+        connections[game.type][gameId] ??= [];
+        connections[game.type][gameId].push({
+            username: user.username,
+            connection
+        });
 
-    //if all participants are connected and the game hasn't started - initialize it
-    if (game.participants.every(p => 
-        !!connections[game.type][gameId].find(c =>
-            c.username === p.username)) && 
-        game.status === "pending") {
-            game = await initialize(game);
-            game = await service.update(game._id, { status: "inProgress" });
-            connections[game.type][gameId].forEach(item => {
-                item.connection.send(JSON.stringify({
-                    event: "gameStarted",
-                    data: { game: conceal(game, item.username) }
-                }));
-            });
-    } else if (game.status === "inProgress") { //otherwise just send it to connected client
-        connection.send(JSON.stringify({
-            event: "lateJoined",
-            data: { game: conceal(game, user.username) }
-        }));
-    }
+        //if all participants are connected and the game hasn't started - initialize it
+        if (game.participants.every(p => 
+            !!connections[game.type][gameId].find(c =>
+                c.username === p.username)) && 
+            game.status === "pending") {
+                game = await initialize(game);
+                game = await service.update(game._id, { status: "inProgress" });
+                connections[game.type][gameId].forEach(item => {
+                    item.connection.send(JSON.stringify({
+                        event: "gameStarted",
+                        data: { game: conceal(game, item.username) }
+                    }));
+                });
+        } else if (game.status === "inProgress") { //otherwise just send it to connected client
+            connection.send(JSON.stringify({
+                event: "lateJoined",
+                data: { game: conceal(game, user.username) }
+            }));
+        }
+    });
+    return;
 }
 
 async function disconnect(gameId, connection) {
-    let game = await service.findById(gameId);
-    connections[game.type][gameId] = connections[game.type][gameId]
-        .filter(item => item.connection !== connection);
+    lock.acquire(gameId, async (done) => {
+        let game = await service.findById(gameId);
+        connections[game.type][gameId] = connections[game.type][gameId]
+            .filter(item => item.connection !== connection);
+        done();
+    });
 }
 
 async function initialize(game) {
@@ -88,74 +97,77 @@ async function performActions(gameId, actions, user) {
         throw new GameNotAParticipantError(`You are not a participant of this game`);
     if (game.status !== "inProgress")
         throw new GameNotInProgressError(`This game either hasn't started yet or is already finished`);
-    
-    for (let action of actions) {
-        let newGame = JSON.parse(JSON.stringify(game)); //making a deep copy of object
-        helper.perform(newGame.state, action, user); //helper mutates state
+        
+    await lock.acquire(gameId, async () => {
+        for (let action of actions) {
+            let newGame = JSON.parse(JSON.stringify(game)); //making a deep copy of object
+            helper.perform(newGame.state, action, user); //helper mutates state
 
-        let response;
-        try {
-            let host = gamesConfig.find(g => g.type === game.type).host;
-            response = await axios.post(`http://${host}/validate`, {
-                game,
-                action,
-                initiator: user,
-                newGameState: newGame.state
-            });
-        } catch (e) {
-            //console.log(e);
-            if (e.response && e.response.status === 400)
-                throw new ActionIllegalError(e.response.data);
-            else if (e.response && e.response.status === 500)
-                throw new Error("Game service invalid response")
-            else 
-                throw e;
-        }
-        /*let data = response.data;
-        data.state ??= newGame.state;*/
-        let data = {
-            state: newGame.state
-        };
-        if (response.data.meta) data.meta = response.data.meta;
-        if (response.data.state) data.state = response.data.state;
-        if (response.data.status) data.status = response.data.status;
-
-        await service.apply(game, data); 
-    } 
-
-    game = await service.update(gameId, game);
-    connections[game.type] ??= {};
-    connections[game.type][gameId] ??= [];
-    connections[game.type][gameId].forEach(item => {
-        item.connection.send(JSON.stringify({
-            event: "gameUpdated",
-            data: { 
-                game: conceal(game, item.username),
-                reason: {
-                    type: "userActions",
+            let response;
+            try {
+                let host = gamesConfig.find(g => g.type === game.type).host;
+                response = await axios.post(`http://${host}/validate`, {
+                    game,
+                    action,
                     initiator: user,
-                    actions
-                }
+                    newGameState: newGame.state
+                });
+            } catch (e) {
+                //console.log(e);
+                if (e.response && e.response.status === 400)
+                    throw new ActionIllegalError(e.response.data);
+                else if (e.response && e.response.status === 500)
+                    throw new Error("Game service invalid response")
+                else 
+                    throw e;
             }
-        }));
-    });
+            /*let data = response.data;
+            data.state ??= newGame.state;*/
+            let data = {
+                state: newGame.state
+            };
+            if (response.data.meta) data.meta = response.data.meta;
+            if (response.data.state) data.state = response.data.state;
+            if (response.data.status) data.status = response.data.status;
 
-    if (game.status === "ended") {
+            await service.apply(game, data);
+        } 
+
+        game = await service.update(gameId, game);
+        connections[game.type] ??= {};
+        connections[game.type][gameId] ??= [];
         connections[game.type][gameId].forEach(item => {
             item.connection.send(JSON.stringify({
-                event: "gameEnded",
-                data: {}
+                event: "gameUpdated",
+                data: { 
+                    game: conceal(game, item.username),
+                    reason: {
+                        type: "userActions",
+                        initiator: user,
+                        actions
+                    }
+                }
             }));
-            item.connection.close(1000, "Game ended");
         });
 
-        if (lobbyHost && game.lobbyId) {
-            axios.patch(`http://${lobbyHost}:${lobbyPort}/lobby/reset/${game.lobbyId}`)
-                .catch( e => {
-                    console.error("Could not notify lobby about game ending: ", e);
-                });
+        if (game.status === "ended") {
+            connections[game.type][gameId].forEach(item => {
+                item.connection.send(JSON.stringify({
+                    event: "gameEnded",
+                    data: {}
+                }));
+                item.connection.close(1000, "Game ended");
+            });
+
+            if (lobbyHost && game.lobbyId) {
+                axios.patch(`http://${lobbyHost}:${lobbyPort}/lobby/reset/${game.lobbyId}`)
+                    .catch( e => {
+                        console.error("Could not notify lobby about game ending: ", e);
+                    });
+            }
         }
-    }
+    });
+    return;
 }
 
 function conceal(game, username) {
