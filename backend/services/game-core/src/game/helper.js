@@ -20,6 +20,9 @@ function perform(state, action, user) {
         case "create":
             create(state, action.entity);
             break;
+        case "shuffle":
+            shuffle(state, action.entity);
+            break;
         case "openHand":
             setHandOpen(state, user, true);
             break;
@@ -130,6 +133,28 @@ function flip(state, entity) {
 
     _.reverse(selectedEntity.cards);
     selectedEntity.facing = selectedEntity.facing == "up" ? "down" : "up";
+}
+
+function shuffle(state, entity) {
+    if (!_.isPlainObject(entity))
+        throw new ActionInvalidError("Entity is not an object");
+    let selectedEntity;
+    switch(entity.type) {
+        case "stack":
+            selectedEntity = _.find(state.stacks, { name: entity.name });
+            if (!selectedEntity)
+                throw new ActionInvalidError(`No stack found with name ${entity.name}`);
+            break;
+        case "pile":
+            selectedEntity = _.find(state.piles, { name: entity.name });
+            if (!selectedEntity)
+                throw new ActionInvalidError(`No pile found with name ${entity.name}`);
+            break;
+        default:
+            throw new ActionInvalidError(`Unsupported entity type ${entity.type}`);
+    }
+
+    selectedEntity.cards = _.shuffle(selectedEntity.cards);
 }
 
 function create(state, entity) {
