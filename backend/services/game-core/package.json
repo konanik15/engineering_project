@@ -18,6 +18,7 @@
     "kc-adapter": "latest",
     "lodash": "^4.17.21",
     "mongoose": "^7.3.4",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "async-lock": "^1.4.0"
   }
 }

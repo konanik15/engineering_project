@@ -14,14 +14,17 @@ function perform(state, action, user) {
         case "transfer":
             transfer(state, action.source, action.destination, action.cards, action.amount, user);
             break;
-        case "flipStack":
-            flipStack(state, action.name);
+        case "flip":
+            flip(state, action.entity);
             break;
-        case "createStack":
-            createStack(state, action.name, action.facing);
+        case "create":
+            create(state, action.entity);
             break;
-        case "createPile":
-            createPile(state, action.name, action.facing);
+        case "openHand":
+            setHandOpen(state, user, true);
+            break;
+        case "closeHand":
+            setHandOpen(state, user, false);
             break;
         default:
             //ignore the action and let the game deal with it 
@@ -106,38 +109,63 @@ function add(state, destination, cards, user) {
     }
 }
 
-function flipStack(state, name) {
-    let stack = _.find(state.stacks, { name });
-    if (!stack)
-        throw new ActionInvalidError(`No stack found with name ${name}`); 
-    _.reverse(stack.cards);
-    stack.facing = stack.facing == "up" ? "down" : "up";
+function flip(state, entity) {
+    if (!_.isPlainObject(entity))
+        throw new ActionInvalidError("Entity is not an object");
+    let selectedEntity;
+    switch(entity.type) {
+        case "stack":
+            selectedEntity = _.find(state.stacks, { name: entity.name });
+            if (!selectedEntity)
+                throw new ActionInvalidError(`No stack found with name ${entity.name}`);
+            break;
+        case "pile":
+            selectedEntity = _.find(state.piles, { name: entity.name });
+            if (!selectedEntity)
+                throw new ActionInvalidError(`No pile found with name ${entity.name}`);
+            break;
+        default:
+            throw new ActionInvalidError(`Unsupported entity type ${entity.type}`);
+    }
+
+    _.reverse(selectedEntity.cards);
+    selectedEntity.facing = selectedEntity.facing == "up" ? "down" : "up";
 }
 
-function createStack(state, name, facing) {
-    let stack = _.find(state.stacks, { name });
-    if (stack)
-        throw new ActionIllegalError(`Stack with name ${name} already exists`);
-    if (!["up", "down"].includes(facing))
-        throw new ActionInvalidError(`Invalid facing ${facing}`);
-    state.stacks.push({
-        name,
-        facing,
+function create(state, entity) {
+    if (!_.isPlainObject(entity))
+        throw new ActionInvalidError("Entity is not an object");
+    let existingEntity;
+    switch(entity.type) {
+        case "stack":
+            existingEntity = _.find(state.stacks, { name: entity.name });
+            if (existingEntity)
+                throw new ActionInvalidError(`A stack with name ${entity.name} already exists`);
+            break;
+        case "pile":
+            existingEntity = _.find(state.piles, { name: entity.name });
+            if (existingEntity)
+                throw new ActionInvalidError(`A pile with name ${entity.name} already exists`);
+            break;
+        default:
+            throw new ActionInvalidError(`Unsupported entity type ${entity.type}`);
+    }
+
+    if (_.has(entity, "facing") && !["up", "down"].includes(entity.facing))
+        throw new ActionInvalidError(`Invalid facing ${entity.facing}`);
+
+    state[entity.type == "stack" ? "stacks" : "piles"].push({
+        name: entity.name,
+        facing: entity.facing || "down",
         cards: []
     });
 }
 
-function createPile(state, name, facing) {
-    let pile = _.find(state.piles, { name });
-    if (pile)
-        throw new ActionIllegalError(`Pile with name ${name} already exists`);
-    if (!["up", "down"].includes(facing))
-        throw new ActionInvalidError(`Invalid facing ${facing}`);
-    state.piles.push({
-        name,
-        facing,
-        cards: []
-    });
+function setHandOpen(state, user, open) {
+    let hand = _.find(state.hands, { owner: user.username });
+    if (!hand)
+        throw new ActionInvalidError(`No hand found with owner ${user.username}`);
+    hand.open = open;
 }
 
 export default { perform };
