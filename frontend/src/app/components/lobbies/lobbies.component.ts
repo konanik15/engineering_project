@@ -1,11 +1,12 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {LobbyDTO} from "../utils/dto";
 import {MdbModalRef, MdbModalService} from 'mdb-angular-ui-kit/modal';
 import {JoinLobbyModalComponent} from "./join-lobby-modal/join-lobby-modal.component";
-import {Router} from "@angular/router";
 import {LobbiesService} from "../utils/lobbies-service";
 import {CreateLobbyModalComponent} from "./create-lobby-modal/create-lobby-modal.component";
-import {OAuthService} from "angular-oauth2-oidc";
+import {LiveAnnouncer} from "@angular/cdk/a11y";
+import {MatSort, Sort} from "@angular/material/sort";
+import {MatTableDataSource} from "@angular/material/table";
 
 @Component({
   selector: 'app-home',
@@ -14,10 +15,10 @@ import {OAuthService} from "angular-oauth2-oidc";
 })
 export class LobbiesComponent implements OnInit {
 
-  constructor(public lobbiesService: LobbiesService,
+
+  constructor(private lobbiesService: LobbiesService,
               private modalService: MdbModalService,
-              private router: Router,
-              private oAuthService: OAuthService) {
+              private _liveAnnouncer: LiveAnnouncer) {
   }
 
   joinLobbyModalRef: MdbModalRef<JoinLobbyModalComponent> | null = null;
@@ -26,8 +27,13 @@ export class LobbiesComponent implements OnInit {
 
   displayedColumns: string[] = ['name', 'game', 'players/maxPlayers', 'join'];
 
+
   lobbies: LobbyDTO[] = []
   tempLobbyId: string = '';
+  dataSource = new MatTableDataSource(this.lobbies);
+
+  @ViewChild(MatSort) sort?: MatSort;
+
 
   private socket: any;
 
@@ -35,7 +41,7 @@ export class LobbiesComponent implements OnInit {
     this.loadLobbies()
     this.lobbiesService.establishWebSocketConnectionToMainMenu()
     this.lobbiesService.mainMenuSocket.subscribe(
-      // @ts-ignore // TODO mby some type handling
+      // @ts-ignore
       message => this.handleMessage(message),
       // @ts-ignore
       err => console.log(err),
@@ -44,12 +50,15 @@ export class LobbiesComponent implements OnInit {
   };
 
   // TODO lobby filtering and sorting
-  announceSortChange($event: any) {
-    console.log("sort change")
+  announceSortChange(sortState: Sort) {
+    if (sortState.direction) {
+      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
+    } else {
+      this._liveAnnouncer.announce('Sorting cleared');
+    }
   }
 
   joinLobby(lobby: LobbyDTO) {
-    console.log('lobby: ', lobby)
     if (lobby.passwordProtected) {
       this.openPasswordModal(lobby)
     } else {
@@ -71,7 +80,6 @@ export class LobbiesComponent implements OnInit {
 
   createLobby() {
     this.openCreateLobbyModal()
-    console.log('creatingLobby')
   }
 
   openCreateLobbyModal() {
@@ -97,7 +105,6 @@ export class LobbiesComponent implements OnInit {
   }
 
   private handleMessage(message: any) {
-    //TODO might use ws to update list, but just http refreshing is so much easier
     switch (message.type) {
       case "lobbyCreated":
       case "lobbyDeleted":
@@ -112,12 +119,9 @@ export class LobbiesComponent implements OnInit {
 
       case "passwordValidationResult":
         if (message.data.isValid) {
-          console.log("goodPass", message)
           this.lobbiesService.joinLobby(this.tempLobbyId)
           this.joinLobbyModalRef?.close()
 
-        } else {
-          console.log("badPass")
         }
         break;
 

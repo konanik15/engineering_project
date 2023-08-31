@@ -26,7 +26,6 @@ export class LobbiesService {
   constructor(private http: HttpClient,
               private router: Router,
               private oAuthService: OAuthService) {
-    console.log("IM CONSTRUCTEDF!!!")
   }
 
   getLobbies(): Observable<Array<LobbyDTO>> {

@@ -13,16 +13,8 @@ import {GamesService} from "../utils/games-service";
   styleUrls: ['./lobby.component.css']
 })
 export class LobbyComponent implements OnInit, OnDestroy {
-  get requiredAmountOfPlayers(): boolean {
-    if (this.lobby.players) {
-      return this.lobby.players.length >= this.lobby.minPlayers!
-    }
-    return false;
-  }
 
-  private routeSub!: Subscription;
-
-  // lobbySocket: any;
+  protected readonly LobbiesService = LobbiesService;
 
   ready: boolean = false;
 
@@ -30,7 +22,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   allReady: boolean = false;
 
-  constructor(public lobbiesService: LobbiesService,
+  private routeSub!: Subscription;
+
+  constructor(private lobbiesService: LobbiesService,
               private gameService: GamesService,
               private route: ActivatedRoute,
               private oAuthService: OAuthService) {
@@ -50,12 +44,11 @@ export class LobbyComponent implements OnInit, OnDestroy {
         LobbiesService.lobbySocket.subscribe(
           // @ts-ignore
           msg => this.handleMessage(msg),
-          // @ts-ignore // TODO Better error hanlding ;)
+          // @ts-ignore
           err => console.log(err),
           () => console.log('Closing WS connection to Lobby')
         );
 
-        //this.establishWebSocketConnectionToLobby()
         if (this.lobby && LobbiesService.lobbySocket) {
           this.refreshLobby()
         }
@@ -63,6 +56,36 @@ export class LobbyComponent implements OnInit, OnDestroy {
       error: () => {
         console.log('Smth went wrong with getting lobby by Id ', lobbyId)
       }
+    })
+  }
+
+  get requiredAmountOfPlayers(): boolean {
+    if (this.lobby.players) {
+      return this.lobby.players.length >= this.lobby.minPlayers!
+    }
+    return false;
+  }
+
+  ngOnDestroy() {
+    console.log("Destroying but not unsubcribing yet")
+  }
+
+  revertReady() {
+    this.ready = !this.ready;
+    let status: string;
+    if (this.ready) {
+      status = "ready"
+    } else {
+      status = 'unready'
+    }
+    LobbiesService.lobbySocket.next({
+      "type": status
+    })
+  }
+
+  startGame() {
+    LobbiesService.lobbySocket.next({
+      "type": "startGame"
     })
   }
 
@@ -75,20 +98,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
     return false
   }
 
-  // private establishWebSocketConnectionToLobby() {
-  //   console.log('Connecting to lobby via WS')
-  //   //
-  //   // let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
-  //   // let passwordQuery = `&password=${localStorage.getItem('password')}`;
-  //   // let url = (`ws://${SharedUrls.LOBBY_SERVER}${SharedUrls.LOBBY}/${this.lobby._id}${tokenQuery}${passwordQuery}`)
-  //
-  //   //this.lobbiesService. = webSocket(url);
-  //
-  //
-  // }
 
   private handleMessage(message: any) {
-    //TODO might use ws to update list, but just http refreshing is so much easier
     switch (message.type) {
 
       case "playerJoined":
@@ -108,7 +119,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
         break;
 
       case "gameStarted":
-        console.log("gameStarted for lobby ", message.data.gameId)
         localStorage.setItem("lobbyID", <string>this.lobby._id)
         this.gameService.openGameComponent(message.data.gameId)
         break;
@@ -120,23 +130,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    LobbiesService.lobbySocket.complete();
-    this.routeSub.unsubscribe();
-  }
 
-  revertReady() {
-    this.ready = !this.ready;
-    let status: string;
-    if (this.ready) {
-      status = "ready"
-    } else {
-      status = 'unready'
-    }
-    LobbiesService.lobbySocket.next({
-      "type": status
-    })
-  }
 
   private refreshLobby() {
     this.lobbiesService.getLobby(<string>this.lobby._id).subscribe({
@@ -161,12 +155,4 @@ export class LobbyComponent implements OnInit, OnDestroy {
     }
   }
 
-  startGame() {
-    console.log("Starting game!")
-    LobbiesService.lobbySocket.next({
-      "type": "startGame"
-    })
-  }
-
-  protected readonly LobbiesService = LobbiesService;
 }

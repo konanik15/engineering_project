@@ -24,6 +24,26 @@ import {GameTableComponent} from './components/games/table/game-table.component'
 import {GameMenuComponent} from './components/games/game-menu/game-menu.component';
 import {GameInfoComponent} from './components/games/game-menu/game-info/game-info.component';
 import {PlayerListComponent} from './components/games/game-menu/player-list/player-list.component';
+import {UnoTableComponent} from './components/games/uno-table/uno-table.component';
+import {UnoDrawStackComponent} from './components/games/uno-table/uno-draw-stack/uno-draw-stack.component';
+import {UnoDiscardPileComponent} from './components/games/uno-table/uno-discard-pile/uno-discard-pile.component';
+import {UnoCardComponent} from './components/games/uno-table/uno-card/uno-card.component';
+import {UnoPlayerHandComponent} from './components/games/uno-table/uno-player-hand/uno-player-hand.component';
+import {
+  UnoOtherPlayerHorizontalHandComponent
+} from './components/games/uno-table/uno-other-player-horizontal-hand/uno-other-player-horizontal-hand.component';
+import {
+  UnoOtherPlayerVerticalHandComponent
+} from './components/games/uno-table/uno-other-player-vertical-hand/uno-other-player-vertical-hand.component';
+import {PluralizePipe} from "./components/utils/pluralize.pipe";
+import {ToastrModule} from 'ngx-toastr';
+import {ToastComponent} from './components/utils/toast/toast.component';
+import {DurakTableComponent} from './components/games/durak-table/durak-table.component';
+import {
+  UnoChooseColorModalComponent
+} from './components/games/uno-table/uno-choose-color-modal/uno-choose-color-modal.component';
+import {ProfileComponent} from './components/profile/profile.component';
+import {NgOptimizedImage} from "@angular/common";
 
 @NgModule({
   declarations: [
@@ -41,6 +61,18 @@ import {PlayerListComponent} from './components/games/game-menu/player-list/play
     GameMenuComponent,
     GameInfoComponent,
     PlayerListComponent,
+    UnoTableComponent,
+    UnoDrawStackComponent,
+    UnoDiscardPileComponent,
+    UnoCardComponent,
+    UnoPlayerHandComponent,
+    UnoOtherPlayerHorizontalHandComponent,
+    UnoOtherPlayerVerticalHandComponent,
+    PluralizePipe,
+    ToastComponent,
+    DurakTableComponent,
+    UnoChooseColorModalComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,
@@ -52,6 +84,11 @@ import {PlayerListComponent} from './components/games/game-menu/player-list/play
     MatSortModule,
     MatTableModule,
     FormsModule,
+    ToastrModule.forRoot({
+      positionClass: "toast-bottom-left"
+
+    }),
+    NgOptimizedImage
   ],
   providers: [
     {

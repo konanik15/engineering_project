@@ -6,7 +6,7 @@
     [ngClass]="{ 'game-card--active': activeGames.has(game.type) }"
   >
     <div class="card-body">
-      <h5 class="card-title">{{ game.type }}</h5>
+      <h5 class="card-title">{{ game.type | titlecase}}</h5>
       <p class="card-text game-description">
         {{ game.description }}
       </p>

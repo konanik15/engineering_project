@@ -1,6 +1,7 @@
 /* Stylowanie głównego kontenera */
 .container-fluid {
   padding: 20px;
+  height: 400px;
 }
 
 /* Stylowanie okna czatu */
@@ -10,7 +11,7 @@
   border-radius: 5px;
   margin-bottom: 20px;
   overflow-y: auto;
-  max-height: 400px;
+  height: 300px;
 }
 
 /* Ustawienie paska przewijania na dole */
@@ -21,6 +22,7 @@
 .chat-box::-webkit-scrollbar-thumb {
   background-color: #6c757d;
   border-radius: 5px;
+
 }
 
 /* Stylowanie pojedynczej wiadomości */

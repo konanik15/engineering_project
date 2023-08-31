@@ -75,7 +75,6 @@ export class ChatComponent implements OnInit {
           message: this.newMessage
         }
       };
-      console.log("sending msg.. via socket", this.socket)
 
       this.socket?.next(newChatMessage);
       this.newMessage = '';
