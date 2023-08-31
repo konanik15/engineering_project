@@ -36,6 +36,14 @@ import {
   UnoOtherPlayerVerticalHandComponent
 } from './components/games/uno-table/uno-other-player-vertical-hand/uno-other-player-vertical-hand.component';
 import {PluralizePipe} from "./components/utils/pluralize.pipe";
+import {ToastrModule} from 'ngx-toastr';
+import {ToastComponent} from './components/utils/toast/toast.component';
+import {DurakTableComponent} from './components/games/durak-table/durak-table.component';
+import {
+  UnoChooseColorModalComponent
+} from './components/games/uno-table/uno-choose-color-modal/uno-choose-color-modal.component';
+import {ProfileComponent} from './components/profile/profile.component';
+import {NgOptimizedImage} from "@angular/common";
 
 @NgModule({
   declarations: [
@@ -60,7 +68,11 @@ import {PluralizePipe} from "./components/utils/pluralize.pipe";
     UnoPlayerHandComponent,
     UnoOtherPlayerHorizontalHandComponent,
     UnoOtherPlayerVerticalHandComponent,
-    PluralizePipe
+    PluralizePipe,
+    ToastComponent,
+    DurakTableComponent,
+    UnoChooseColorModalComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,
@@ -72,6 +84,11 @@ import {PluralizePipe} from "./components/utils/pluralize.pipe";
     MatSortModule,
     MatTableModule,
     FormsModule,
+    ToastrModule.forRoot({
+      positionClass: "toast-bottom-left"
+
+    }),
+    NgOptimizedImage
   ],
   providers: [
     {

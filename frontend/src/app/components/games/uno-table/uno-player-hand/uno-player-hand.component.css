@@ -15,7 +15,6 @@ html {
   margin-top: 10px;
   display: flex;
   gap: 10px; /* Odstęp między kartami */
-  overflow-x: auto;
 }
 
 .uno-card-container {
@@ -36,6 +35,14 @@ html {
   margin-top: 20px;
   border: 3px solid #f00; /* Change border style for active card */
   box-shadow: 0 0 5px #f00; /* Add a subtle shadow for active effect */
+  border-radius: 5px;
 
+}
+
+.uno-card--acquired {
+  margin-top: 10px;
+  border: 3px solid #e1d967; /* Change border style for active card */
+  border-radius: 5px;
+  box-shadow: 0 0 5px #000000; /* Add a subtle shadow for active effect */
 }
 

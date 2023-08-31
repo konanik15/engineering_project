@@ -16,7 +16,7 @@ export class UnoService {
     return this.http.patch<TransferDTO>(`${SharedUrls.GAME_CORE_SERVER_HTTP}/${gameId}`, transferDTO)
   }
 
-  skipTurn(unoMessageDTO: UnoMessageDTO, gameId: string) {
+  sendMessage(unoMessageDTO: UnoMessageDTO, gameId: string) {
     return this.http.patch<TransferDTO>(`${SharedUrls.GAME_CORE_SERVER_HTTP}/${gameId}`, unoMessageDTO)
   }
 }

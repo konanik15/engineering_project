@@ -1,7 +1,7 @@
 <div class="card-stack">
   <div *ngFor="let card of hand?.cards; let i = index"
        class="uno-card-container"
-       [ngClass]="{ 'uno-card--active': activeCards.has(card) }"
+       [ngClass]="{ 'uno-card--active': activeCards.has(card) ,  'uno-card--acquired': cardsAcquiredInThisTurn?.has(card) }"
        [style.z-index]="100 - i">
     <app-uno-card
       (click)="toggleSelect(card)"

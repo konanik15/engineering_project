@@ -9,6 +9,7 @@ import {CardDTO, HandDTO} from "../../../utils/dto";
 export class UnoPlayerHandComponent {
 
   @Input() hand?: HandDTO;
+  @Input() cardsAcquiredInThisTurn?: Set<CardDTO>
 
   activeCards: Set<CardDTO> = new Set();
 

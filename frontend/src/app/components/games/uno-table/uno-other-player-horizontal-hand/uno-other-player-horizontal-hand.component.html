@@ -1,7 +1,7 @@
 <div class="card-stack">
-  <div *ngFor="let card of hand?.cards" class="uno-card-container">
+  <div *ngFor="let card of hand?.cards; let i = index" class="uno-card-container " [style.z-index]="100 - i">
     <app-uno-card
-      [cardColor]='"black"' [cardType]='"UNO"' [facing]='"down"'
+      [cardColor]='"black"' [cardType]='"uno"' [facing]='"down"'
     ></app-uno-card>
   </div>
 </div>

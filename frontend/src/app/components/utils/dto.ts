@@ -40,7 +40,7 @@ export interface ChatHistoryDTO {
 
 
 export interface GameDTO {
-  meta?: UnoMetaDTO | DurakMetaDTO,
+  meta: UnoMetaDTO | DurakMetaDTO,
   participants: PlayerLiteDTO[],
   state?: StateDTO,
   status: string,
@@ -88,13 +88,15 @@ export interface DurakMetaDTO {
   direction: string,
   obligations: any[],
   turn: PlayerLiteDTO,
+  orderedColor?: string //this type never exists, it;s just my lack of iq to handle types in typescript
 }
 
 export interface UnoMetaDTO {
   declarations: any[],
   direction: string,
-  obligations: any[],
+  obligations: ObligationDTO[],
   turn: PlayerLiteDTO,
+  orderedColor: string
 }
 
 export interface TransferDTO {
@@ -113,5 +115,31 @@ export interface TransferDTO {
 
 export interface UnoMessageDTO {
   type: string,
+  color?: string,
+  username?: string
+}
+
+export interface ObligationDTO {
+  obliged: string,
+  type: string,
+  amount?: number,
+  reason?: string
+}
+
+export interface ReasonDTO {
+  actions: {
+    destination: {
+      type: string
+    },
+    source: {
+      type: string,
+      name: string
+    }
+    type: string
+  },
+  initiator: {
+    username: string
+  },
+  type: string
 }
 

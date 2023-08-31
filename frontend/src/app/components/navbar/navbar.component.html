@@ -13,6 +13,12 @@
         <li *ngIf="token" class="nav-item">
           <span class="nav-link" style="color:#ca7d0a">You are logged in as {{name}}</span>
         </li>
+        <li *ngIf="token" class="nav-item">
+          <a class="nav-link" role="button" routerLink="/profile/{{name}}">Profile</a>
+        </li>
+        <li *ngIf="token" class="nav-item">
+          <a class="nav-link" role="button">Friend List</a>
+        </li>
       </ul>
     </div>
   </div>

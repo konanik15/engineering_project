@@ -30,6 +30,7 @@
     "mdb-angular-ui-kit": "^5.0.0",
     "ng-bootstrap": "^1.6.3",
     "ngx-bootstrap": "^10.2.0",
+    "ngx-toastr": "^17.0.2",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.7.2",
     "sockjs-client": "^1.6.1",

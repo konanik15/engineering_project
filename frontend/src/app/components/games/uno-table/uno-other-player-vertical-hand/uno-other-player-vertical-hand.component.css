@@ -1,10 +1,28 @@
+
+html {
+  --bg-one: #973999;
+  --bg-two: #f8598b;
+  --bg-three: #f7bf00;
+  --bg-panel: #EBEBEB;
+  --color-headings: #333;
+  --color-text: #999;
+  --color-fun: #c44394;
+  --distance: 4rem;
+}
+
+
 .card-stack {
   margin-top: 10px;
   display: block;
-  gap: 3px; /* Odstęp między kartami */
-  overflow-x: auto;
+  gap: 3px;
+  height: 500px;
 }
 
 .uno-card-container {
   flex: 1;
+  transform: rotate(90deg);
+}
+
+.uno-card-container:not(:first-child) {
+  margin-left: -30px;
 }

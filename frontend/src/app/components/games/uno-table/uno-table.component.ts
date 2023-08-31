@@ -1,10 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CardDTO, GameDTO, HandDTO, TransferDTO, UnoMessageDTO, UnoMetaDTO} from "../../utils/dto";
+import {CardDTO, GameDTO, HandDTO, ObligationDTO, TransferDTO, UnoMetaDTO} from "../../utils/dto";
 import {OAuthService} from "angular-oauth2-oidc";
 import {UnoService} from "./uno-service";
+import {ToastrService} from "ngx-toastr";
+import {MdbModalRef, MdbModalService} from "mdb-angular-ui-kit/modal";
+import {UnoChooseColorModalComponent} from "./uno-choose-color-modal/uno-choose-color-modal.component";
 
 
-//TODO Create abstract table component
 @Component({
   selector: 'app-uno-table',
   templateUrl: './uno-table.component.html',
@@ -16,16 +18,25 @@ export class UnoTableComponent implements OnInit {
   @Input() gameId!: string
 
   playerHand!: HandDTO;
+
   enemiesHands: HandDTO[] = [];
 
   username: string = "";
+
   yourTurn: boolean = false;
-  cardsAcquiredInThisTurn: CardDTO[] = [];
+
+  cardsAcquiredInThisTurn: Set<CardDTO> = new Set<CardDTO>();
+
+  chooseCardColorModalRef: MdbModalRef<UnoChooseColorModalComponent> | null = null;
 
   selectedCards: Set<CardDTO> = new Set();
 
+  selectedPlayer: string = '';
+
   constructor(private oAuthService: OAuthService,
-              private unoService: UnoService) {
+              private unoService: UnoService,
+              private toastService: ToastrService,
+              private modalService: MdbModalService) {
   }
 
   ngOnInit(): void {
@@ -34,41 +45,32 @@ export class UnoTableComponent implements OnInit {
 
     this.updateGame(<GameDTO>this.game)
 
-
     if (this.game?.state?.hands) {
       this.setPlayerHand(this.game.state.hands)
       this.setEnemiesHands(this.game.state.hands)
     }
     if (this.game?.meta) {
-      this.determineIfItsYourTurn(this.game.meta)
+      this.determineIfItsYourTurn(<UnoMetaDTO>this.game.meta)
     }
 
     this.gameSocket.subscribe(
       // @ts-ignore
       msg => this.handleMessage(msg),
-      // @ts-ignore // TODO Better error handling ;)
+      // @ts-ignore
       err => console.log(err),
       () => console.log('Closing WS connection to Lobby')
     )
   }
 
-
   private handleMessage(message: any) {
     switch (message.event) {
-
       case "gameUpdated":
         console.log('game updated: ', message)
         this.updateGame(message.data.game)
+        this.updateReason(message.data)
         break
-      case "playerJoined":
-      case "newMessage":
-      case "playerReady":
-      case "playerUnready":
-      case "joinResult":
       case "gameEnded":
-      case "startGameResult":
-      case "readyResult":
-        console.log("Handling ws message from GameService", (message.event))
+        this.toastService.success('Good Job!', 'End of the Uno Game !')
         break;
 
       default: {
@@ -98,29 +100,41 @@ export class UnoTableComponent implements OnInit {
   }
 
   skipTurn() {
-    let unoMessageDTO: UnoMessageDTO = {
-      "type": "skip"
-    }
-
-    this.unoService.skipTurn(unoMessageDTO, this.gameId).subscribe({
-        complete: () => {
-        },
-        next: (response: any) => {
-        },
-        error: () => {
-          console.log('Smth went wrong with skipping turn')
+    this.unoService.sendMessage({"type": "skip"}, this.gameId).subscribe({
+        error: err => {
+          this.toastService.error(err.error, 'Skip Turn',)
         }
       }
     )
-    console.log('skipping turn!', this.gameSocket)
   }
 
   sayUno() {
-    console.log('uno!')
+    this.unoService.sendMessage({"type": "declare"}, this.gameId).subscribe({
+      complete: () => {
+        this.toastService.success('', ' Uno', {
+          positionClass: 'toast-bottom-right'
+        })
+      },
+      error: err => {
+        this.toastService.error(err.error, ' Uno', {
+          positionClass: 'toast-bottom-right'
+        })
+      }
+    });
   }
 
-  accuse() {
-    console.log('accuse!')
+  accuse(selectedPlayer: string) {
+    this.unoService.sendMessage({
+        "type": "accuse",
+        "username": selectedPlayer
+      },
+      this.gameId).subscribe({
+      error: err => {
+        this.toastService.error(err.error, ' Accusing', {
+          positionClass: 'toast-bottom-right'
+        })
+      }
+    });
   }
 
   drewCard() {
@@ -139,12 +153,8 @@ export class UnoTableComponent implements OnInit {
 
     }
     this.unoService.transfer(transferDTO, this.gameId).subscribe({
-        complete: () => {
-        },
-        next: (response: any) => {
-        },
-        error: () => {
-          console.log('Smth went wrong with transfer cards')
+        error: err => {
+          this.toastService.error(err.error, 'Drew Card',)
         }
       }
     )
@@ -158,15 +168,20 @@ export class UnoTableComponent implements OnInit {
       this.setEnemiesHands(this.game.state.hands)
     }
     if (this.game?.meta) {
-      this.determineIfItsYourTurn(this.game.meta)
+      this.determineIfItsYourTurn(<UnoMetaDTO>this.game.meta)
     }
-
+    let obligation: ObligationDTO | undefined;
+    obligation = this.getObligation(this.game?.meta?.obligations)
+    if (obligation) {
+      this.handleObligation(obligation)
+    } else {
+      this.chooseCardColorModalRef?.close()
+    }
   }
 
   playCard() {
     let transferDTOs: TransferDTO[] = []
     this.selectedCards.forEach(card => {
-      console.log('playing card:', card)
       transferDTOs.push({
         "type": "transfer",
         "source": {
@@ -180,12 +195,8 @@ export class UnoTableComponent implements OnInit {
       })
     })
     this.unoService.transfer(transferDTOs, this.gameId).subscribe({
-        complete: () => {
-        },
-        next: (response: any) => {
-        },
-        error: () => {
-          console.log('Smth went wrong with transfer cards')
+        error: err => {
+          this.toastService.error(err.error, 'Play Card',)
         }
       }
     )
@@ -193,5 +204,44 @@ export class UnoTableComponent implements OnInit {
 
   readValueFromHand(value: Set<CardDTO>) {
     this.selectedCards = value;
+  }
+
+  private getObligation(obligations: ObligationDTO[]): ObligationDTO | undefined {
+    return obligations.filter(obligation =>
+      obligation.obliged === this.username
+    ).pop();
+  }
+
+  private handleObligation(obligation: ObligationDTO) {
+    switch (obligation.type) {
+      case "orderColor":
+        this.chooseCardColorModalRef = this.modalService.open(UnoChooseColorModalComponent, {
+          data: {
+            gameId: `${this.gameId}`,
+          },
+          ignoreBackdropClick: true,
+          keyboard: false,
+          modalClass: 'modal-dialog-centered'
+        })
+        break;
+      case"draw":
+        this.toastService.info(('You need to draw' + obligation.amount + ' cards or contr-attack'), 'Draw')
+        break;
+
+      default: {
+        console.log("Wrong obligation type:", obligation.type)
+        break;
+      }
+    }
+  }
+
+  private updateReason(data: any) {
+    let cardAmountAcquiredInThisTurn = 0
+    if (data.game.meta.turn.username === this.username) {
+      cardAmountAcquiredInThisTurn = data.game.meta.turn.cardsDrawn
+    }
+    if (cardAmountAcquiredInThisTurn > 0) {
+      this.cardsAcquiredInThisTurn = new Set(this.playerHand.cards.slice(-cardAmountAcquiredInThisTurn))
+    }
   }
 }
