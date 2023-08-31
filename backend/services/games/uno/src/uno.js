@@ -211,6 +211,12 @@ class Uno {
                         message: "You may not take additional cards out of your turn"
                     }
 
+                if (this.meta.obligations.length > 0)
+                    return {
+                        valid: false,
+                        message: "Players must fulfill their obligations first"
+                    }
+
                 this.meta.turn.cardsDrawn ??= 0;
                 this.meta.turn.cardsDrawn += leftoverAmount;
             }
