@@ -2,6 +2,7 @@ import express from 'express';
 const server = express();
 import expressWS from 'express-ws';
 expressWS(server);
+import cors from "cors";
 
 import keycloak from "kc-adapter";
 import mongo from "./common/mongo.js";
@@ -12,6 +13,12 @@ async function setup() {
         keycloak.init(),
         mongo.connect()
     ]);
+
+    const corsMiddleware = cors({
+        origin: "*"
+    });
+    server.use(corsMiddleware);
+    server.options('*', corsMiddleware);
 
     server.use(app);
 
