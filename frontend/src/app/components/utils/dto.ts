@@ -143,3 +143,11 @@ export interface ReasonDTO {
   type: string
 }
 
+export interface ProfileDTO {
+  username: string,
+  avatar: string,
+  bio: string,
+  friends: string[],
+  online: boolean
+}
+

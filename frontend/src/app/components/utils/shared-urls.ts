@@ -7,4 +7,7 @@ export enum SharedUrls {
   GAME_CORE_SERVER_HTTP = 'http://localhost:10101',
   GAME_CORE_SERVER = 'localhost:10101',
 
+  SOCIAL_SERVER_HTTP = 'http://localhost:10105',
+  SOCIAL_SERVER = 'localhost:10105',
+  PROFILE = 'profile'
 }
