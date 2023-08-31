@@ -1,0 +1,20 @@
+<div class="modal-header mb-3">
+  <h3 class="modal-title" id="exampleModalLabel">Wild Card</h3>
+</div>
+<form class="form-horizontal custom-modal p-1 m-1">
+  <button type="button" class="btn btn-warning" (click)="chooseColor('yellow')">Yellow
+  </button>
+  <button type="button" class="btn btn-danger" (click)="chooseColor('red')">Red
+  </button>
+  <button type="button" class="btn btn-primary" (click)="chooseColor('blue')">Blue
+  </button>
+  <button type="button" class="btn btn-success" (click)="chooseColor('green')">Green
+  </button>
+</form>
+<div class="modal-footer modal-footer-custom">
+
+  <div class="alert alert-danger" role="alert">
+    Need to choose a color
+  </div>
+
+</div>

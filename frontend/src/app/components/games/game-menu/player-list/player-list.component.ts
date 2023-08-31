@@ -1,4 +1,5 @@
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
+import { PlayerLiteDTO} from "../../../utils/dto";
 
 @Component({
   selector: 'app-player-list',
@@ -6,5 +7,6 @@ import {Component} from '@angular/core';
   styleUrls: ['./player-list.component.css']
 })
 export class PlayerListComponent {
+  @Input() players?: PlayerLiteDTO[];
 
 }

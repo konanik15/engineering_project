@@ -1,4 +1,18 @@
 .game-table {
   height: 100vh;
-  background: #A88F65;
+  background: linear-gradient(to bottom, #9cdc65, #1f720b);
+  /* Dodatkowe style, np. szerokość i wysokość */
+  /*margin-top: 56px;*/
+}
+
+.upper-row {
+  height: 25%;
+}
+
+.middle-row {
+  height: 50%;
+}
+
+.lower-row {
+  height: 25%;
 }

@@ -5,6 +5,7 @@ import {LobbiesService} from "../../utils/lobbies-service";
 import {GameLiteDTO, LobbyDTO} from '../../utils/dto';
 import {GamesService} from "../../utils/games-service";
 import {Router} from "@angular/router";
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-create-lobby-modal',
@@ -21,7 +22,8 @@ export class CreateLobbyModalComponent implements OnInit {
               private formBuilder: FormBuilder,
               private lobbiesService: LobbiesService,
               private gamesService: GamesService,
-              private router: Router) {
+              private router: Router,
+              private toastrService: ToastrService) {
   }
 
   ngOnInit(): void {
@@ -29,13 +31,13 @@ export class CreateLobbyModalComponent implements OnInit {
       next: (value) => {
         this.games = value
       },
-      error: () => {
-        console.log('Smth went wrong with getting available games')
+      error: err => {
+        console.log('Smth went wrong with loading games', err)
       }
     });
     this.createLobbyForm();
     if (this.lobbyForm != null) {
-      this.lobbyForm.get('passwordProtected')?.valueChanges.subscribe(x => {
+      this.lobbyForm.get('passwordProtected')?.valueChanges.subscribe(() => {
         this.revertPasswordInputStatus()
       })
     }
@@ -78,7 +80,6 @@ export class CreateLobbyModalComponent implements OnInit {
   }
 
   submit() {
-    console.log('submitting lobby creation')
     this.lobbiesService.createLobby(this.fromValues).subscribe({
       complete: () => {
         this.modalRef.close()
@@ -91,12 +92,12 @@ export class CreateLobbyModalComponent implements OnInit {
 
         window.open(url, '_blank')?.focus();
       },
-      error: () => {
-        console.log('Smth went wrong with creating lobbies')
+      error: err => {
+        console.log(err)
+        this.toastrService.error(err.error.message, "Creating Lobbies ")
       }
     })
   }
-
 
   private revertPasswordInputStatus() {
     if (this.lobbyForm.get('passwordProtected')?.value) {

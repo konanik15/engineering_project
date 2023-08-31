@@ -1,0 +1,39 @@
+
+.uno-card {
+  width: 100px;
+  height: 150px;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.card-type {
+  font-size: 24px;
+  font-weight: bolder;
+}
+
+.card-color {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.game-type {
+  font-size: 24px;
+  font-weight: bolder;
+}
+
+
+.fa-stack {
+  margin-left: -1rem;
+}
+
+.custom-border-text-primary {
+  color: #007BFF; /* Kolor tekstu - np. niebieski */
+  text-shadow: 2px 2px 4px #000000;
+}
+
+.icon-svg {
+  /* Dodaj cień do ikon */
+  filter: drop-shadow(0px 0px 10px rgba(1, 1, 1, 1)); /* Wykorzystanie filtru */
+  /* lub */
+}

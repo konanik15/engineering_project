@@ -10,4 +10,5 @@ export class GameTableComponent {
 
   @Input() game?: GameDTO
 
+
 }

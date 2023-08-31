@@ -15,7 +15,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by game">
         Game
       </th>
-      <td mat-cell *matCellDef="let element"> {{element.game}} </td>
+      <td mat-cell *matCellDef="let element"> {{element.game | titlecase}} </td>
     </ng-container>
 
     <ng-container matColumnDef="players/maxPlayers">

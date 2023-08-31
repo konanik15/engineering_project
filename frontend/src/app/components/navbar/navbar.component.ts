@@ -26,8 +26,6 @@ export class NavbarComponent implements OnInit {
     const userClaims: any = this.oAuthService.getIdentityClaims();
     if (userClaims) {
       this.name = userClaims.family_name ? userClaims.family_name : "Anonim";
-    } else {
-      console.log('User is not logged in yet')
     }
   }
 
