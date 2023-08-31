@@ -35,8 +35,9 @@ router.post("/:gameType", bodyParser.json(), async (req, res, next) => {
         let game = await service.create(req.params.gameType, req.body.participants, req.body.lobbyId);
         return res.status(201).send(game);
     } catch (e) {
-        if (e instanceof GameTypeUnsupportedError ||
-            e instanceof GameDataInvalidError)
+        if (e instanceof GameTypeUnsupportedError)
+            return res.status(404).send(e.message);
+        else if (e instanceof GameDataInvalidError)
             return res.status(400).send(e.message);
         return next(e);
     }
@@ -67,11 +68,14 @@ router.patch("/:gameId", keycloak.protectHTTP(), bodyParser.json(), async (req, 
             user);
         return res.status(200).send();
     } catch (e) {
-        if (e instanceof GameDoesNotExistError ||
-            e instanceof ActionInvalidError ||
+        if (e instanceof GameDoesNotExistError)
+            return res.status(404).send(e.message);
+        else if (e instanceof ActionInvalidError ||
             e instanceof ActionIllegalError ||
             e instanceof GameNotInProgressError)
             return res.status(400).send(e.message);
+        else if (e instanceof GameNotAParticipantError)
+            return res.status(403).send(e.message);
         return next(e);
     }
 });
