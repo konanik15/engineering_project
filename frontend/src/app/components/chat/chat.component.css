@@ -1,70 +1,73 @@
 /* Stylowanie głównego kontenera */
 .container-fluid {
-  padding: 20px;
-  height: 400px;
+    /*padding: 20px;*/
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Stylowanie okna czatu */
 .chat-box {
-  border: 1px solid #e0e0e0;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  overflow-y: auto;
-  height: 300px;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: auto;
+    /*height: 300px;*/
+    flex: 1 0 0;
 }
 
 /* Ustawienie paska przewijania na dole */
 .chat-box::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 .chat-box::-webkit-scrollbar-thumb {
-  background-color: #6c757d;
-  border-radius: 5px;
+    background-color: #6c757d;
+    border-radius: 5px;
 
 }
 
 /* Stylowanie pojedynczej wiadomości */
 .message {
-  margin-bottom: 10px;
-  margin-left: 2%;
-  display: flex;
-  align-items: baseline; /* Ustawienie linii bazowej dla elementów wiadomości */
+    margin-bottom: 10px;
+    margin-left: 2%;
+    display: flex;
+    align-items: baseline; /* Ustawienie linii bazowej dla elementów wiadomości */
 }
 
 /* Stylowanie nadawcy wiadomości */
 .sender {
-  font-weight: bold;
-  color: #007bff;
-  margin-right: 5px; /* Dodanie odstępu po prawej stronie nadawcy */
+    font-weight: bold;
+    color: #007bff;
+    margin-right: 5px; /* Dodanie odstępu po prawej stronie nadawcy */
 }
 
 /* Stylowanie treści wiadomości */
 .content {
-  margin-left: 0; /* Zerowanie marginesu z lewej strony */
+    margin-left: 0; /* Zerowanie marginesu z lewej strony */
 }
 
 /* Stylowanie pola wprowadzania tekstu */
 .input-box {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 /* Stylowanie pola wprowadzania wiadomości */
 .message-input {
-  flex: 1;
-  margin-right: 10px;
+    flex: 1;
+    margin-right: 10px;
 }
 
 /* Stylowanie przycisku wysyłania wiadomości */
 .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
+    background-color: #007bff;
+    border-color: #007bff;
 }
 
 /* Zwiększenie kontrastu dla przycisku po najechaniu */
 .btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
+    background-color: #0056b3;
+    border-color: #0056b3;
 }

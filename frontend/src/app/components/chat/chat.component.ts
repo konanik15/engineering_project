@@ -1,6 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {WebSocketSubject} from 'rxjs/webSocket';
+import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import {LobbyDTO} from "../utils/dto";
+import {SharedUrls} from "../utils/shared-urls";
+import {OAuthService} from "angular-oauth2-oidc";
+import {SocialService} from "../utils/social-service";
 
 interface ChatMessage {
   "type": "chatMessage"
@@ -26,14 +29,15 @@ interface ChatMessageResponse {
   styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit {
-  chatMessages: ChatMessageResponse[] = [];
-  newMessage: string = '';
-
-
   @Input() socket?: WebSocketSubject<any>;
   @Input() lobby!: LobbyDTO;
 
+  chatMessages: ChatMessageResponse[] = [];
+  newMessage: string = '';
 
+  constructor(private oAuthService: OAuthService,
+              private socialService: SocialService) {
+  }
 
   ngOnInit() {
     if (this.lobby) {
@@ -42,13 +46,24 @@ export class ChatComponent implements OnInit {
 
 
     this.socket?.subscribe(
-      (message) => {
-        this.handleIncomingMessage(message);
-      },
-      (error) => {
-        console.error('WebSocket error:', error);
-      }
+        (message) => {
+          this.handleIncomingMessage(message);
+        },
+        (error) => {
+          console.error('WebSocket error:', error);
+        }
     );
+
+    if (!this.socket) {
+      this.establishWSConnection(this.lobby).subscribe(
+          (message) => {
+            this.handleIncomingMessage(message);
+          },
+          (error) => {
+            console.error('WebSocket error:', error);
+          }
+      )
+    }
   }
 
   private handleIncomingMessage(chatMessageResponse: any) {
@@ -97,4 +112,13 @@ export class ChatComponent implements OnInit {
   }
 
 
+  private establishWSConnection(lobby: LobbyDTO) {
+    console.log('Connecting to social via WS')
+
+    let tokenQuery = `?token=${this.oAuthService.getIdToken()}`;
+    let url = (`ws://${SharedUrls.SOCIAL_SERVER}/${SharedUrls.CHAT}/${SharedUrls.LOBBY}/${<string>localStorage.getItem('lobbyID')}${tokenQuery}`)
+
+
+    return this.socialService.socialSocket = webSocket(url);
+  }
 }

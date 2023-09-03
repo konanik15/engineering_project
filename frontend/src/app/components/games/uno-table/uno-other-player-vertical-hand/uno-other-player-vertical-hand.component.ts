@@ -7,5 +7,6 @@ import {HandDTO} from "../../../utils/dto";
   styleUrls: ['./uno-other-player-vertical-hand.component.css']
 })
 export class UnoOtherPlayerVerticalHandComponent {
-  @Input() hand? : HandDTO;
+  @Input() hand?: HandDTO;
+    @Input() isRight?: boolean;
 }

@@ -9,5 +9,6 @@ export enum SharedUrls {
 
   SOCIAL_SERVER_HTTP = 'http://localhost:10105',
   SOCIAL_SERVER = 'localhost:10105',
+  CHAT = 'chat',
   PROFILE = 'profile'
 }

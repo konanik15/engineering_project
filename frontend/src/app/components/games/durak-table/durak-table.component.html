@@ -1,1 +1,69 @@
-<p>durak-table works!</p>
+<div class=" game-table">
+    <div class="row upper-row">
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-6 ">
+            <app-durak-other-player-horizontal-hand *ngIf="enemiesHands.length===1"
+                                                    [hand]=enemiesHands[0]></app-durak-other-player-horizontal-hand>
+            <app-durak-other-player-horizontal-hand *ngIf="enemiesHands.length >1"
+                                                    [hand]=enemiesHands[1]></app-durak-other-player-horizontal-hand>
+        </div>
+        <div class="col-md-3">
+
+        </div>
+    </div>
+    <div class="row middle-row">
+
+        <div class="col-md-3">
+            <app-durak-other-player-vertical-hand *ngIf="enemiesHands.length >= 2"
+                                                  [hand]=enemiesHands[0]></app-durak-other-player-vertical-hand>
+        </div>
+        <div class="row col-md-6 rounded-3 card ">
+            <div class="col-3 full-height d-flex align-items-stretch"></div>
+            <div class="col-3 full-height d-flex align-items-stretch">
+                <app-durak-draw-stack [stacks]=game!.state!.stacks></app-durak-draw-stack>
+            </div>
+            <div class="col-3 full-height d-flex align-items-stretch">
+                <app-durak-discard-pile
+                        [piles]=game!.state!.piles></app-durak-discard-pile>
+            </div>
+
+        </div>
+        <div class="col-md-3">
+            <app-durak-other-player-vertical-hand *ngIf="enemiesHands.length===3"
+                                                  [hand]=enemiesHands[2]></app-durak-other-player-vertical-hand>
+        </div>
+
+    </div>
+    <div class="row lower-row">
+        <div class="col-md-3">
+
+        </div>
+        <div class="col-md-6">
+            <app-durak-player-hand (activeCardsEmitter)="readValueFromHand($event)"
+                                   [hand]="this.playerHand"
+                                   [cardsAcquiredInThisTurn]=" cardsAcquiredInThisTurn"></app-durak-player-hand>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info" style="width: 18rem; margin-top: 10px;">
+                <ul class="list-group list-group-light bg-danger-subtle ">
+                    <li class="list-group-item px-3 ">
+                        <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="drewCard()">
+                            Drew Card
+                        </button>
+                        <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="playCard()">
+                            Play Card
+                        </button>
+                    </li>
+                    <li class="list-group-item  ">
+                        <button type="button" class="btn-primary btn me-1" [disabled]="!yourTurn" (click)="skipTurn()">
+                            Skip Turn
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>

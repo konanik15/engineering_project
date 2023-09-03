@@ -126,7 +126,7 @@ export class LobbiesComponent implements OnInit {
         break;
 
       default: {
-        console.log("Wrong message type")
+        console.log("Wrong message type", message)
         break;
       }
     }
