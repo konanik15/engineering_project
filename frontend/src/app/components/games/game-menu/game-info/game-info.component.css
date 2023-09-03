@@ -1,0 +1,12 @@
+.game-info {
+    padding: 0.5rem;
+}
+
+table {
+    font-size: 1rem;
+    text-align: left;
+}
+
+th {
+    padding: 0.25rem 0 0.25rem 0.5rem;
+}

@@ -5,6 +5,7 @@ import {LobbyDTO} from "../utils/dto";
 import {LobbiesService} from "../utils/lobbies-service";
 import {OAuthService} from "angular-oauth2-oidc";
 import {GamesService} from "../utils/games-service";
+import {ToastrService} from "ngx-toastr";
 
 
 @Component({
@@ -24,11 +25,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   private routeSub!: Subscription;
 
-  constructor(private lobbiesService: LobbiesService,
-              private gameService: GamesService,
-              private route: ActivatedRoute,
-              private oAuthService: OAuthService) {
-  }
+    constructor(private lobbiesService: LobbiesService,
+                private gameService: GamesService,
+                private route: ActivatedRoute,
+                private oAuthService: OAuthService,
+                private toastrService: ToastrService) {
+    }
 
 
   ngOnInit(): void {
@@ -74,7 +76,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.ready = !this.ready;
     let status: string;
     if (this.ready) {
-      status = "ready"
+        this.toastrService.success("Player admin1 invited you to friends", "Friend invite")
+        status = "ready"
     } else {
       status = 'unready'
     }

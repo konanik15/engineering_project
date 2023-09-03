@@ -1,6 +1,8 @@
 <div class="container">
-  <h2 class="text-center">Players</h2>
   <ul class="list-group">
-    <li *ngFor="let player of players" class="list-group-item">{{ player.username }}</li>
+      <li *ngFor="let player of players" class="list-group-item">
+          <a class="link-info" role="button" routerLink="/profile/{{player.username}}">{{player.username}}</a>
+      </li>
+
   </ul>
 </div>

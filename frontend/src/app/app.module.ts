@@ -40,20 +40,32 @@ import {ToastrModule} from 'ngx-toastr';
 import {ToastComponent} from './components/utils/toast/toast.component';
 import {DurakTableComponent} from './components/games/durak-table/durak-table.component';
 import {
-  UnoChooseColorModalComponent
+    UnoChooseColorModalComponent
 } from './components/games/uno-table/uno-choose-color-modal/uno-choose-color-modal.component';
 import {ProfileComponent} from './components/profile/profile.component';
 import {NgOptimizedImage} from "@angular/common";
+import {DurakPlayerHandComponent} from './components/games/durak-table/durak-player-hand/durak-player-hand.component';
+import {
+    DurakOtherPlayerVerticalHandComponent
+} from './components/games/durak-table/durak-other-player-vertical-hand/durak-other-player-vertical-hand.component';
+import {
+    DurakOtherPlayerHorizontalHandComponent
+} from './components/games/durak-table/durak-other-player-horizontal-hand/durak-other-player-horizontal-hand.component';
+import {DurakDrawStackComponent} from './components/games/durak-table/durak-draw-stack/durak-draw-stack.component';
+import {
+    DurakDiscardPileComponent
+} from './components/games/durak-table/durak-discard-pile/durak-discard-pile.component';
+import {DurakCardComponent} from './components/games/durak-table/durak-card/durak-card.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    NavbarComponent,
-    LobbiesComponent,
-    WelcomeComponent,
-    JoinLobbyModalComponent,
-    LobbyComponent,
-    AvailableGamesComponent,
+    declarations: [
+        AppComponent,
+        NavbarComponent,
+        LobbiesComponent,
+        WelcomeComponent,
+        JoinLobbyModalComponent,
+        LobbyComponent,
+        AvailableGamesComponent,
     CreateLobbyModalComponent,
     ChatComponent,
     GameComponent,
@@ -62,18 +74,24 @@ import {NgOptimizedImage} from "@angular/common";
     GameInfoComponent,
     PlayerListComponent,
     UnoTableComponent,
-    UnoDrawStackComponent,
-    UnoDiscardPileComponent,
-    UnoCardComponent,
-    UnoPlayerHandComponent,
-    UnoOtherPlayerHorizontalHandComponent,
-    UnoOtherPlayerVerticalHandComponent,
-    PluralizePipe,
-    ToastComponent,
-    DurakTableComponent,
-    UnoChooseColorModalComponent,
-    ProfileComponent
-  ],
+        UnoDrawStackComponent,
+        UnoDiscardPileComponent,
+        UnoCardComponent,
+        UnoPlayerHandComponent,
+        UnoOtherPlayerHorizontalHandComponent,
+        UnoOtherPlayerVerticalHandComponent,
+        PluralizePipe,
+        ToastComponent,
+        DurakTableComponent,
+        UnoChooseColorModalComponent,
+        ProfileComponent,
+        DurakPlayerHandComponent,
+        DurakOtherPlayerVerticalHandComponent,
+        DurakOtherPlayerHorizontalHandComponent,
+        DurakDrawStackComponent,
+        DurakDiscardPileComponent,
+        DurakCardComponent
+    ],
   imports: [
     BrowserModule,
     HttpClientModule,

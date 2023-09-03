@@ -1,14 +1,15 @@
-<div class=" container d-flex flex-column game-menu">
-  <div class="row custom-row">
-    <div class="col-12 flex-grow-1 custom-border-bottom card">
-      <app-game-info *ngIf="game" [status]="game.status" [type]="game.type"
-                     [usernameTurn]="game.meta!.turn!.username"></app-game-info>
-    </div>
-    <div class="col-12 p-0 flex-grow-1 custom-border-bottom">
-      <app-chat [socket]="LobbiesService.lobbySocket"></app-chat>
-    </div>
-    <div class="col-12 p-0 flex-grow-1 custom-border-bottom card">
-      <app-player-list *ngIf="game" [players]="game.participants"></app-player-list>
-    </div>
-  </div>
-</div>
+<section class="d-flex flex-column game-menu h-100">
+    <h2>{{ game!.type | titlecase }}</h2>
+    <section class="flex-grow-1 custom-border-bottom container">
+        <app-game-info *ngIf="game" [status]="game.status" [type]="game.type"
+                       [usernameTurn]="game.meta!.turn?.username"></app-game-info>
+    </section>
+    <section class="p-0 flex-grow-1 custom-border-bottom">
+        <h3 class="text-center">Players</h3>
+        <app-player-list *ngIf="game" [players]="game.participants"></app-player-list>
+    </section>
+    <h3 class="text-center mb-0">Chat</h3>
+    <section class="p-0 flex-grow-1 custom-border-bottom h-100">
+        <app-chat class="flex-grow-1" [socket]="LobbiesService.lobbySocket"></app-chat>
+    </section>
+</section>

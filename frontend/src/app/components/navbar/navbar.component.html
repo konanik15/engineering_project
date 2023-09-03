@@ -10,8 +10,8 @@
         <li *ngIf="token" class="nav-item">
           <a (click)="logout()" class="nav-link" role="button">Logout</a>
         </li>
-        <li *ngIf="token" class="nav-item">
-          <span class="nav-link" style="color:#ca7d0a">You are logged in as {{name}}</span>
+        <li *ngIf="token && name" class="nav-item">
+            <span class="nav-link" style="color:#ca7d0a">You are logged in as {{name}}</span>
         </li>
         <li *ngIf="token" class="nav-item">
           <a class="nav-link" role="button" routerLink="/profile/{{name}}">Profile</a>
