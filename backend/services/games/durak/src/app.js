@@ -1,12 +1,11 @@
 import express from 'express';
-const router = express.Router();
-
-import _ from "lodash";
 
 import Game from "./durak.js";
 
+const router = express.Router();
+
 const description = "A classic card game of Russian origins that is popular in many post-Soviet states.";
-const maxPlayers = 5;
+const maxPlayers = 4;
 const minPlayers = 2;
 
 router.get("/info", async (req, res, next) => {

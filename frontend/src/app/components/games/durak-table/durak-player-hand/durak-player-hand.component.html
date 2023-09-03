@@ -1,1 +1,16 @@
-<p>durak-player-hand works!</p>
+<div class="card-stack">
+    <div *ngFor="let card of hand?.cards; let i = index"
+         class="uno-card-container"
+         [ngClass]="{ 'uno-card--active': activeCards.has(card) ,  'uno-card--acquired': cardsAcquiredInThisTurn?.has(card) }"
+         [style.z-index]="100 - i">
+        <app-durak-card
+                (click)="toggleSelect(card)"
+                [rank]="card.rank"
+                [suit]="card.suit"
+                [facing]="'up'"
+        ></app-durak-card>
+    </div>
+</div>
+
+
+

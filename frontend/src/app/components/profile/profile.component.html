@@ -1,13 +1,22 @@
-<div class="container">
-  <div class="row">
-    <div class="col-md-4">
-      <!--      <img [src]="profile.avatar" alt="User Avatar" class="img-fluid">-->
+<div class="container " xmlns="http://www.w3.org/1999/html">
+    <div class="row margin-top border border-black rounded-3 p-5 h-100">
+
+        <div *ngIf="profile" class="col-md-8 column-gap-md-2 h-100">
+
+            <h1>{{ profile.username }}</h1>
+            <p>{{ profile.bio }}</p>
+
+            <p>Friends:{{ profile.friends.join(', ') }}</p>
+            <p>Status: {{ profile.online ? 'Online' : 'Offline' }}</p>
+            <br/>
+            <br/>
+            <button class="btn btn-primary ">Add to Friends</button>
+            <button class="btn btn-primary m-2">Send message</button>
+            <p class="mt-4">{{ profile?.bio }} Welcome to my profile, i love card games. Especially Uno, i will destroy
+                you in that one, feel free to add me to friends if you like Uno too</p>
+        </div>
+        <div class="col-md-4">
+            <img src="assets/default-avatar.jpg" alt="User Avatar" class="img-fluid w-100 h-100 shadow">
+        </div>
     </div>
-    <div *ngIf="profile" class="col-md-8">
-      <h1>{{ profile.username }}</h1>
-      <p>{{ profile.bio }}</p>
-      <p>Friends: {{ profile.friends.join(', ') }}</p>
-      <p>Status: {{ profile.online ? 'Online' : 'Offline' }}</p>
-    </div>
-  </div>
 </div>

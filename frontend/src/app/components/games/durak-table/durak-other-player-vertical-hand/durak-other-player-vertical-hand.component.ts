@@ -8,4 +8,5 @@ import {HandDTO} from "../../../utils/dto";
 })
 export class DurakOtherPlayerVerticalHandComponent {
     @Input() hand?: HandDTO;
+    @Input() isRight?: boolean;
 }

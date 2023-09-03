@@ -1,1 +1,8 @@
-<p>durak-card works!</p>
+<div *ngIf="facing === 'up'" class="card uno-card custom-border-text-primary">
+    <img *ngIf="rank && suit" src="assets/durak-cards/{{rank}}_of_{{suit}}.png" alt="" width="100"
+         height="150" priority/>
+</div>
+
+<div *ngIf="facing === 'down'" class="card uno-card">
+    <img ngSrc="assets/uno-cards/uno.down.png" alt="" width="100" height="150"/>
+</div>

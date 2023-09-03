@@ -1,13 +1,14 @@
-<div class="game-card-grid">
-  <button
-    *ngFor="let game of games"
-    (click)="toggleSelect(game.type)"
-    class="card game-card"
-    [ngClass]="{ 'game-card--active': activeGames.has(game.type) }"
-  >
-    <div class="card-body">
-      <h5 class="card-title">{{ game.type | titlecase}}</h5>
-      <p class="card-text game-description">
+<div class="game-card-grid text-white me-4 ms-4">
+    <button
+            *ngFor="let game of games"
+            (click)="toggleSelect(game.type)"
+            class="card game-card"
+            [ngClass]="{ 'game-card--active': activeGames.has(game.type) }"
+            [ngStyle]="{'background': 'url(assets/'+ game.type + '.jpg)', 'background-position': 'center' , 'background-size': 'cover'}"
+    >
+        <div class="card-body">
+            <h4 class="card-title">{{ game.type | titlecase}}</h4>
+            <p class="card-text game-description">
         {{ game.description }}
       </p>
     </div>

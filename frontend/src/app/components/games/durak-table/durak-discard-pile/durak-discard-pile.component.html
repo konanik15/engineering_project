@@ -1,1 +1,10 @@
-<p>durak-discard-pile works!</p>
+<div class="cards">
+    <app-uno-card style="rotate: 10deg"
+                  [cardType]="piles?.[0]?.cards?.[0]?.type"
+                  [cardColor]="piles?.[0]?.cards?.[0]?.color"
+                  [facing]="facing"
+    ></app-uno-card>
+    <div class="number">{{this.piles?.[0]?.cards?.length | pluralize:'Card'}} </div>
+    <div class="action" *ngIf="piles?.[0]?.cards?.[0]?.color==='black'">{{orderedColor | titlecase}}</div>
+    <div class="action">Discard Stack</div>
+</div>

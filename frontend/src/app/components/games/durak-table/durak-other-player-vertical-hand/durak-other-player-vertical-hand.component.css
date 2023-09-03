@@ -1,0 +1,30 @@
+.card-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.card-stack > * {
+    flex: 1 0 1px;
+    height: 1px;
+}
+
+.uno-card-container {
+    width: 150px;
+    height: 100px;
+    flex: 1 0 0;
+    transform: rotate(90deg);
+    position: relative;
+}
+
+.uno-card-container--right {
+    transform: rotate(-90deg);
+}
+
+.uno-card-container > * {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+}

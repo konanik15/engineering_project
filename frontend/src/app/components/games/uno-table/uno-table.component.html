@@ -1,15 +1,16 @@
-<div class="game-table h-100 overflow-hidden">
+<div class="game-table h-100 overflow-hidden" *ngIf="enemiesHands.length > 0 ">
     <div class="row upper-row">
         <div class="col-sm-12 col-md-6 offset-md-3 hand-row">
-            <h3 class="rounded-3 horizontal-h3">{{enemiesHands[enemiesHands.length === 1 ? 0 : 1].owner}}
-                ({{enemiesHands[enemiesHands.length === 1 ? 0 : 1].cards.length}})</h3>
+            <h3 class="rounded-3 horizontal-h3">{{enemiesHands[enemiesHands.length === 1 ? 0 : 1]?.owner}}
+                ({{enemiesHands[enemiesHands.length === 1 ? 0 : 1]?.cards?.length}})</h3>
             <app-uno-other-player-horizontal-hand class="w-100"
                                                   [hand]="enemiesHands[enemiesHands.length === 1 ? 0 : 1]"/>
         </div>
     </div>
     <div class="row middle-row">
         <div class="col-sm-3 col-md-3 hand-col">
-            <h3 class="rounded-3">{{enemiesHands[0].owner}} ({{enemiesHands[0].cards.length}})</h3>
+            <h3 class="rounded-3" *ngIf="enemiesHands.length >= 2">{{enemiesHands[0]?.owner}}
+                ({{enemiesHands[0]?.cards?.length}})</h3>
             <app-uno-other-player-vertical-hand *ngIf="enemiesHands.length >= 2"
                                                 [hand]="enemiesHands[0]"/>
         </div>
@@ -22,7 +23,8 @@
             </div>
         </div>
         <div class="col-sm-3 col-md-3 hand-col">
-            <h3 class="rounded-3">{{enemiesHands[2].owner}}  ({{enemiesHands[2].cards.length}})</h3>
+            <h3 class="rounded-3" *ngIf="enemiesHands.length >= 3">{{enemiesHands[2]?.owner}}
+                ({{enemiesHands[2]?.cards?.length}})</h3>
             <app-uno-other-player-vertical-hand [isRight]="true" *ngIf="enemiesHands.length===3"
                                                 [hand]="enemiesHands[2]"/>
         </div>

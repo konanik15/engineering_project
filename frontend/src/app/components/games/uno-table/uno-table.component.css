@@ -1,18 +1,10 @@
 .game-table {
-    /*height: 100vh;*/
-    /*background-image: linear-gradient(to right, #c6ffdd, #fbd786, #f7797d); !* Dodatkowe style, np. szerokość i wysokość *!*/
-    /*margin-top: 56px;*/
-    /*background: #f06;*/
     --red: #D72600;
     --blue: #0956BF;
     --green: #379711;
     --yellow: #ECD407;
     background: linear-gradient(45deg, var(--yellow), transparent 35%), linear-gradient(135deg, var(--red), transparent 60%), linear-gradient(225deg, var(--blue), transparent 60%), linear-gradient(315deg, var(--green), transparent 90%);
-    /*min-height: 100%;*/
-    /*width:256px;*/
-    /*height:256px;*/
-    /*position:relative;*/
-    /*z-index:1;*/
+
 }
 
 .upper-row {

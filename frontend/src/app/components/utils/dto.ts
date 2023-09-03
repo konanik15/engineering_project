@@ -74,8 +74,10 @@ export interface PileDTO {
 }
 
 export interface CardDTO {
-  color: string,
-  type: string
+  color?: string,
+  type?: string,
+  rank?: string,
+  suit?: string
 }
 
 export interface GameLiteDTO {
@@ -87,7 +89,9 @@ export interface DurakMetaDTO {
   declarations: any[],
   direction: string,
   obligations: any[],
-  turn: PlayerLiteDTO,
+  attacker: PlayerLiteDTO,
+  defender: PlayerLiteDTO,
+  turn?: PlayerLiteDTO
   orderedColor?: string //this type never exists, it;s just my lack of iq to handle types in typescript
 }
 

@@ -1,12 +1,11 @@
 import express from 'express';
-const router = express.Router();
-
-import _ from "lodash";
 
 import Game from "./uno.js";
 
+const router = express.Router();
+
 const description = "A fun, simple and easy to understand game, where the primary objective is to get rid of your cards";
-const maxPlayers = 10;
+const maxPlayers = 4;
 const minPlayers = 2;
 
 router.get("/info", async (req, res, next) => {

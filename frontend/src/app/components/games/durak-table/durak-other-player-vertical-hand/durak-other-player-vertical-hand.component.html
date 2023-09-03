@@ -1,1 +1,9 @@
-<p>durak-other-player-vertical-hand works!</p>
+<div class="card-stack">
+    <div *ngFor="let card of hand?.cards; let i = index" class="uno-card-container"
+         [ngClass]="{'uno-card-container--right' : isRight}">
+        <app-uno-card
+                [cardColor]='"black"' [cardType]='"uno"' [facing]='"down"'
+        ></app-uno-card>
+    </div>
+</div>
+

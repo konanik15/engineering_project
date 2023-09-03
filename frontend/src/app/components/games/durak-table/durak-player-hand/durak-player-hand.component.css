@@ -1,0 +1,52 @@
+.card-stack {
+    display: flex;
+    /*margin-right: 30px;*/
+    /*margin-top: 10px;*/
+    /*display: flex;*/
+    /*gap: 10px; !* Odstęp między kartami *!*/
+}
+
+.uno-card-container {
+    transition: 0.2s;
+    position: relative;
+}
+
+.card-stack > * {
+    flex: 1 0 0;
+    width: 0;
+}
+
+.uno-card-container > * {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+}
+
+.uno-card-container:hover,
+.uno-card-container:focus-within {
+    transform: translateY(-1.5rem);
+}
+
+.uno-card--active {
+    transform: translateY(-1.5rem);
+}
+
+.uno-card--active > * {
+    border-width: 0px;
+    transition: border-width 200ms;
+}
+
+.uno-card--active > * {
+    border: 3px solid #ca7d0a; /* Change border style for active card */
+    /*box-shadow: 0 0 5px #f00; !* Add a subtle shadow for active effect *!*/
+    border-radius: 10px;
+}
+
+.uno-card--acquired {
+    margin-top: 10px;
+    border: 3px solid; /* Change border style for active card */
+    border-radius: 5px;
+    box-shadow: 0 0 5px #000000; /* Add a subtle shadow for active effect */
+}
+

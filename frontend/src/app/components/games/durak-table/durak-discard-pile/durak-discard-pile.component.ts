@@ -8,6 +8,7 @@ import {CardDTO, PileDTO} from "../../../utils/dto";
 })
 export class DurakDiscardPileComponent implements OnInit {
     @Input() piles?: PileDTO[];
+    @Input() orderedColor: string | undefined;
 
     pilesSize: number = 0;
     cards!: CardDTO[];

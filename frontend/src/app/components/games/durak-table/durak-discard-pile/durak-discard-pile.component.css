@@ -1,0 +1,28 @@
+
+.cards {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*padding: 0.75rem 1.25rem;*/
+    gap: 1rem;
+    width: 145px;
+    color: white;
+}
+
+.cards .uno-card {
+    transform: rotate(10deg);
+}
+
+.number {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.gameType {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.action {
+    font-size: 18px;
+}

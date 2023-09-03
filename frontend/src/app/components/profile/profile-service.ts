@@ -18,4 +18,5 @@ export class ProfileService {
   getProfile(username: string): Observable<ProfileDTO> {
     return this.http.get<ProfileDTO>(`${SharedUrls.SOCIAL_SERVER_HTTP}/${SharedUrls.PROFILE}/${username}`)
   }
+
 }

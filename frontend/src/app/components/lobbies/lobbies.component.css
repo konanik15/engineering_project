@@ -5,3 +5,7 @@
 .icon-refresh {
   margin-left: 10%;
 }
+
+.modal-backdrop {
+    opacity: 0.5 !important;
+}

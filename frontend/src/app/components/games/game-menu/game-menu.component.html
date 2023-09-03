@@ -2,7 +2,7 @@
     <h2>{{ game!.type | titlecase }}</h2>
     <section class="flex-grow-1 custom-border-bottom container">
         <app-game-info *ngIf="game" [status]="game.status" [type]="game.type"
-                       [usernameTurn]="game.meta!.turn!.username"></app-game-info>
+                       [usernameTurn]="game.meta!.turn?.username"></app-game-info>
     </section>
     <section class="p-0 flex-grow-1 custom-border-bottom">
         <h3 class="text-center">Players</h3>
